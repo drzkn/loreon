@@ -1,0 +1,199 @@
+.globalNavigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.globalNavigation.expanded {
+  width: 200px;
+  padding: 2rem 1rem;
+}
+
+.navContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+  height: 100%;
+}
+
+.navItem {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.globalNavigation.expanded .navItem {
+  padding: 0.5rem;
+  justify-content: flex-start;
+}
+
+.navIcon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.navLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.globalNavigation.expanded .navLabel {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.navItem::before {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: top 0.5s ease;
+}
+
+.navItem:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.navItem:hover::before {
+  top: 100%;
+}
+
+.navItem:active {
+  transform: translateX(2px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.navItem.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.navItem.active:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  transform: translateX(4px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .globalNavigation {
+    width: 100%;
+    height: 80px;
+    bottom: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: visible;
+  }
+
+  .globalNavigation.expanded {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .navContainer {
+    flex-direction: row;
+    justify-content: center;
+    height: auto;
+    gap: 0.5rem;
+  }
+
+  .navItem {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: auto;
+    flex: 1;
+    max-width: 120px;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .navLabel {
+    opacity: 1;
+    transform: translateX(0);
+    font-size: 0.7rem;
+  }
+
+  .navIcon {
+    font-size: 1rem;
+    width: 20px;
+    height: 20px;
+  }
+
+  .navItem:hover {
+    transform: translateY(-2px);
+  }
+
+  .navItem:active {
+    transform: translateY(0);
+  }
+
+  .navItem.active {
+    transform: translateY(-4px);
+  }
+
+  .navItem.active:hover {
+    transform: translateY(-6px);
+  }
+}
