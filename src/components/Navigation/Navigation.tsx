@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import styles from './Navigation.module.css';
