@@ -9,7 +9,8 @@
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test:connection": "npx tsx src/examples/config.example.ts"
+    "test:connection": "npx tsx src/examples/config.example.ts",
+    "example:supabase": "npx tsx src/examples/supabaseExample.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",
