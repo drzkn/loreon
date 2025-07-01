@@ -1,87 +1,117 @@
 import 'dotenv/config';
-import { NextResponse } from 'next/server';
 import { ConnectionPageRepository } from '../../connect/repository';
 
 export async function POST() {
-  try {
-    console.log('🚀 API Route: Iniciando sincronización con Supabase...');
+  // Configurar headers para Server-Sent Events
+  const headers = new Headers({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  });
 
-    // Obtener database IDs de las variables de entorno
-    const databaseIdsStr = process.env.NOTION_DATABASE_ID;
+  // Crear un ReadableStream para enviar eventos
+  const stream = new ReadableStream({
+    start(controller) {
+      // Función para enviar logs al cliente
+      const sendLog = (message: string) => {
+        const data = `data: ${JSON.stringify({ message })}\n\n`;
+        controller.enqueue(new TextEncoder().encode(data));
+      };
 
-    if (!databaseIdsStr) {
-      return NextResponse.json(
-        { error: 'NOTION_DATABASE_ID no configurado en variables de entorno' },
-        { status: 400 }
-      );
-    }
+      // Función principal de sincronización
+      const syncProcess = async () => {
+        try {
+          sendLog('🚀 Iniciando sincronización con Supabase...');
 
-    const databaseIds = databaseIdsStr.split(',').map(id => id.trim()).filter(id => id.length > 0);
-    console.log(`📊 Procesando ${databaseIds.length} database(s): ${databaseIds.join(', ')}`);
+          // Obtener database IDs de las variables de entorno
+          const databaseIdsStr = process.env.NOTION_DATABASE_ID;
 
-    const results = [];
+          if (!databaseIdsStr) {
+            sendLog('❌ Error: NOTION_DATABASE_ID no configurado en variables de entorno');
+            controller.close();
+            return;
+          }
 
-    // Procesar cada database ID
-    for (let i = 0; i < databaseIds.length; i++) {
-      const databaseId = databaseIds[i];
-      console.log(`📊 Procesando database ${i + 1}/${databaseIds.length}: ${databaseId}`);
+          const databaseIds = databaseIdsStr.split(',').map(id => id.trim()).filter(id => id.length > 0);
+          sendLog(`📊 Procesando ${databaseIds.length} database(s): ${databaseIds.join(', ')}`);
 
-      try {
-        // Crear repository con callbacks que loguean al servidor
-        const repository = new ConnectionPageRepository(
-          databaseId,
-          (processing: boolean) => {
-            console.log(`🔄 Estado de procesamiento: ${processing ? 'INICIADO' : 'FINALIZADO'}`);
-          },
-          (progress) => {
-            if (progress) {
-              console.log(`📊 Progreso: ${progress.current}/${progress.total} - ${progress.currentPageTitle}`);
+          const results = [];
+
+          // Procesar cada database ID
+          for (let i = 0; i < databaseIds.length; i++) {
+            const databaseId = databaseIds[i];
+            sendLog(`📊 Procesando database ${i + 1}/${databaseIds.length}: ${databaseId}`);
+
+            try {
+              // Crear repository con callback para logs en tiempo real
+              const repository = new ConnectionPageRepository(
+                databaseId,
+                (processing: boolean) => {
+                  sendLog(`🔄 Estado de procesamiento: ${processing ? 'INICIADO' : 'FINALIZADO'}`);
+                },
+                (progress) => {
+                  if (progress) {
+                    sendLog(`📄 Progreso: ${progress.current}/${progress.total} - ${progress.currentPageTitle}`);
+                  }
+                },
+                sendLog // Callback para enviar logs al stream
+              );
+
+              await repository.handleSyncToSupabase();
+
+              results.push({
+                databaseId,
+                status: 'success',
+                message: `Database ${databaseId} sincronizado correctamente`
+              });
+
+              sendLog(`✅ Database ${databaseId} sincronizado correctamente`);
+
+            } catch (dbError) {
+              const errorMessage = dbError instanceof Error ? dbError.message : 'Error desconocido';
+              sendLog(`❌ Error procesando database ${databaseId}: ${errorMessage}`);
+              results.push({
+                databaseId,
+                status: 'error',
+                message: errorMessage
+              });
             }
           }
-        );
 
-        await repository.handleSyncToSupabase();
+          const successCount = results.filter(r => r.status === 'success').length;
+          const errorCount = results.filter(r => r.status === 'error').length;
 
-        results.push({
-          databaseId,
-          status: 'success',
-          message: `Database ${databaseId} sincronizado correctamente`
-        });
+          sendLog(`✅ Sincronización completada: ${successCount} exitosas, ${errorCount} errores`);
 
-      } catch (dbError) {
-        console.error(`❌ Error procesando database ${databaseId}:`, dbError);
-        results.push({
-          databaseId,
-          status: 'error',
-          message: dbError instanceof Error ? dbError.message : 'Error desconocido'
-        });
-      }
+          // Enviar resultado final
+          const finalResult = {
+            success: true,
+            message: `Sincronización completada: ${successCount} exitosas, ${errorCount} errores`,
+            results,
+            summary: {
+              total: databaseIds.length,
+              successful: successCount,
+              errors: errorCount
+            }
+          };
+
+          sendLog(`SYNC_COMPLETE:${JSON.stringify(finalResult)}`);
+
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+          sendLog(`💥 Error crítico: ${errorMessage}`);
+        } finally {
+          controller.close();
+        }
+      };
+
+      // Ejecutar la sincronización
+      syncProcess();
     }
+  });
 
-    const successCount = results.filter(r => r.status === 'success').length;
-    const errorCount = results.filter(r => r.status === 'error').length;
-
-    console.log(`✅ Sincronización completada: ${successCount} exitosas, ${errorCount} errores`);
-
-    return NextResponse.json({
-      success: true,
-      message: `Sincronización completada: ${successCount} exitosas, ${errorCount} errores`,
-      results,
-      summary: {
-        total: databaseIds.length,
-        successful: successCount,
-        errors: errorCount
-      }
-    });
-
-  } catch (error) {
-    console.error('💥 Error crítico en API Route:', error);
-    return NextResponse.json(
-      {
-        error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
-      },
-      { status: 500 }
-    );
-  }
+  return new Response(stream, { headers });
 } 

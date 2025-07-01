@@ -17,7 +17,8 @@ export class ConnectionPageRepository {
   constructor(
     private databaseId: string,
     private setIsProcessing: (processing: boolean) => void,
-    private setProgress: (progress: { current: number; total: number; currentPageTitle: string } | null) => void
+    private setProgress: (progress: { current: number; total: number; currentPageTitle: string } | null) => void,
+    private sendLogToStream?: (message: string) => void
   ) {
     this.authService = new SupabaseAuthService();
   }
@@ -26,19 +27,29 @@ export class ConnectionPageRepository {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [MARKDOWN-${level.toUpperCase()}] ${message}`;
 
+    let formattedMessage = '';
     switch (level) {
       case 'info':
-        console.log(`ℹ️ ${logMessage}`, data || '');
+        formattedMessage = `ℹ️ ${logMessage}`;
+        console.log(formattedMessage, data || '');
         break;
       case 'success':
-        console.log(`✅ ${logMessage}`, data || '');
+        formattedMessage = `✅ ${logMessage}`;
+        console.log(formattedMessage, data || '');
         break;
       case 'warn':
-        console.warn(`⚠️ ${logMessage}`, data || '');
+        formattedMessage = `⚠️ ${logMessage}`;
+        console.warn(formattedMessage, data || '');
         break;
       case 'error':
-        console.error(`❌ ${logMessage}`, data || '');
+        formattedMessage = `❌ ${logMessage}`;
+        console.error(formattedMessage, data || '');
         break;
+    }
+
+    // Enviar también al stream si está disponible
+    if (this.sendLogToStream) {
+      this.sendLogToStream(formattedMessage);
     }
   }
 

@@ -29,31 +29,61 @@ export default function ConnectPage() {
       setIsProcessing(true);
       clearLogs();
 
-      const [response] = await Promise.all([
-        fetch('/api/sync-supabase', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-      ]);
-
-      const result = await response.json();
+      // Usar Server-Sent Events para logs en tiempo real
+      const response = await fetch('/api/sync-supabase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
-        addLog(`❌ Error HTTP: ${response.status} - ${result.error}`);
-        throw new Error(result.error || `Error HTTP: ${response.status}`);
+        throw new Error(`Error HTTP: ${response.status}`);
       }
 
-      addLog('🎉 ¡Sincronización completada exitosamente!');
-      console.log('✅ Sincronización completada:', result);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-      setTimeout(() => {
-        addLog('📊 Resumen:');
-        addLog(`💿 Total de databases: ${result.summary.total}`);
-        addLog(`✅ Exitosas: ${result.summary.successful}`);
-        addLog(`❌ Errores: ${result.summary.errors}`);
-      }, 500);
+      if (reader) {
+        let finalResult = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                // Verificar si es el resultado final
+                if (data.message.startsWith('SYNC_COMPLETE:')) {
+                  finalResult = JSON.parse(data.message.slice(14));
+                  addLog('🎉 ¡Sincronización completada exitosamente!');
+                } else {
+                  addLog(data.message);
+                }
+              } catch {
+                // Ignorar líneas que no sean JSON válido
+              }
+            }
+          }
+        }
+
+        // Mostrar resumen final si está disponible
+        if (finalResult) {
+          setTimeout(() => {
+            addLog('📊 Resumen:');
+            addLog(`💿 Total de databases: ${finalResult.summary.total}`);
+            addLog(`✅ Exitosas: ${finalResult.summary.successful}`);
+            addLog(`❌ Errores: ${finalResult.summary.errors}`);
+          }, 500);
+        }
+
+      }
 
     } catch (error) {
       addLog(`❌ Error en la sincronización: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -63,8 +93,6 @@ export default function ConnectPage() {
       setIsProcessing(false);
     }
   };
-
-
 
   return (
     <div style={{
@@ -120,43 +148,51 @@ export default function ConnectPage() {
             padding: '1.5rem',
             borderRadius: '12px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            height: isProcessing ? '230px' : '185px'
+            height: isProcessing ? '230px' : '185px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-around',
           }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>📋 Manual</h3>
-            <p style={{ opacity: 0.8 }}>Control total sobre cuándo sincronizar</p>
+            <section>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>📋 Manual</h3>
+              <p style={{ opacity: 0.8 }}>Control total sobre cuándo sincronizar</p>
+            </section>
 
-            {isProcessing && (
-              <div style={{
-                marginTop: '1rem',
-                padding: '0.5rem',
-                background: 'rgba(16, 185, 129, 0.1)',
-                borderRadius: '6px',
-                fontSize: '0.8rem'
-              }}>
-                <div>🔄 Sincronización en progreso...</div>
-                <div>📄 Procesando múltiples databases</div>
+            <section>
+              {isProcessing && (
+                <div style={{
+                  marginTop: '1rem',
+                  padding: '0.5rem',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem'
+                }}>
+                  <div>🔄 Sincronización en progreso...</div>
+                  <div>📄 Procesando múltiples databases</div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                <button
+                  onClick={handleSyncToSupabase}
+                  disabled={isProcessing}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: isProcessing ? '#6b7280' : '#10b981',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: 'white',
+                    fontSize: '0.9rem',
+                    cursor: isProcessing ? 'not-allowed' : 'pointer',
+                    opacity: isProcessing ? 0.7 : 1,
+                    transition: 'all 0.2s ease',
+                    flex: 1
+                  }}
+                >
+                  {isProcessing ? '🔄 Sincronizando...' : '🚀 Sincronizar'}
+                </button>
               </div>
-            )}
-
-            <button
-              onClick={handleSyncToSupabase}
-              disabled={isProcessing}
-              style={{
-                marginTop: '1rem',
-                padding: '0.5rem 1rem',
-                background: isProcessing ? '#6b7280' : '#10b981',
-                border: 'none',
-                borderRadius: '6px',
-                color: 'white',
-                fontSize: '0.9rem',
-                cursor: isProcessing ? 'not-allowed' : 'pointer',
-                opacity: isProcessing ? 0.7 : 1,
-                transition: 'all 0.2s ease',
-                width: '100%'
-              }}
-            >
-              {isProcessing ? '🔄 Sincronizando...' : '🚀 Sincronizar Ahora'}
-            </button>
+            </section>
           </div>
 
           <div style={{
@@ -221,10 +257,9 @@ export default function ConnectPage() {
               </div>
             </div>
 
-            {/* Terminal Content */}
             <div style={{
               padding: '1rem',
-              maxHeight: '300px',
+              height: '300px',
               overflowY: 'auto',
               fontFamily: 'Monaco, Consolas, "Courier New", monospace',
               fontSize: '0.85rem',
@@ -250,7 +285,6 @@ export default function ConnectPage() {
               <div ref={terminalEndRef} />
             </div>
 
-            {/* Terminal Footer */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.05)',
               padding: '0.5rem 1rem',
@@ -269,7 +303,7 @@ export default function ConnectPage() {
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </section >
+    </div >
   );
 } 
