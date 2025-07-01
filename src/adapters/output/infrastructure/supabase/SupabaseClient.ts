@@ -5,7 +5,6 @@ import { getEnvVar } from '@/utils/getEnvVar';
 const supabaseUrl = getEnvVar('SUPABASE_URL');
 const supabaseKey = getEnvVar('SUPABASE_ANON_KEY');
 
-
 if (!supabaseUrl) {
   throw new Error('❌Las variables de entorno SUPABASE_URL son requeridas');
 }

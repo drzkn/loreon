@@ -1,4 +1,71 @@
+"use client";
+
+import { useState, useRef, useEffect } from 'react';
+
 export default function ConnectPage() {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (terminalEndRef.current) {
+      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [terminalLogs]);
+
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setTerminalLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+  };
+
+  const clearLogs = () => {
+    setTerminalLogs([]);
+  };
+
+  const handleSyncToSupabase = async () => {
+    if (isProcessing) return;
+
+    try {
+      setIsProcessing(true);
+      clearLogs();
+
+      const [response] = await Promise.all([
+        fetch('/api/sync-supabase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      ]);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        addLog(`❌ Error HTTP: ${response.status} - ${result.error}`);
+        throw new Error(result.error || `Error HTTP: ${response.status}`);
+      }
+
+      addLog('🎉 ¡Sincronización completada exitosamente!');
+      console.log('✅ Sincronización completada:', result);
+
+      setTimeout(() => {
+        addLog('📊 Resumen:');
+        addLog(`💿 Total de databases: ${result.summary.total}`);
+        addLog(`✅ Exitosas: ${result.summary.successful}`);
+        addLog(`❌ Errores: ${result.summary.errors}`);
+      }, 500);
+
+    } catch (error) {
+      addLog(`❌ Error en la sincronización: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      console.error('❌ Error en la sincronización:', error);
+      alert(`❌ Error en la sincronización: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+
+
   return (
     <div style={{
       maxWidth: '1200px',
@@ -23,172 +90,9 @@ export default function ConnectPage() {
           opacity: 0.8,
           lineHeight: '1.6'
         }}>
-          Conecta y sincroniza con múltiples bases de datos y servicios en la nube.
+          Sincronización con la base de datos
         </p>
       </header>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '2rem',
-        marginBottom: '3rem'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.5rem'
-            }}>
-              🗄️
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.3rem', margin: 0 }}>Supabase</h2>
-              <div style={{
-                display: 'inline-block',
-                background: '#10b981',
-                color: 'white',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '12px',
-                fontSize: '0.8rem',
-                fontWeight: 'bold',
-                marginTop: '0.3rem'
-              }}>
-                CONECTADO
-              </div>
-            </div>
-          </div>
-          <p style={{ opacity: 0.8, lineHeight: '1.6', marginBottom: '1rem' }}>
-            Base de datos PostgreSQL con autenticación y API en tiempo real.
-          </p>
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.3)',
-            padding: '1rem',
-            borderRadius: '8px',
-            fontFamily: 'monospace',
-            fontSize: '0.85rem'
-          }}>
-            <div>Última sincronización: 2 min ago</div>
-            <div>Registros: 1,247 documentos</div>
-            <div>Estado: ✅ Operativo</div>
-          </div>
-        </div>
-
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: 'linear-gradient(135deg, #000000 0%, #434343 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.5rem'
-            }}>
-              📝
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.3rem', margin: 0 }}>Notion</h2>
-              <div style={{
-                display: 'inline-block',
-                background: '#f59e0b',
-                color: 'white',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '12px',
-                fontSize: '0.8rem',
-                fontWeight: 'bold',
-                marginTop: '0.3rem'
-              }}>
-                CONFIGURANDO
-              </div>
-            </div>
-          </div>
-          <p style={{ opacity: 0.8, lineHeight: '1.6', marginBottom: '1rem' }}>
-            Workspace colaborativo para documentos y bases de datos.
-          </p>
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.3)',
-            padding: '1rem',
-            borderRadius: '8px',
-            fontFamily: 'monospace',
-            fontSize: '0.85rem'
-          }}>
-            <div>API Key: Configurando...</div>
-            <div>Workspace: No configurado</div>
-            <div>Estado: ⚠️ Pendiente</div>
-          </div>
-        </div>
-
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.5rem'
-            }}>
-              🔗
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.3rem', margin: 0 }}>API Custom</h2>
-              <div style={{
-                display: 'inline-block',
-                background: '#6b7280',
-                color: 'white',
-                padding: '0.2rem 0.6rem',
-                borderRadius: '12px',
-                fontSize: '0.8rem',
-                fontWeight: 'bold',
-                marginTop: '0.3rem'
-              }}>
-                NO CONFIGURADO
-              </div>
-            </div>
-          </div>
-          <p style={{ opacity: 0.8, lineHeight: '1.6', marginBottom: '1rem' }}>
-            Conecta con tu propia API o servicio personalizado.
-          </p>
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.3)',
-            padding: '1rem',
-            borderRadius: '8px',
-            fontFamily: 'monospace',
-            fontSize: '0.85rem'
-          }}>
-            <div>Endpoint: No configurado</div>
-            <div>Autenticación: Pendiente</div>
-            <div>Estado: ⭕ Desconectado</div>
-          </div>
-        </div>
-      </div>
 
       <section style={{
         background: 'rgba(16, 185, 129, 0.1)',
@@ -215,131 +119,157 @@ export default function ConnectPage() {
             background: 'rgba(255, 255, 255, 0.1)',
             padding: '1.5rem',
             borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>⚡ Tiempo Real</h3>
-            <p style={{ opacity: 0.8 }}>Sincronización instantánea de cambios</p>
-            <div style={{
-              marginTop: '1rem',
-              padding: '0.5rem',
-              background: 'rgba(16, 185, 129, 0.2)',
-              borderRadius: '6px',
-              fontSize: '0.9rem'
-            }}>
-              Activo en Supabase
-            </div>
-          </div>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            padding: '1.5rem',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>🕐 Programada</h3>
-            <p style={{ opacity: 0.8 }}>Sincronización en intervalos específicos</p>
-            <div style={{
-              marginTop: '1rem',
-              padding: '0.5rem',
-              background: 'rgba(245, 158, 11, 0.2)',
-              borderRadius: '6px',
-              fontSize: '0.9rem'
-            }}>
-              Cada 15 minutos
-            </div>
-          </div>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            padding: '1.5rem',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            height: isProcessing ? '230px' : '185px'
           }}>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>📋 Manual</h3>
             <p style={{ opacity: 0.8 }}>Control total sobre cuándo sincronizar</p>
-            <button style={{
-              marginTop: '1rem',
-              padding: '0.5rem 1rem',
-              background: '#10b981',
-              border: 'none',
-              borderRadius: '6px',
-              color: 'white',
-              fontSize: '0.9rem',
-              cursor: 'pointer'
-            }}>
-              Sincronizar Ahora
+
+            {isProcessing && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.5rem',
+                background: 'rgba(16, 185, 129, 0.1)',
+                borderRadius: '6px',
+                fontSize: '0.8rem'
+              }}>
+                <div>🔄 Sincronización en progreso...</div>
+                <div>📄 Procesando múltiples databases</div>
+              </div>
+            )}
+
+            <button
+              onClick={handleSyncToSupabase}
+              disabled={isProcessing}
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                background: isProcessing ? '#6b7280' : '#10b981',
+                border: 'none',
+                borderRadius: '6px',
+                color: 'white',
+                fontSize: '0.9rem',
+                cursor: isProcessing ? 'not-allowed' : 'pointer',
+                opacity: isProcessing ? 0.7 : 1,
+                transition: 'all 0.2s ease',
+                width: '100%'
+              }}
+            >
+              {isProcessing ? '🔄 Sincronizando...' : '🚀 Sincronizar Ahora'}
             </button>
+          </div>
+
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.9)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            overflow: 'hidden'
+          }}>
+            {/* Terminal Header */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  background: '#ef4444',
+                  borderRadius: '50%'
+                }}></div>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  background: '#f59e0b',
+                  borderRadius: '50%'
+                }}></div>
+                <div style={{
+                  width: '12px',
+                  height: '12px',
+                  background: '#10b981',
+                  borderRadius: '50%'
+                }}></div>
+                <span style={{
+                  marginLeft: '1rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  color: 'white'
+                }}>
+                  🖥️ Terminal de Sincronización
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={clearLogs}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.25rem 0.5rem',
+                    color: 'white',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🗑️ Limpiar
+                </button>
+              </div>
+            </div>
+
+            {/* Terminal Content */}
+            <div style={{
+              padding: '1rem',
+              maxHeight: '300px',
+              overflowY: 'auto',
+              fontFamily: 'Monaco, Consolas, "Courier New", monospace',
+              fontSize: '0.85rem',
+              lineHeight: '1.4',
+              color: '#00ff00'
+            }}>
+              {terminalLogs.length === 0 ? (
+                <div style={{ color: '#6b7280' }}>
+                  Esperando logs de sincronización...
+                </div>
+              ) : (
+                terminalLogs.map((log, index) => (
+                  <div key={index} style={{
+                    marginBottom: '0.25rem',
+                    color: log.includes('❌') ? '#ef4444' :
+                      log.includes('✅') ? '#10b981' :
+                        log.includes('📊') ? '#3b82f6' : '#00ff00'
+                  }}>
+                    {log}
+                  </div>
+                ))
+              )}
+              <div ref={terminalEndRef} />
+            </div>
+
+            {/* Terminal Footer */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              padding: '0.5rem 1rem',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              fontSize: '0.8rem',
+              color: '#6b7280',
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}>
+              <span>
+                Logs: {terminalLogs.length}
+              </span>
+              <span>
+                {isProcessing ? '🔄 Procesando...' : '⏸️ Inactivo'}
+              </span>
+            </div>
           </div>
         </div>
       </section>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '2fr 1fr',
-        gap: '2rem'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>📊 Estadísticas de Sync</h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '1rem',
-            marginBottom: '1.5rem'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>1,247</div>
-              <div style={{ opacity: 0.7, fontSize: '0.9rem' }}>Documentos sincronizados</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#3b82f6' }}>98.7%</div>
-              <div style={{ opacity: 0.7, fontSize: '0.9rem' }}>Tasa de éxito</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>2.3s</div>
-              <div style={{ opacity: 0.7, fontSize: '0.9rem' }}>Tiempo promedio</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ef4444' }}>3</div>
-              <div style={{ opacity: 0.7, fontSize: '0.9rem' }}>Errores hoy</div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>⚙️ Configuración</h2>
-          <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Conexiones activas</div>
-              <div>• Supabase: ✅ Activa</div>
-              <div>• Notion: ⚠️ Configurando</div>
-              <div>• Custom API: ❌ Inactiva</div>
-            </div>
-            <button style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0.75rem 1rem',
-              color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              width: '100%'
-            }}>
-              Gestionar Conexiones
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 
