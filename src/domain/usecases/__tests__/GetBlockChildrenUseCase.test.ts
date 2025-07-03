@@ -1,19 +1,20 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GetBlockChildrenUseCase } from '../GetBlockChildrenUseCase';
 import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 import { Block } from '../../entities/Block';
 
 // Mock del repositorio
-const createMockNotionRepository = (): jest.Mocked<INotionRepository> => ({
-  getDatabase: jest.fn(),
-  getPage: jest.fn(),
-  getUser: jest.fn(),
-  queryDatabase: jest.fn(),
-  getBlockChildren: jest.fn(),
+const createMockNotionRepository = (): INotionRepository => ({
+  getDatabase: vi.fn(),
+  getPage: vi.fn(),
+  getUser: vi.fn(),
+  queryDatabase: vi.fn(),
+  getBlockChildren: vi.fn(),
 });
 
 describe('GetBlockChildrenUseCase', () => {
   let getBlockChildrenUseCase: GetBlockChildrenUseCase;
-  let mockNotionRepository: jest.Mocked<INotionRepository>;
+  let mockNotionRepository: INotionRepository;
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
@@ -21,7 +22,7 @@ describe('GetBlockChildrenUseCase', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('execute', () => {
@@ -48,7 +49,7 @@ describe('GetBlockChildrenUseCase', () => {
           []
         )
       ];
-      mockNotionRepository.getBlockChildren.mockResolvedValue(mockChildren);
+      vi.mocked(mockNotionRepository.getBlockChildren).mockResolvedValue(mockChildren);
 
       // Act
       const result = await getBlockChildrenUseCase.execute(blockId);
@@ -67,7 +68,7 @@ describe('GetBlockChildrenUseCase', () => {
       // Arrange
       const blockId = 'block-without-children';
       const mockChildren: Block[] = [];
-      mockNotionRepository.getBlockChildren.mockResolvedValue(mockChildren);
+      vi.mocked(mockNotionRepository.getBlockChildren).mockResolvedValue(mockChildren);
 
       // Act
       const result = await getBlockChildrenUseCase.execute(blockId);
@@ -109,7 +110,7 @@ describe('GetBlockChildrenUseCase', () => {
       // Arrange
       const blockId = 'test-block-id';
       const mockError = new Error('API Error: Block not found');
-      mockNotionRepository.getBlockChildren.mockRejectedValue(mockError);
+      vi.mocked(mockNotionRepository.getBlockChildren).mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(getBlockChildrenUseCase.execute(blockId)).rejects.toThrow('API Error: Block not found');
@@ -130,7 +131,7 @@ describe('GetBlockChildrenUseCase', () => {
           []
         )
       ];
-      mockNotionRepository.getBlockChildren.mockResolvedValue(mockChildren);
+      vi.mocked(mockNotionRepository.getBlockChildren).mockResolvedValue(mockChildren);
 
       // Act
       const result = await getBlockChildrenUseCase.execute(blockId);

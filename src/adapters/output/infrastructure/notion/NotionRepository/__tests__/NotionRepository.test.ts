@@ -1,21 +1,22 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NotionRepository } from '..';
-import { IHttpClient, HttpResponse } from '../../../../../../ports/output/services/IHttpClient';
-import { Database } from '../../../../../../domain/entities/Database';
-import { Page } from '../../../../../../domain/entities/Page';
-import { User } from '../../../../../../domain/entities/User';
-import { NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from '../../../../../../shared/types/notion.types';
+import { IHttpClient, HttpResponse } from '@/ports/output/services/IHttpClient';
+import { Database } from '@/domain/entities/Database';
+import { Page } from '@/domain/entities/Page';
+import { User } from '@/domain/entities/User';
+import { NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from '@/shared/types/notion.types';
 
 // Mock del IHttpClient
-const createMockHttpClient = (): jest.Mocked<IHttpClient> => ({
-  get: jest.fn(),
-  post: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn(),
+const createMockHttpClient = (): IHttpClient => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
 });
 
 describe('NotionRepository', () => {
   let notionRepository: NotionRepository;
-  let mockHttpClient: jest.Mocked<IHttpClient>;
+  let mockHttpClient: IHttpClient;
 
   beforeEach(() => {
     mockHttpClient = createMockHttpClient();
@@ -23,7 +24,7 @@ describe('NotionRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getDatabase', () => {
@@ -45,7 +46,7 @@ describe('NotionRepository', () => {
         statusText: 'OK',
         headers: {}
       };
-      mockHttpClient.get.mockResolvedValue(mockHttpResponse);
+      vi.mocked(mockHttpClient.get).mockResolvedValue(mockHttpResponse);
 
       // Act
       const result = await notionRepository.getDatabase(databaseId);
@@ -71,7 +72,7 @@ describe('NotionRepository', () => {
           }
         }
       };
-      mockHttpClient.get.mockRejectedValue(mockError);
+      vi.mocked(mockHttpClient.get).mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(notionRepository.getDatabase(databaseId)).rejects.toEqual(mockError);
@@ -82,7 +83,7 @@ describe('NotionRepository', () => {
       // Arrange
       const databaseId = 'test-database-id';
       const mockError = new Error('Network error');
-      mockHttpClient.get.mockRejectedValue(mockError);
+      vi.mocked(mockHttpClient.get).mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(notionRepository.getDatabase(databaseId)).rejects.toEqual(mockError);
@@ -107,7 +108,7 @@ describe('NotionRepository', () => {
         statusText: 'OK',
         headers: {}
       };
-      mockHttpClient.get.mockResolvedValue(mockHttpResponse);
+      vi.mocked(mockHttpClient.get).mockResolvedValue(mockHttpResponse);
 
       // Act
       const result = await notionRepository.getPage(pageId);
@@ -123,7 +124,7 @@ describe('NotionRepository', () => {
       // Arrange
       const pageId = 'invalid-page-id';
       const mockError = new Error('Page not found');
-      mockHttpClient.get.mockRejectedValue(mockError);
+      vi.mocked(mockHttpClient.get).mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(notionRepository.getPage(pageId)).rejects.toEqual(mockError);
@@ -149,7 +150,7 @@ describe('NotionRepository', () => {
         statusText: 'OK',
         headers: {}
       };
-      mockHttpClient.get.mockResolvedValue(mockHttpResponse);
+      vi.mocked(mockHttpClient.get).mockResolvedValue(mockHttpResponse);
 
       // Act
       const result = await notionRepository.getUser();
@@ -165,7 +166,7 @@ describe('NotionRepository', () => {
     it('should handle errors when getting user', async () => {
       // Arrange
       const mockError = new Error('Authentication failed');
-      mockHttpClient.get.mockRejectedValue(mockError);
+      vi.mocked(mockHttpClient.get).mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(notionRepository.getUser()).rejects.toEqual(mockError);
@@ -201,7 +202,7 @@ describe('NotionRepository', () => {
         statusText: 'OK',
         headers: {}
       };
-      mockHttpClient.post.mockResolvedValue(mockHttpResponse);
+      vi.mocked(mockHttpClient.post).mockResolvedValue(mockHttpResponse);
 
       // Act
       const result = await notionRepository.queryDatabase(databaseId);
@@ -229,7 +230,7 @@ describe('NotionRepository', () => {
         statusText: 'OK',
         headers: {}
       };
-      mockHttpClient.post.mockResolvedValue(mockHttpResponse);
+      vi.mocked(mockHttpClient.post).mockResolvedValue(mockHttpResponse);
 
       // Act
       const result = await notionRepository.queryDatabase(databaseId, filter, sorts);
@@ -249,7 +250,7 @@ describe('NotionRepository', () => {
       // Arrange
       const databaseId = 'invalid-database-id';
       const mockError = new Error('Database query failed');
-      mockHttpClient.post.mockRejectedValue(mockError);
+      vi.mocked(mockHttpClient.post).mockRejectedValue(mockError);
 
       // Act & Assert
       await expect(notionRepository.queryDatabase(databaseId)).rejects.toEqual(mockError);
@@ -264,7 +265,7 @@ describe('NotionRepository', () => {
         statusText: 'OK',
         headers: {}
       };
-      mockHttpClient.post.mockResolvedValue(mockHttpResponse);
+      vi.mocked(mockHttpClient.post).mockResolvedValue(mockHttpResponse);
 
       // Act
       const result = await notionRepository.queryDatabase(databaseId);
@@ -278,7 +279,7 @@ describe('NotionRepository', () => {
     it('should preserve original error when re-throwing', async () => {
       // Arrange
       const customError = new Error('Custom error message');
-      mockHttpClient.get.mockRejectedValue(customError);
+      vi.mocked(mockHttpClient.get).mockRejectedValue(customError);
 
       // Act & Assert
       await expect(notionRepository.getDatabase('test-id')).rejects.toEqual(customError);
@@ -287,7 +288,7 @@ describe('NotionRepository', () => {
     it('should handle errors without response property', async () => {
       // Arrange
       const networkError = new Error('Network timeout');
-      mockHttpClient.get.mockRejectedValue(networkError);
+      vi.mocked(mockHttpClient.get).mockRejectedValue(networkError);
 
       // Act & Assert
       await expect(notionRepository.getDatabase('test-id')).rejects.toEqual(networkError);

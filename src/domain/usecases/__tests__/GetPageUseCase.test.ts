@@ -1,19 +1,20 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GetPageUseCase } from '../GetPageUseCase';
 import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 import { Page } from '../../entities/Page';
 
 // Mock del repositorio
-const createMockNotionRepository = (): jest.Mocked<INotionRepository> => ({
-  getDatabase: jest.fn(),
-  getPage: jest.fn(),
-  getUser: jest.fn(),
-  queryDatabase: jest.fn(),
-  getBlockChildren: jest.fn(),
+const createMockNotionRepository = (): INotionRepository => ({
+  getDatabase: vi.fn(),
+  getPage: vi.fn(),
+  getUser: vi.fn(),
+  queryDatabase: vi.fn(),
+  getBlockChildren: vi.fn(),
 });
 
 describe('GetPageUseCase', () => {
   let getPageUseCase: GetPageUseCase;
-  let mockNotionRepository: jest.Mocked<INotionRepository>;
+  let mockNotionRepository: INotionRepository;
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
@@ -21,7 +22,7 @@ describe('GetPageUseCase', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('execute', () => {
@@ -35,7 +36,7 @@ describe('GetPageUseCase', () => {
         '2023-01-01T00:00:00.000Z',
         'https://notion.so/test-page'
       );
-      mockNotionRepository.getPage.mockResolvedValue(mockPage);
+      vi.mocked(mockNotionRepository.getPage).mockResolvedValue(mockPage);
 
       // Act
       const result = await getPageUseCase.execute(pageId);
@@ -78,7 +79,7 @@ describe('GetPageUseCase', () => {
       // Arrange
       const pageId = 'test-page-id';
       const repositoryError = new Error('Repository error');
-      mockNotionRepository.getPage.mockRejectedValue(repositoryError);
+      vi.mocked(mockNotionRepository.getPage).mockRejectedValue(repositoryError);
 
       // Act & Assert
       await expect(getPageUseCase.execute(pageId)).rejects.toThrow('Repository error');
@@ -97,7 +98,7 @@ describe('GetPageUseCase', () => {
           }
         }
       };
-      mockNotionRepository.getPage.mockRejectedValue(apiError);
+      vi.mocked(mockNotionRepository.getPage).mockRejectedValue(apiError);
 
       // Act & Assert
       await expect(getPageUseCase.execute(pageId)).rejects.toEqual(apiError);

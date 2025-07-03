@@ -1,19 +1,20 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GetDatabaseUseCase } from '../GetDatabaseUseCase';
 import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 import { Database } from '../../entities/Database';
 
 // Mock del repositorio
-const createMockNotionRepository = (): jest.Mocked<INotionRepository> => ({
-  getDatabase: jest.fn(),
-  getPage: jest.fn(),
-  getUser: jest.fn(),
-  queryDatabase: jest.fn(),
-  getBlockChildren: jest.fn(),
+const createMockNotionRepository = (): INotionRepository => ({
+  getDatabase: vi.fn(),
+  getPage: vi.fn(),
+  getUser: vi.fn(),
+  queryDatabase: vi.fn(),
+  getBlockChildren: vi.fn(),
 });
 
 describe('GetDatabaseUseCase', () => {
   let getDatabaseUseCase: GetDatabaseUseCase;
-  let mockNotionRepository: jest.Mocked<INotionRepository>;
+  let mockNotionRepository: INotionRepository;
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
@@ -21,7 +22,7 @@ describe('GetDatabaseUseCase', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('execute', () => {
@@ -36,7 +37,7 @@ describe('GetDatabaseUseCase', () => {
         '2023-01-01T00:00:00.000Z',
         'https://notion.so/test-database'
       );
-      mockNotionRepository.getDatabase.mockResolvedValue(mockDatabase);
+      vi.mocked(mockNotionRepository.getDatabase).mockResolvedValue(mockDatabase);
 
       // Act
       const result = await getDatabaseUseCase.execute(databaseId);
@@ -79,7 +80,7 @@ describe('GetDatabaseUseCase', () => {
       // Arrange
       const databaseId = 'test-database-id';
       const repositoryError = new Error('Repository error');
-      mockNotionRepository.getDatabase.mockRejectedValue(repositoryError);
+      vi.mocked(mockNotionRepository.getDatabase).mockRejectedValue(repositoryError);
 
       // Act & Assert
       await expect(getDatabaseUseCase.execute(databaseId)).rejects.toThrow('Repository error');
@@ -98,7 +99,7 @@ describe('GetDatabaseUseCase', () => {
           }
         }
       };
-      mockNotionRepository.getDatabase.mockRejectedValue(apiError);
+      vi.mocked(mockNotionRepository.getDatabase).mockRejectedValue(apiError);
 
       // Act & Assert
       await expect(getDatabaseUseCase.execute(databaseId)).rejects.toEqual(apiError);
