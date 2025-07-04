@@ -16,7 +16,10 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/stories/**',
-        'src/examples/**'
+        'src/examples/**',
+        '**storybook**',
+        '**/types.ts',
+        '**/index.ts'
       ]
     }
   },
