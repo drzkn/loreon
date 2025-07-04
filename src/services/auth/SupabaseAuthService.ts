@@ -1,4 +1,4 @@
-import { supabase } from '../../adapters/output/infrastructure/supabase/SupabaseClient';
+import { supabase } from '../../adapters/output/infrastructure/supabase/SupabaseClient/SupabaseClient';
 
 export class SupabaseAuthService {
 

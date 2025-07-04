@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Database } from './types';
+import { Database } from '../types';
 import { getEnvVar } from '@/utils/getEnvVar';
 
 const supabaseUrl = getEnvVar('SUPABASE_URL');

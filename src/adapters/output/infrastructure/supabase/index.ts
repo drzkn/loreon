@@ -1,8 +1,8 @@
-export { supabase } from './SupabaseClient';
-export { SupabaseMarkdownRepository } from './SupabaseMarkdownRepository';
+export { supabase } from './SupabaseClient/SupabaseClient';
+export { SupabaseMarkdownRepository } from './SupabaseMarkdownRepository/SupabaseMarkdownRepository';
 export type {
   SupabaseMarkdownRepositoryInterface
-} from './SupabaseMarkdownRepository';
+} from './SupabaseMarkdownRepository/SupabaseMarkdownRepository';
 export type {
   Database,
   MarkdownPage,

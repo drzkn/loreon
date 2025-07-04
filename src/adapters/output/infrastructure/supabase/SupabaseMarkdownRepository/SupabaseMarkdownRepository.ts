@@ -1,5 +1,5 @@
-import { supabase } from './SupabaseClient';
-import { MarkdownPage, MarkdownPageInsert, MarkdownPageUpdate } from './types';
+import { supabase } from '../SupabaseClient';
+import { MarkdownPage, MarkdownPageInsert, MarkdownPageUpdate } from '../types';
 
 export interface SupabaseMarkdownRepositoryInterface {
   save(markdownData: MarkdownPageInsert): Promise<MarkdownPage>;
