@@ -4,7 +4,7 @@ import { resolve } from 'path'
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
@@ -23,9 +23,15 @@ export default defineConfig({
         '**/types.ts',
         '**/index.ts',
         '**/__mocks__/**',
-        'src/app/layout.tsx'
+        'src/app/layout.tsx',
+        '**/di/**'
       ]
     }
+  },
+  esbuild: {
+    jsxInject: `import React from 'react'`,
+    jsxFactory: 'React.createElement',
+    jsxFragment: 'React.Fragment'
   },
   resolve: {
     alias: {
