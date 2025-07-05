@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { GetDatabaseUseCase } from '../GetDatabaseUseCase';
-import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
-import { Database } from '../../entities/Database';
+import { GetDatabase } from '../GetDatabase';
+import { INotionRepository } from '../../../../ports/output/repositories/INotionRepository';
+import { Database } from '../../../entities/Database';
 
 // Mock del repositorio
 const createMockNotionRepository = (): INotionRepository => ({
@@ -13,12 +13,12 @@ const createMockNotionRepository = (): INotionRepository => ({
 });
 
 describe('GetDatabaseUseCase', () => {
-  let getDatabaseUseCase: GetDatabaseUseCase;
+  let getDatabaseUseCase: GetDatabase;
   let mockNotionRepository: INotionRepository;
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
-    getDatabaseUseCase = new GetDatabaseUseCase(mockNotionRepository);
+    getDatabaseUseCase = new GetDatabase(mockNotionRepository);
   });
 
   afterEach(() => {

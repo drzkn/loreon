@@ -14,7 +14,7 @@ export interface RecursiveBlockResult {
   apiCallsCount: number;
 }
 
-export class GetBlockChildrenRecursiveUseCase {
+export class GetBlockChildrenRecursive {
   constructor(private notionRepository: INotionRepository) { }
 
   async execute(

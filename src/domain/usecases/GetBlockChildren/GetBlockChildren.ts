@@ -1,7 +1,7 @@
-import { Block } from '../entities/Block/Block';
-import { INotionRepository } from '../../ports/output/repositories/INotionRepository';
+import { Block } from '../../entities/Block/Block';
+import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 
-export class GetBlockChildrenUseCase {
+export class GetBlockChildren {
   constructor(private notionRepository: INotionRepository) { }
 
   async execute(blockId: string): Promise<Block[]> {

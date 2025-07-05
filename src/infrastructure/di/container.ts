@@ -1,15 +1,15 @@
-import { AxiosHttpClient } from '../../adapters/output/infrastructure/http/AxiosHttpClient.ts';
 import { NotionRepository } from '../../adapters/output/infrastructure/notion/NotionRepository/NotionRepository';
-import { GetDatabaseUseCase } from '../../domain/usecases/GetDatabaseUseCase';
-import { GetUserUseCase } from '../../domain/usecases/GetUserUseCase';
-import { QueryDatabaseUseCase } from '../../domain/usecases/QueryDatabaseUseCase';
-import { GetPageUseCase } from '../../domain/usecases/GetPageUseCase';
-import { GetBlockChildrenUseCase } from '../../domain/usecases/GetBlockChildrenUseCase';
-import { GetBlockChildrenRecursiveUseCase } from '../../domain/usecases/GetBlockChildrenRecursiveUseCase';
+import { GetDatabase } from '../../domain/usecases/GetDatabase/GetDatabase.js';
+import { QueryDatabaseUseCase } from '../../domain/usecases/QueryDatabase/QueryDatabase.js';
+import { GetBlockChildren } from '../../domain/usecases/GetBlockChildren/GetBlockChildren.js';
 import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure/supabase';
 import { SupabaseMarkdownService } from '../../services/markdownConverter/SupabaseMarkdownService';
 import { MarkdownConverterService } from '../../services/markdownConverter/MarkdownConverterService';
 import { getEnvVar } from '@/utils/getEnvVar';
+import { AxiosHttpClient } from '@/adapters/output/infrastructure/http/AxiosHttpClient';
+import { GetUser } from '@/domain/usecases/GetUser';
+import { GetPage } from '@/domain/usecases/GetPage';
+import { GetBlockChildrenRecursive } from '@/domain/usecases/GetBlockChildrenRecursive';
 
 // Detectar si estamos en Node.js o en el navegador
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
@@ -37,12 +37,12 @@ const httpClient = new AxiosHttpClient(baseURL, defaultHeaders);
 const notionRepository = new NotionRepository(httpClient);
 
 // Casos de uso
-const getDatabaseUseCase = new GetDatabaseUseCase(notionRepository);
-const getUserUseCase = new GetUserUseCase(notionRepository);
+const getDatabaseUseCase = new GetDatabase(notionRepository);
+const getUserUseCase = new GetUser(notionRepository);
 const queryDatabaseUseCase = new QueryDatabaseUseCase(notionRepository);
-const getPageUseCase = new GetPageUseCase(notionRepository);
-const getBlockChildrenUseCase = new GetBlockChildrenUseCase(notionRepository);
-const getBlockChildrenRecursiveUseCase = new GetBlockChildrenRecursiveUseCase(notionRepository);
+const getPageUseCase = new GetPage(notionRepository);
+const getBlockChildrenUseCase = new GetBlockChildren(notionRepository);
+const getBlockChildrenRecursiveUseCase = new GetBlockChildrenRecursive(notionRepository);
 
 // Servicios
 const markdownConverterService = new MarkdownConverterService();

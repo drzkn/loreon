@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { GetPageUseCase } from '../GetPageUseCase';
-import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
-import { Page } from '../../entities/Page';
+import { GetPage } from '../GetPage';
+import { INotionRepository } from '../../../../ports/output/repositories/INotionRepository';
+import { Page } from '../../../entities/Page';
 
 // Mock del repositorio
 const createMockNotionRepository = (): INotionRepository => ({
@@ -13,12 +13,12 @@ const createMockNotionRepository = (): INotionRepository => ({
 });
 
 describe('GetPageUseCase', () => {
-  let getPageUseCase: GetPageUseCase;
+  let getPageUseCase: GetPage;
   let mockNotionRepository: INotionRepository;
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
-    getPageUseCase = new GetPageUseCase(mockNotionRepository);
+    getPageUseCase = new GetPage(mockNotionRepository);
   });
 
   afterEach(() => {

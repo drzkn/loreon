@@ -1,5 +1,5 @@
-import { Page } from '../entities/Page';
-import { INotionRepository } from '../../ports/output/repositories/INotionRepository';
+import { Page } from '../../entities/Page';
+import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 
 export class QueryDatabaseUseCase {
   constructor(private notionRepository: INotionRepository) { }

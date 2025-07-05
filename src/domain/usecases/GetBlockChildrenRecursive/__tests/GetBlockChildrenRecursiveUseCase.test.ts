@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GetBlockChildrenRecursiveUseCase, RecursiveBlockOptions } from '../GetBlockChildrenRecursiveUseCase';
+import { GetBlockChildrenRecursive, RecursiveBlockOptions } from '../GetBlockChildrenRecursive';
 import { INotionRepository } from '../../../../ports/output/repositories/INotionRepository';
 import { Block } from '../../../entities/Block';
 
 describe('GetBlockChildrenRecursiveUseCase', () => {
-  let useCase: GetBlockChildrenRecursiveUseCase;
+  let useCase: GetBlockChildrenRecursive;
   let mockRepository: INotionRepository;
 
   const createMockBlock = (
@@ -38,13 +38,13 @@ describe('GetBlockChildrenRecursiveUseCase', () => {
       queryDatabase: vi.fn(),
       getBlockChildren: vi.fn()
     };
-    useCase = new GetBlockChildrenRecursiveUseCase(mockRepository);
+    useCase = new GetBlockChildrenRecursive(mockRepository);
     vi.clearAllMocks();
   });
 
   describe('Constructor', () => {
     it('should create instance with repository', () => {
-      expect(useCase).toBeInstanceOf(GetBlockChildrenRecursiveUseCase);
+      expect(useCase).toBeInstanceOf(GetBlockChildrenRecursive);
     });
   });
 

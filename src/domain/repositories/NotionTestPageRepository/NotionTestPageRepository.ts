@@ -1,5 +1,5 @@
-import { TestResult } from '../../pages/NotionTestPage/NotionTestPage.types';
-import { container } from '../../infrastructure/di/container';
+import { TestResult } from './NotionTestPageRepository.types';
+import { container } from '../../../infrastructure/di/container';
 
 export class NotionTestPageRepository {
   private testIds: Record<string, string>;

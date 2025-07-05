@@ -1,4 +1,4 @@
-import { NotionUserResponse, UserType } from '../../shared/types/notion.types';
+import { NotionUserResponse, UserType } from "@/shared/types/notion.types";
 
 export class User {
   constructor(

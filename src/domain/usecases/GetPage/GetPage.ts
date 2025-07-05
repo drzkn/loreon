@@ -1,7 +1,7 @@
-import { Page } from '../entities/Page';
-import { INotionRepository } from '../../ports/output/repositories/INotionRepository';
+import { Page } from '../../entities/Page';
+import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 
-export class GetPageUseCase {
+export class GetPage {
   constructor(private notionRepository: INotionRepository) { }
 
   async execute(pageId: string): Promise<Page> {

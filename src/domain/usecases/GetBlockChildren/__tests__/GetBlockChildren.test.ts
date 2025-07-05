@@ -1,7 +1,7 @@
+import { INotionRepository } from '@/ports/output/repositories/INotionRepository';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { GetBlockChildrenUseCase } from '../GetBlockChildrenUseCase';
-import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
-import { Block } from '../../entities/Block/Block';
+import { GetBlockChildren } from '../GetBlockChildren';
+import { Block } from '@/domain/entities/Block';
 
 // Mock del repositorio
 const createMockNotionRepository = (): INotionRepository => ({
@@ -13,12 +13,12 @@ const createMockNotionRepository = (): INotionRepository => ({
 });
 
 describe('GetBlockChildrenUseCase', () => {
-  let getBlockChildrenUseCase: GetBlockChildrenUseCase;
+  let getBlockChildrenUseCase: GetBlockChildren;
   let mockNotionRepository: INotionRepository;
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
-    getBlockChildrenUseCase = new GetBlockChildrenUseCase(mockNotionRepository);
+    getBlockChildrenUseCase = new GetBlockChildren(mockNotionRepository);
   });
 
   afterEach(() => {
