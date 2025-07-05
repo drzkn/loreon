@@ -1,4 +1,4 @@
-import { NotionBlockResponse } from '../../shared/types/notion.types';
+import { NotionBlockResponse } from '../../../shared/types/notion.types';
 
 export class Block {
   constructor(

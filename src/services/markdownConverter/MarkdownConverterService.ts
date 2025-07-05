@@ -1,5 +1,5 @@
 import { Page } from '../../domain/entities/Page';
-import { Block } from '../../domain/entities/Block';
+import { Block } from '../../domain/entities/Block/Block';
 import { convertBlocksToMarkdown } from '../../utils/blockToMarkdownConverter';
 // import { BlocksToMarkdownConverter } from '../../utils/notionService/converters/blocksToMarkdown';
 

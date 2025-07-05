@@ -1,4 +1,4 @@
-import { Block } from '../entities/Block';
+import { Block } from '../entities/Block/Block';
 import { INotionRepository } from '../../ports/output/repositories/INotionRepository';
 
 export interface RecursiveBlockOptions {

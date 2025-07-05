@@ -1,7 +1,7 @@
 import { Database } from "../../../../../domain/entities/Database";
 import { Page } from "../../../../../domain/entities/Page";
 import { User } from "../../../../../domain/entities/User";
-import { Block } from "../../../../../domain/entities/Block";
+import { Block } from "../../../../../domain/entities/Block/Block";
 import { INotionRepository } from "../../../../../ports/output/repositories/INotionRepository";
 import { IHttpClient } from "../../../../../ports/output/services/IHttpClient";
 import { NotionDatabaseResponse, NotionPageResponse, NotionUserResponse, NotionBlockResponse } from "../../../../../shared/types/notion.types";
