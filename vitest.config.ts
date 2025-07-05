@@ -18,9 +18,12 @@ export default defineConfig({
         '**/stories/**',
         'src/examples/**',
         '**storybook**',
+        '**/*.stories.*',
+        '**/*.constants.*',
         '**/types.ts',
         '**/index.ts',
-        '**/__mocks__/**'
+        '**/__mocks__/**',
+        'src/app/layout.tsx'
       ]
     }
   },
