@@ -93,9 +93,9 @@ describe('Database', () => {
     });
 
     it('should handle database with undefined title', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const undefinedTitleResponse: NotionDatabaseResponse = {
         ...mockNotionDatabaseResponse,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any
       };
 
@@ -168,9 +168,9 @@ describe('Database', () => {
     });
 
     it('should handle database with undefined properties', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const undefinedPropsResponse: NotionDatabaseResponse = {
         ...mockNotionDatabaseResponse,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         properties: undefined as any
       };
 

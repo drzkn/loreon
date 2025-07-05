@@ -1,5 +1,5 @@
-import { Block } from '../entities/Block/Block';
-import { INotionRepository } from '../../ports/output/repositories/INotionRepository';
+import { Block } from '../../entities/Block';
+import { INotionRepository } from '../../../ports/output/repositories/INotionRepository';
 
 export interface RecursiveBlockOptions {
   maxDepth?: number;

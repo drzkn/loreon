@@ -1,4 +1,4 @@
-import { AxiosHttpClient } from '../../adapters/output/infrastructure/http/AxiosHttpClient';
+import { AxiosHttpClient } from '../../adapters/output/infrastructure/http/AxiosHttpClient.ts';
 import { NotionRepository } from '../../adapters/output/infrastructure/notion/NotionRepository/NotionRepository';
 import { GetDatabaseUseCase } from '../../domain/usecases/GetDatabaseUseCase';
 import { GetUserUseCase } from '../../domain/usecases/GetUserUseCase';

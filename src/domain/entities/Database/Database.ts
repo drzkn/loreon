@@ -1,4 +1,4 @@
-import { NotionDatabaseResponse } from '../../shared/types/notion.types';
+import { NotionDatabaseResponse } from "@/shared/types/notion.types";
 
 export class Database {
   constructor(

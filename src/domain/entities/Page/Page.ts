@@ -1,4 +1,4 @@
-import { NotionPageResponse } from '../../shared/types/notion.types';
+import { NotionPageResponse } from "@/shared/types/notion.types";
 
 export class Page {
   constructor(
