@@ -19,7 +19,8 @@ export default defineConfig({
         'src/examples/**',
         '**storybook**',
         '**/types.ts',
-        '**/index.ts'
+        '**/index.ts',
+        '**/__mocks__/**'
       ]
     }
   },
