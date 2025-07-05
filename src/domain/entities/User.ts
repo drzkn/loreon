@@ -1,11 +1,11 @@
-import { NotionUserResponse } from '../../shared/types/notion.types';
+import { NotionUserResponse, UserType } from '../../shared/types/notion.types';
 
 export class User {
   constructor(
     public readonly id: string,
     public readonly name?: string,
     public readonly avatarUrl?: string,
-    public readonly type: 'person' | 'bot' = 'person',
+    public readonly type: UserType = 'person',
     public readonly email?: string
   ) { }
 

@@ -1,3 +1,6 @@
+// Tipos de usuario
+export type UserType = 'person' | 'bot';
+
 export interface NotionDatabaseResponse {
   id: string;
   title: Array<{
@@ -22,7 +25,7 @@ export interface NotionUserResponse {
   id: string;
   name: string;
   avatar_url: string;
-  type: string;
+  type: UserType;
   person: {
     email: string;
   };
