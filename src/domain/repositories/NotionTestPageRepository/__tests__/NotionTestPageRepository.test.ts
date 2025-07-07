@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionTestPageRepository } from '../NotionTestPageRepository';
 import { TestResult } from '../NotionTestPageRepository.types';
 import { container } from '../../../../infrastructure/di/container';
+import { Block } from '../../../entities/Block';
 
 // Mock del container
 vi.mock('../../../../infrastructure/di/container', () => ({
@@ -236,7 +237,7 @@ describe('NotionTestPageRepository', () => {
       ];
 
       const mockBlocks = {
-        blocks: [{ id: 'block1', type: 'paragraph' }],
+        blocks: [new Block('block1', 'paragraph', { content: 'test' })],
         totalBlocks: 5,
         maxDepthReached: 2,
         apiCallsCount: 3

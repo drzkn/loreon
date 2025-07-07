@@ -1,10 +1,7 @@
-import { Database } from "../../../../../domain/entities/Database";
-import { Page } from "../../../../../domain/entities/Page";
-import { User } from "../../../../../domain/entities/User";
-import { Block } from "../../../../../domain/entities/Block/Block";
-import { INotionRepository } from "../../../../../ports/output/repositories/INotionRepository";
-import { IHttpClient } from "../../../../../ports/output/services/IHttpClient";
-import { NotionDatabaseResponse, NotionPageResponse, NotionUserResponse, NotionBlockResponse } from "../../../../../shared/types/notion.types";
+import { Page, User, Database, Block } from "@/domain/entities";
+import { INotionRepository } from "@/ports/output/repositories/INotionRepository";
+import { IHttpClient } from "@/ports/output/services/IHttpClient";
+import { NotionBlockResponse, NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from "@/shared/types/notion.types";
 
 interface NotionError {
   response?: {
