@@ -30,7 +30,11 @@ export default defineConfig({
         'src/services/config.ts',
         'src/ports/output/repositories/INotionRepository.ts',
         'src/ports/output/services/IHttpClient.ts',
-        'src/adapters/output/infrastructure/supabase/SupabaseMarkdownRepository/SupabaseMarkdownRepository.ts'
+        'src/adapters/output/infrastructure/supabase/SupabaseMarkdownRepository/SupabaseMarkdownRepository.ts',
+        /** Paginas y posiblemente, serán eliminadas de aqui */
+        'src/app/test/page.tsx',
+        'src/app/visualizer/page.tsx',
+        'src/app/page.tsx'
       ]
     }
   },
