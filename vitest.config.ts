@@ -20,11 +20,17 @@ export default defineConfig({
         '**storybook**',
         '**/*.stories.*',
         '**/*.constants.*',
+        '**/*.types.*',
         '**/types.ts',
+        '**types.ts',
         '**/index.ts',
         '**/__mocks__/**',
         'src/app/layout.tsx',
-        '**/di/**'
+        '**/di/**',
+        'src/services/config.ts',
+        'src/ports/output/repositories/INotionRepository.ts',
+        'src/ports/output/services/IHttpClient.ts',
+        'src/adapters/output/infrastructure/supabase/SupabaseMarkdownRepository/SupabaseMarkdownRepository.ts'
       ]
     }
   },

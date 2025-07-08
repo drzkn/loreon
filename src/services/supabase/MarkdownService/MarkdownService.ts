@@ -1,6 +1,6 @@
-import { SupabaseMarkdownRepository, MarkdownPageInsert, MarkdownPage } from '../../adapters/output/infrastructure/supabase';
-import { MarkdownConverterService } from './MarkdownConverterService';
-import { Page } from '../../domain/entities/Page';
+import { MarkdownConverterService } from '@/services/markdownConverter';
+import { SupabaseMarkdownRepository, MarkdownPageInsert, MarkdownPage } from '../../../adapters/output/infrastructure/supabase';
+import { Page } from '@/domain/entities';
 
 export interface SupabaseMarkdownServiceInterface {
   convertAndSavePage(page: Page, includeBlocks?: boolean): Promise<MarkdownPage>;

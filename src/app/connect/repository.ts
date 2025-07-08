@@ -1,7 +1,7 @@
 import { container } from '../../infrastructure/di/container';
 import { Page } from '../../domain/entities/Page';
 import { MarkdownPageInsert } from '../../adapters/output/infrastructure/supabase/types';
-import { SupabaseAuthService } from '../../services/auth/SupabaseAuthService';
+import { AuthService } from '@/services/supabase';
 
 export interface MarkdownFileResult {
   pageId: string;
@@ -12,7 +12,7 @@ export interface MarkdownFileResult {
 }
 
 export class ConnectionPageRepository {
-  private authService: SupabaseAuthService;
+  private authService: AuthService;
 
   constructor(
     private databaseId: string,
@@ -20,7 +20,7 @@ export class ConnectionPageRepository {
     private setProgress: (progress: { current: number; total: number; currentPageTitle: string } | null) => void,
     private sendLogToStream?: (message: string) => void
   ) {
-    this.authService = new SupabaseAuthService();
+    this.authService = new AuthService();
   }
 
   private log(level: 'info' | 'success' | 'warn' | 'error', message: string, data?: unknown) {

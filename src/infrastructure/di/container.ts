@@ -4,7 +4,7 @@ import { QueryDatabaseUseCase } from '../../domain/usecases/QueryDatabase/QueryD
 import { GetBlockChildren } from '../../domain/usecases/GetBlockChildren/GetBlockChildren.js';
 import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure/supabase';
 import { SupabaseMarkdownService } from '../../services/markdownConverter/SupabaseMarkdownService';
-import { MarkdownConverterService } from '../../services/markdownConverter/MarkdownConverterService';
+import { MarkdownConverterService } from '../../services/markdownConverter/MarkdownConverter';
 import { getEnvVar } from '@/utils/getEnvVar';
 import { AxiosHttpClient } from '@/adapters/output/infrastructure/http/AxiosHttpClient';
 import { GetUser } from '@/domain/usecases/GetUser';

@@ -1,6 +1,6 @@
-import { supabase } from '../../adapters/output/infrastructure/supabase/SupabaseClient/SupabaseClient';
+import { supabase } from "@/adapters/output/infrastructure/supabase";
 
-export class SupabaseAuthService {
+export class AuthService {
 
   async signInAnonymously() {
     try {

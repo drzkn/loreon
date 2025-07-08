@@ -1,1 +1,1 @@
-export { MarkdownConverterService, type MarkdownFile } from './MarkdownConverterService'; 
+export { MarkdownConverterService, type MarkdownFile } from './MarkdownConverter'; 

@@ -1,4 +1,4 @@
-import { Block } from '../domain/entities/Block/Block';
+import { Block } from "@/domain/entities";
 
 /**
  * Opciones para la conversión de bloques a Markdown

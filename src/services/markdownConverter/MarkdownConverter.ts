@@ -1,6 +1,5 @@
-import { Page } from '../../domain/entities/Page';
-import { Block } from '../../domain/entities/Block/Block';
-import { convertBlocksToMarkdown } from '../../utils/blockToMarkdownConverter';
+import { Block, Page } from '@/domain/entities';
+import { convertBlocksToMarkdown } from '@/utils/blockToMarkdownConverter/blockToMarkdownConverter';
 // import { BlocksToMarkdownConverter } from '../../utils/notionService/converters/blocksToMarkdown';
 
 export interface MarkdownFile {
