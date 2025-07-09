@@ -1,6 +1,6 @@
 "use client";
 
-import { SyncCard, Terminal } from '../../../components';
+import { SyncCard, Terminal } from '@/components';
 import { useSyncToSupabase } from '../hooks/useSyncToSupabase';
 
 export const ConnectionContent = () => {
@@ -36,6 +36,12 @@ export const ConnectionContent = () => {
           <SyncCard
             isProcessing={isProcessing}
             onSync={syncToSupabase}
+            title="📋 Manual"
+            description="Control total sobre cuándo sincronizar"
+            processingMessagePrimary="🔄 Sincronización en progreso..."
+            processingMessageSecondary="📄 Procesando múltiples databases"
+            buttonTextProcessing="🔄 Sincronizando..."
+            buttonTextIdle="🚀 Sincronizar"
           />
 
           <Terminal

@@ -12,22 +12,47 @@ vi.mock('../../hooks/useSyncToSupabase', () => ({
   }))
 }));
 
+interface SyncCardProps {
+  isProcessing: boolean;
+  onSync: () => void;
+  title: string;
+  description: string;
+  processingMessagePrimary: string;
+  processingMessageSecondary: string;
+  buttonTextProcessing: string;
+  buttonTextIdle: string;
+}
+
+interface TerminalProps {
+  logs: string[];
+  isProcessing: boolean;
+  onClearLogs: () => void;
+}
+
 // Mock the components
 vi.mock('../../../../components', () => ({
-  SyncCard: vi.fn(({ isProcessing, onSync }) => (
+  SyncCard: (props: SyncCardProps) => (
     <div data-testid="sync-card">
-      <button onClick={onSync} disabled={isProcessing}>
-        {isProcessing ? 'Processing...' : 'Sync'}
+      <h3>{props.title}</h3>
+      <p>{props.description}</p>
+      <button onClick={props.onSync} disabled={props.isProcessing}>
+        {props.isProcessing ? props.buttonTextProcessing : props.buttonTextIdle}
       </button>
+      {props.isProcessing && (
+        <div>
+          <div>{props.processingMessagePrimary}</div>
+          <div>{props.processingMessageSecondary}</div>
+        </div>
+      )}
     </div>
-  )),
-  Terminal: vi.fn(({ logs, isProcessing, onClearLogs }) => (
+  ),
+  Terminal: (props: TerminalProps) => (
     <div data-testid="terminal">
-      <div>Processing: {isProcessing ? 'true' : 'false'}</div>
-      <div>Logs: {logs.length}</div>
-      <button onClick={onClearLogs}>Clear</button>
+      <div>Processing: {props.isProcessing ? 'true' : 'false'}</div>
+      <div>Logs: {props.logs.length}</div>
+      <button onClick={props.onClearLogs}>Clear</button>
     </div>
-  ))
+  )
 }));
 
 describe('ConnectionContent', () => {
