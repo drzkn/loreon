@@ -17,20 +17,20 @@ vi.mock('./Navigation.constants', () => ({
   navigationItems: [
     {
       path: '/',
-      label: 'Home',
+      label: 'Inicio',
       description: 'Página principal',
       icon: '🏠'
     },
     {
-      path: '/connect',
-      label: 'Connect',
-      description: 'Conectar con Notion',
-      icon: '🔗'
+      path: '/visualizer',
+      label: 'Visualizador',
+      description: 'Ver archivos markdown',
+      icon: '📚'
     },
     {
       path: '/test',
-      label: 'Test',
-      description: 'Página de pruebas',
+      label: 'Tester',
+      description: 'Probar repositorio',
       icon: '🧪'
     }
   ]
@@ -70,7 +70,7 @@ describe('Navigation', () => {
       render(<Navigation />);
 
       expect(screen.getByText('🏠')).toBeInTheDocument();
-      expect(screen.getByText('🔗')).toBeInTheDocument();
+      expect(screen.getByText('📚')).toBeInTheDocument();
       expect(screen.getByText('🧪')).toBeInTheDocument();
       expect(screen.getByText('⚙️')).toBeInTheDocument(); // Settings button
     });
@@ -106,17 +106,17 @@ describe('Navigation', () => {
       render(<Navigation />);
 
       const buttons = screen.getAllByRole('button');
-      expect(buttons[1].className).not.toContain('active'); // Connect button
+      expect(buttons[1].className).not.toContain('active'); // Visualizer button
       expect(buttons[2].className).not.toContain('active'); // Test button
     });
 
-    it('should mark connect path as active when on connect page', () => {
-      mockPathname = '/connect';
+    it('should mark visualizer path as active when on visualizer page', () => {
+      mockPathname = '/visualizer';
 
       render(<Navigation />);
 
       const buttons = screen.getAllByRole('button');
-      expect(buttons[1].className).toContain('active'); // Connect button
+      expect(buttons[1].className).toContain('active'); // Visualizer button
     });
 
     it('should mark settings path as active when on settings page', () => {
@@ -169,9 +169,9 @@ describe('Navigation', () => {
       fireEvent.mouseEnter(nav);
 
       await waitFor(() => {
-        expect(screen.getByText('Home')).toBeInTheDocument();
-        expect(screen.getByText('Connect')).toBeInTheDocument();
-        expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(screen.getByText('Inicio')).toBeInTheDocument();
+        expect(screen.getByText('Visualizador')).toBeInTheDocument();
+        expect(screen.getByText('Tester')).toBeInTheDocument();
         expect(screen.getByText('Configuración')).toBeInTheDocument();
       });
     });
@@ -222,13 +222,13 @@ describe('Navigation', () => {
       expect(mockPush).toHaveBeenCalledWith('/');
 
       fireEvent.click(buttons[1]);
-      expect(mockPush).toHaveBeenCalledWith('/connect');
+      expect(mockPush).toHaveBeenCalledWith('/visualizer');
 
       fireEvent.click(buttons[2]);
       expect(mockPush).toHaveBeenCalledWith('/test');
 
       fireEvent.click(buttons[3]);
-      expect(mockPush).toHaveBeenCalledWith('/settings');
+      expect(mockPush).toHaveBeenCalledWith('/settings/connect');
     });
 
     it('should handle multiple navigation calls', () => {
@@ -242,7 +242,7 @@ describe('Navigation', () => {
 
       expect(mockPush).toHaveBeenCalledTimes(3);
       expect(mockPush).toHaveBeenNthCalledWith(1, '/');
-      expect(mockPush).toHaveBeenNthCalledWith(2, '/connect');
+      expect(mockPush).toHaveBeenNthCalledWith(2, '/visualizer');
       expect(mockPush).toHaveBeenNthCalledWith(3, '/');
     });
   });
@@ -253,9 +253,9 @@ describe('Navigation', () => {
 
       const buttons = screen.getAllByRole('button');
 
-      expect(buttons[0]).toHaveAttribute('title', 'Home - Página principal');
-      expect(buttons[1]).toHaveAttribute('title', 'Connect - Conectar con Notion');
-      expect(buttons[2]).toHaveAttribute('title', 'Test - Página de pruebas');
+      expect(buttons[0]).toHaveAttribute('title', 'Inicio - Página principal');
+      expect(buttons[1]).toHaveAttribute('title', 'Visualizador - Ver archivos markdown');
+      expect(buttons[2]).toHaveAttribute('title', 'Tester - Probar repositorio');
       expect(buttons[3]).toHaveAttribute('title', 'Configuración - Configuración de la aplicación');
     });
 
@@ -269,8 +269,8 @@ describe('Navigation', () => {
 
       await waitFor(() => {
         expect(buttons[0]).toHaveAttribute('title', 'Página principal');
-        expect(buttons[1]).toHaveAttribute('title', 'Conectar con Notion');
-        expect(buttons[2]).toHaveAttribute('title', 'Página de pruebas');
+        expect(buttons[1]).toHaveAttribute('title', 'Ver archivos markdown');
+        expect(buttons[2]).toHaveAttribute('title', 'Probar repositorio');
         expect(buttons[3]).toHaveAttribute('title', 'Configuración de la aplicación');
       });
     });
@@ -330,7 +330,7 @@ describe('Navigation', () => {
 
   describe('Integration Tests', () => {
     it('should work with different pathnames', () => {
-      const testPaths = ['/', '/connect', '/test', '/other'];
+      const testPaths = ['/', '/visualizer', '/test', '/other'];
 
       testPaths.forEach(path => {
         mockPathname = path;

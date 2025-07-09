@@ -1,10 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
-// Mock de useRouter
+// Mock de Next.js navigation
 vi.mock('next/navigation', () => ({
-  useRouter: vi.fn()
+  useRouter: vi.fn(),
+  usePathname: vi.fn()
 }));
 
 // Mock del componente PageHeader
@@ -14,6 +15,13 @@ vi.mock('../../../components', () => ({
       <h1>{title}</h1>
       <p>{description}</p>
     </div>
+  ))
+}));
+
+// Mock del componente ConnectionContent
+vi.mock('../components/ConnectionContent', () => ({
+  ConnectionContent: vi.fn(() => (
+    <div data-testid="connection-content">Connection Content</div>
   ))
 }));
 
@@ -31,6 +39,9 @@ describe('SettingsPage', () => {
       replace: vi.fn(),
       prefetch: vi.fn(),
     });
+
+    (vi.mocked(usePathname)).mockReturnValue('/settings');
+
     vi.clearAllMocks();
   });
 
@@ -41,39 +52,39 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Configura las diferentes opciones de la aplicación')).toBeInTheDocument();
   });
 
-  it('should render Connect tab', () => {
+  it('should render Conexión tab', () => {
     render(<SettingsPage />);
 
     expect(screen.getByText('🔌')).toBeInTheDocument();
-    expect(screen.getByText('Connect')).toBeInTheDocument();
+    expect(screen.getByText('Conexión')).toBeInTheDocument();
   });
 
-  it('should navigate to connect page when Connect tab is clicked', () => {
+  it('should navigate to connect page when Conexión tab is clicked', () => {
     render(<SettingsPage />);
 
-    const connectTab = screen.getByRole('button', { name: /🔌 Connect/i });
+    const connectTab = screen.getByRole('button', { name: /🔌 Conexión/i });
     fireEvent.click(connectTab);
 
-    expect(mockPush).toHaveBeenCalledWith('/connect');
+    expect(mockPush).toHaveBeenCalledWith('/settings/connect');
   });
 
-  it('should show active state for Connect tab by default', () => {
+  it('should show active state for Conexión tab by default', () => {
     render(<SettingsPage />);
 
-    const connectTab = screen.getByRole('button', { name: /🔌 Connect/i });
+    const connectTab = screen.getByRole('button', { name: /🔌 Conexión/i });
     expect(connectTab).toHaveStyle('color: #10b981');
   });
 
-  it('should render placeholder content', () => {
+  it('should render connection content by default', () => {
     render(<SettingsPage />);
 
-    expect(screen.getByText('Selecciona una pestaña para configurar las opciones correspondientes')).toBeInTheDocument();
+    expect(screen.getByTestId('connection-content')).toBeInTheDocument();
   });
 
   it('should render tabs container with correct styling', () => {
     render(<SettingsPage />);
 
-    const tabsContainer = screen.getByRole('button', { name: /🔌 Connect/i }).parentElement;
+    const tabsContainer = screen.getByRole('button', { name: /🔌 Conexión/i }).parentElement;
     expect(tabsContainer).toHaveStyle('display: flex');
     expect(tabsContainer).toHaveStyle('gap: 1rem');
   });

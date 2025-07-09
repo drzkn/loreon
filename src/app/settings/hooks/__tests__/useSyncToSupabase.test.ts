@@ -39,7 +39,9 @@ describe('useSyncToSupabase', () => {
   it('should set isProcessing to true when syncToSupabase is called', async () => {
     // Mock fetch to return a readable stream
     const mockReader = {
-      read: vi.fn().mockResolvedValue({ done: true, value: undefined })
+      read: vi.fn()
+        .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"type":"info","message":"Starting sync"}\n\n') })
+        .mockResolvedValueOnce({ done: true, value: undefined })
     };
 
     const mockResponse = {
@@ -51,13 +53,16 @@ describe('useSyncToSupabase', () => {
 
     const { result } = renderHook(() => useSyncToSupabase());
 
+    act(() => {
+      result.current.syncToSupabase();
+    });
+
+    // Check that isProcessing becomes true immediately
+    expect(result.current.isProcessing).toBe(true);
+
+    // Wait for the async operation to complete
     await act(async () => {
-      const promise = result.current.syncToSupabase();
-
-      // Check that isProcessing becomes true
-      expect(result.current.isProcessing).toBe(true);
-
-      await promise;
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     // After completion, isProcessing should be false
