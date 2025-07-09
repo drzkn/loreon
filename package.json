@@ -14,7 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "test:connection": "npx tsx src/examples/config.example.ts",
-    "example:supabase": "npx tsx src/examples/supabaseExample.ts"
+    "example:supabase": "npx tsx src/examples/supabaseExample.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",
@@ -46,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "eslint-plugin-storybook": "^9.0.14",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "playwright": "^1.53.1",
     "postcss-cli": "^11.0.1",
