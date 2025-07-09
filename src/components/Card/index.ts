@@ -1,0 +1,1 @@
+export { Card as SyncCard } from './Card'; 

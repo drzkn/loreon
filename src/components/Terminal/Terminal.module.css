@@ -1,0 +1,110 @@
+/* Terminal Container */
+.container {
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+/* Terminal Header */
+.headerContainer {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.headerLeftSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.headerDotRed {
+  background: #ef4444;
+}
+
+.headerDotYellow {
+  background: #f59e0b;
+}
+
+.headerDotGreen {
+  background: #10b981;
+}
+
+.headerTitle {
+  margin-left: 1rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: white;
+}
+
+.headerRightSection {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.headerButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* Terminal Logs */
+.logsContainer {
+  padding: 1rem;
+  height: 300px;
+  overflow-y: auto;
+  font-family: Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #00ff00;
+}
+
+.logsEmptyState {
+  color: #6b7280;
+}
+
+.logsEntry {
+  margin-bottom: 0.25rem;
+}
+
+.logsError {
+  color: #ef4444;
+}
+
+.logsSuccess {
+  color: #10b981;
+}
+
+.logsInfo {
+  color: #3b82f6;
+}
+
+.logsDefault {
+  color: #00ff00;
+}
+
+/* Terminal Footer */
+.footerContainer {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.8rem;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+}
