@@ -72,13 +72,14 @@ describe('Navigation', () => {
       expect(screen.getByText('🏠')).toBeInTheDocument();
       expect(screen.getByText('🔗')).toBeInTheDocument();
       expect(screen.getByText('🧪')).toBeInTheDocument();
+      expect(screen.getByText('⚙️')).toBeInTheDocument(); // Settings button
     });
 
     it('should render navigation buttons', () => {
       render(<Navigation />);
 
       const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(3);
+      expect(buttons).toHaveLength(4); // 3 navigation items + 1 settings button
     });
 
     it('should not be expanded initially', () => {
@@ -116,6 +117,15 @@ describe('Navigation', () => {
 
       const buttons = screen.getAllByRole('button');
       expect(buttons[1].className).toContain('active'); // Connect button
+    });
+
+    it('should mark settings path as active when on settings page', () => {
+      mockPathname = '/settings';
+
+      render(<Navigation />);
+
+      const buttons = screen.getAllByRole('button');
+      expect(buttons[3].className).toContain('active'); // Settings button (last button)
     });
   });
 
@@ -162,6 +172,7 @@ describe('Navigation', () => {
         expect(screen.getByText('Home')).toBeInTheDocument();
         expect(screen.getByText('Connect')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(screen.getByText('Configuración')).toBeInTheDocument();
       });
     });
   });
@@ -215,6 +226,9 @@ describe('Navigation', () => {
 
       fireEvent.click(buttons[2]);
       expect(mockPush).toHaveBeenCalledWith('/test');
+
+      fireEvent.click(buttons[3]);
+      expect(mockPush).toHaveBeenCalledWith('/settings');
     });
 
     it('should handle multiple navigation calls', () => {
@@ -242,6 +256,7 @@ describe('Navigation', () => {
       expect(buttons[0]).toHaveAttribute('title', 'Home - Página principal');
       expect(buttons[1]).toHaveAttribute('title', 'Connect - Conectar con Notion');
       expect(buttons[2]).toHaveAttribute('title', 'Test - Página de pruebas');
+      expect(buttons[3]).toHaveAttribute('title', 'Configuración - Configuración de la aplicación');
     });
 
     it('should show simple tooltips when expanded', async () => {
@@ -256,6 +271,7 @@ describe('Navigation', () => {
         expect(buttons[0]).toHaveAttribute('title', 'Página principal');
         expect(buttons[1]).toHaveAttribute('title', 'Conectar con Notion');
         expect(buttons[2]).toHaveAttribute('title', 'Página de pruebas');
+        expect(buttons[3]).toHaveAttribute('title', 'Configuración de la aplicación');
       });
     });
   });
@@ -271,8 +287,8 @@ describe('Navigation', () => {
 
       expect(nav.className).toContain('globalNavigation');
       expect(container).toBeInTheDocument();
-      expect(items).toHaveLength(3);
-      expect(icons).toHaveLength(3);
+      expect(items).toHaveLength(4); // 3 navigation items + 1 settings button
+      expect(icons).toHaveLength(4); // 3 navigation icons + 1 settings icon
     });
 
     it('should have proper accessibility attributes', () => {

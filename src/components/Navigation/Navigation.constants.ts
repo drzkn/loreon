@@ -17,11 +17,5 @@ export const navigationItems = [
     icon: '🧪',
     label: 'Tester',
     description: 'Probar repositorio'
-  },
-  {
-    path: '/connect',
-    icon: '🔌',
-    label: 'Connect',
-    description: 'Sincronizar base de datos'
   }
 ];

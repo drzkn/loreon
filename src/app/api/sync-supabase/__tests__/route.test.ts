@@ -4,14 +4,14 @@ import { POST } from '../route'
 // Mock del repository
 const mockHandleSyncToSupabase = vi.fn()
 
-vi.mock('../../../connect/repository', () => ({
+vi.mock('../../helpers/ConnectionPageRepository', () => ({
   ConnectionPageRepository: vi.fn().mockImplementation(() => ({
     handleSyncToSupabase: mockHandleSyncToSupabase
   }))
 }))
 
 // Importar después del mock
-import { ConnectionPageRepository } from '../../../connect/repository'
+import { ConnectionPageRepository } from '../../helpers/ConnectionPageRepository'
 import { readSSEMessages } from '../../helpers/readSSEMessages'
 const mockConnectionPageRepository = vi.mocked(ConnectionPageRepository)
 

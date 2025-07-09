@@ -30,17 +30,30 @@ export const Navigation: React.FC = () => {
       onMouseLeave={() => setIsExpanded(false)}
     >
       <div className={styles.navContainer}>
-        {navigationItems.map((item) => (
+        <div className={styles.navMainItems}>
+          {navigationItems.map((item) => (
+            <button
+              key={item.path}
+              onClick={() => router.push(item.path)}
+              className={`${styles.navItem} ${pathname === item.path || pathname.startsWith(item.path + '/') ? styles.active : ''}`}
+              title={isExpanded ? item.description : `${item.label} - ${item.description}`}
+            >
+              <span className={styles.navIcon}>{item.icon}</span>
+              {isExpanded && <span className={styles.navLabel}>{item.label}</span>}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.navFooterItems}>
           <button
-            key={item.path}
-            onClick={() => router.push(item.path)}
-            className={`${styles.navItem} ${pathname === item.path ? styles.active : ''}`}
-            title={isExpanded ? item.description : `${item.label} - ${item.description}`}
+            onClick={() => router.push('/settings/connect')}
+            className={`${styles.navItem} ${pathname.startsWith('/settings') ? styles.active : ''}`}
+            title={isExpanded ? 'Configuración de la aplicación' : 'Configuración - Configuración de la aplicación'}
           >
-            <span className={styles.navIcon}>{item.icon}</span>
-            {isExpanded && <span className={styles.navLabel}>{item.label}</span>}
+            <span className={styles.navIcon}>⚙️</span>
+            {isExpanded && <span className={styles.navLabel}>Configuración</span>}
           </button>
-        ))}
+        </div>
       </div>
     </nav>
   );

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ConnectionPageRepository } from '../../connect/repository';
+import { ConnectionPageRepository } from '../helpers/ConnectionPageRepository';
 
 export async function POST() {
   // Configurar headers para Server-Sent Events
