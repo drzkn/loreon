@@ -1,15 +1,13 @@
 import { NotionRepository } from '../../adapters/output/infrastructure/notion/NotionRepository/NotionRepository';
-import { GetDatabase } from '../../domain/usecases/GetDatabase/GetDatabase.js';
-import { QueryDatabaseUseCase } from '../../domain/usecases/QueryDatabase/QueryDatabase.js';
-import { GetBlockChildren } from '../../domain/usecases/GetBlockChildren/GetBlockChildren.js';
 import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure/supabase';
-import { SupabaseMarkdownService } from '../../services/markdownConverter/SupabaseMarkdownService';
 import { MarkdownConverterService } from '../../services/markdownConverter/MarkdownConverter';
 import { getEnvVar } from '@/utils/getEnvVar';
 import { AxiosHttpClient } from '@/adapters/output/infrastructure/http/AxiosHttpClient';
 import { GetUser } from '@/domain/usecases/GetUser';
 import { GetPage } from '@/domain/usecases/GetPage';
 import { GetBlockChildrenRecursive } from '@/domain/usecases/GetBlockChildrenRecursive';
+import { SupabaseMarkdownService } from '@/services/supabase';
+import { GetBlockChildren, GetDatabase, QueryDatabaseUseCase } from '@/domain/usecases';
 
 // Detectar si estamos en Node.js o en el navegador
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
