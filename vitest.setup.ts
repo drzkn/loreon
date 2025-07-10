@@ -3,6 +3,10 @@ import '@testing-library/jest-dom'
 
 vi.mock('dotenv/config', () => ({}))
 
+// Mock CSS imports
+vi.mock('*.css', () => ({}))
+vi.mock('*.module.css', () => ({}))
+
 // Environment variables mocks
 process.env.NOTION_DATABASE_ID = 'test-db-1,test-db-2'
 process.env.NOTION_API_KEY = 'test-notion-key'
