@@ -1,24 +1,33 @@
 import styles from './Card.module.css';
 
-interface SyncCardProps {
+interface CarProps {
   children?: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
+  titleAs?: 'h2' | 'h3';
 }
 
 export const Card = ({
   title,
   description,
-  children
-}: SyncCardProps) => {
+  children,
+  titleAs = 'h3',
+}: CarProps) => {
+  const TitleAs = titleAs;
+
+  const titleStyles = {
+    h2: styles.title_h2,
+    h3: styles.title_h3,
+  };
+
   return (
     <div className={`${styles.container} `}>
       <section className={styles.section}>
-        <h3 className={styles.title}>{title}</h3>
-        <p className={styles.description}>{description}</p>
+        <TitleAs className={titleStyles[titleAs]}>{title}</TitleAs>
+        {description && <p className={styles.description}>{description}</p>}
       </section>
 
       {children}
     </div>
   );
-}; 
+};

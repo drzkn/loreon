@@ -40,13 +40,6 @@ export const ConnectionContent = () => {
             description="Control total sobre cuándo sincronizar"
           >
             <section className={styles.section}>
-              {isProcessing && (
-                <div className={styles.processingInfo}>
-                  <div>{'🔄 Sincronización en progreso...'}</div>
-                  <div>{'📄 Procesando múltiples databases'}</div>
-                </div>
-              )}
-
               <div className={styles.buttonContainer}>
                 <button
                   onClick={syncToSupabase}

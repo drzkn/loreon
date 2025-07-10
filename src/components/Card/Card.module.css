@@ -1,18 +1,27 @@
 .container {
   background: rgba(255, 255, 255, 0.1);
-  padding: 1.5rem;
+  padding: 2rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  height: 230px;
 }
 
-.title {
+.title_h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title_h3 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
 }
 
 .description {
   opacity: 0.8;
+  line-height: 1.6;
 }
