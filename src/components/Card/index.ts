@@ -1,1 +1,1 @@
-export { Card as SyncCard } from './Card'; 
+export { Card } from './Card'; 

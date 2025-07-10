@@ -1,7 +1,9 @@
 "use client";
 
-import { SyncCard, Terminal } from '@/components';
+import { Card, Terminal } from '@/components';
 import { useSyncToSupabase } from '../hooks/useSyncToSupabase';
+import styles from './ConnectionContent.module.css';
+
 
 export const ConnectionContent = () => {
   const { isProcessing, logs, syncToSupabase, clearLogs } = useSyncToSupabase();
@@ -33,16 +35,29 @@ export const ConnectionContent = () => {
           gap: '1.5rem',
           marginTop: '2rem'
         }}>
-          <SyncCard
-            isProcessing={isProcessing}
-            onSync={syncToSupabase}
+          <Card
             title="📋 Manual"
             description="Control total sobre cuándo sincronizar"
-            processingMessagePrimary="🔄 Sincronización en progreso..."
-            processingMessageSecondary="📄 Procesando múltiples databases"
-            buttonTextProcessing="🔄 Sincronizando..."
-            buttonTextIdle="🚀 Sincronizar"
-          />
+          >
+            <section className={styles.section}>
+              {isProcessing && (
+                <div className={styles.processingInfo}>
+                  <div>{'🔄 Sincronización en progreso...'}</div>
+                  <div>{'📄 Procesando múltiples databases'}</div>
+                </div>
+              )}
+
+              <div className={styles.buttonContainer}>
+                <button
+                  onClick={syncToSupabase}
+                  disabled={isProcessing}
+                  className={`${styles.button} ${isProcessing ? styles.buttonDisabled : styles.buttonActive}`}
+                >
+                  {isProcessing ? '🔄 Sincronizando...' : '🚀 Sincronizar'}
+                </button>
+              </div>
+            </section>
+          </Card>
 
           <Terminal
             logs={logs}

@@ -31,7 +31,7 @@ interface TerminalProps {
 
 // Mock the components
 vi.mock('../../../../components', () => ({
-  SyncCard: (props: SyncCardProps) => (
+  Card: (props: SyncCardProps) => (
     <div data-testid="sync-card">
       <h3>{props.title}</h3>
       <p>{props.description}</p>
