@@ -1,51 +1,33 @@
 import styles from './Card.module.css';
 
-interface SyncCardProps {
-  isProcessing: boolean;
-  onSync: () => void;
+interface CarProps {
+  children?: React.ReactNode;
   title: string;
-  description: string;
-  processingMessagePrimary: string;
-  processingMessageSecondary: string;
-  buttonTextProcessing: string;
-  buttonTextIdle: string;
+  description?: string;
+  titleAs?: 'h2' | 'h3';
 }
 
 export const Card = ({
-  isProcessing,
-  onSync,
   title,
   description,
-  processingMessagePrimary,
-  processingMessageSecondary,
-  buttonTextProcessing,
-  buttonTextIdle
-}: SyncCardProps) => {
+  children,
+  titleAs = 'h3',
+}: CarProps) => {
+  const TitleAs = titleAs;
+
+  const titleStyles = {
+    h2: styles.title_h2,
+    h3: styles.title_h3,
+  };
+
   return (
-    <div className={`${styles.container} ${isProcessing ? styles.containerProcessing : styles.containerIdle}`}>
+    <div className={`${styles.container} `}>
       <section className={styles.section}>
-        <h3 className={styles.title}>{title}</h3>
-        <p className={styles.description}>{description}</p>
+        <TitleAs className={titleStyles[titleAs]}>{title}</TitleAs>
+        {description && <p className={styles.description}>{description}</p>}
       </section>
 
-      <section className={styles.section}>
-        {isProcessing && (
-          <div className={styles.processingInfo}>
-            <div>{processingMessagePrimary}</div>
-            <div>{processingMessageSecondary}</div>
-          </div>
-        )}
-
-        <div className={styles.buttonContainer}>
-          <button
-            onClick={onSync}
-            disabled={isProcessing}
-            className={`${styles.button} ${isProcessing ? styles.buttonDisabled : styles.buttonActive}`}
-          >
-            {isProcessing ? buttonTextProcessing : buttonTextIdle}
-          </button>
-        </div>
-      </section>
+      {children}
     </div>
   );
-}; 
+};

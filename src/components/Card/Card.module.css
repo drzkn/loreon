@@ -1,62 +1,27 @@
 .container {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1.5rem;
+  background: var(--glass-light);
+  padding: 2rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-glass);
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-}
-
-.containerProcessing {
   height: 230px;
 }
 
-.containerIdle {
-  height: 185px;
+.title_h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.title {
+.title_h3 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
 }
 
 .description {
   opacity: 0.8;
-}
-
-.processingInfo {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 6px;
-  font-size: 0.8rem;
-}
-
-.buttonContainer {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  flex: 1;
-}
-
-.buttonActive {
-  background: #10b981;
-  cursor: pointer;
-  opacity: 1;
-}
-
-.buttonDisabled {
-  background: #6b7280;
-  cursor: not-allowed;
-  opacity: 0.7;
+  line-height: 1.6;
 }
