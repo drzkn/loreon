@@ -1,0 +1,27 @@
+.container {
+  background: var(--glass-light);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-glass);
+  display: flex;
+  flex-direction: column;
+  height: 230px;
+}
+
+.title_h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title_h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  opacity: 0.8;
+  line-height: 1.6;
+}

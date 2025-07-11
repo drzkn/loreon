@@ -20,5 +20,18 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@react-navigation/native": "^7.1.14",
+    "@react-navigation/native-stack": "^7.3.21",
+    "@tamagui/animations-react-native": "^1.131.3",
+    "@tamagui/config": "^1.131.3",
+    "@tamagui/core": "^1.131.3",
+    "@tamagui/font-inter": "^1.131.3",
+    "@tamagui/theme-base": "^1.131.3",
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.11.1",
+    "solito": "^4.4.1",
+    "tsup": "^8.5.0"
+  }
 }
