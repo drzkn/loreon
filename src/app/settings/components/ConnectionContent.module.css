@@ -1,7 +1,42 @@
+.container {
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans);
+  border-radius: 8px;
+}
+
+.syncSection {
+  background: var(--nav-active);
+  backdrop-filter: blur(var(--backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur));
+  padding: 2rem;
+  border: 1px solid var(--nav-active-border);
+  border-radius: 8px;
+}
+
+.syncTitle {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--success-500);
+}
+
+.syncGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.section {
+  margin-top: 1rem;
+}
+
 .processingInfo {
   margin-top: 1rem;
   padding: 0.5rem;
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--nav-active);
   border-radius: 6px;
   font-size: 0.8rem;
 }
@@ -13,23 +48,39 @@
 }
 
 .button {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
   flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .buttonActive {
-  background: #10b981;
-  cursor: pointer;
-  opacity: 1;
+  background: var(--success-500);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.buttonActive:hover {
+  background: var(--success-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .buttonDisabled {
-  background: #6b7280;
+  background: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.buttonDisabled:hover {
+  transform: none;
+  box-shadow: none;
 }

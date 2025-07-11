@@ -1,8 +1,8 @@
 .container {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--glass-light);
   padding: 2rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-glass);
   display: flex;
   flex-direction: column;
   height: 230px;

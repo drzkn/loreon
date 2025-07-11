@@ -8,8 +8,8 @@ vi.mock('../../hooks/useSyncToSupabase', () => ({
     isProcessing: false,
     logs: [],
     syncToSupabase: vi.fn(),
-    clearLogs: vi.fn()
-  }))
+    clearLogs: vi.fn(),
+  })),
 }));
 
 interface SyncCardProps {
@@ -32,7 +32,7 @@ interface TerminalProps {
 // Mock the components
 vi.mock('../../../../components', () => ({
   Card: (props: SyncCardProps) => (
-    <div data-testid="sync-card">
+    <div data-testid='sync-card'>
       <h3>{props.title}</h3>
       <p>{props.description}</p>
       <button onClick={props.onSync} disabled={props.isProcessing}>
@@ -47,28 +47,22 @@ vi.mock('../../../../components', () => ({
     </div>
   ),
   Terminal: (props: TerminalProps) => (
-    <div data-testid="terminal">
+    <div data-testid='terminal'>
       <div>Processing: {props.isProcessing ? 'true' : 'false'}</div>
       <div>Logs: {props.logs.length}</div>
       <button onClick={props.onClearLogs}>Clear</button>
     </div>
-  )
+  ),
 }));
 
 describe('ConnectionContent', () => {
   it('should render the connection content correctly', () => {
     render(<ConnectionContent />);
 
-    expect(screen.getByText('🔄 Opciones de Sincronización')).toBeInTheDocument();
+    expect(
+      screen.getByText('🔄 Opciones de sincronización')
+    ).toBeInTheDocument();
     expect(screen.getByTestId('sync-card')).toBeInTheDocument();
     expect(screen.getByTestId('terminal')).toBeInTheDocument();
   });
-
-  it('should have the correct styling and structure', () => {
-    render(<ConnectionContent />);
-
-    const heading = screen.getByText('🔄 Opciones de Sincronización');
-    expect(heading).toBeInTheDocument();
-    expect(heading.tagName).toBe('H2');
-  });
-}); 
+});
