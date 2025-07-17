@@ -3,7 +3,7 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -11,8 +11,22 @@
     "strict": true,
     "target": "es2020",
     "module": "esnext",
-    "lib": ["es2020", "dom", "dom.iterable"]
+    "lib": ["es2020", "dom", "dom.iterable"],
+    "allowJs": true,
+    "noEmit": true,
+    "incremental": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", ".next/types/**/*.ts"],
   "exclude": ["dist", "node_modules", "**/*.test.*", "**/*.spec.*"]
 }
