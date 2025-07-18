@@ -1,68 +1,55 @@
-import { createParam } from 'solito';
-import { useLink } from 'solito/link';
-import { YStack, XStack, H1, Paragraph, Button } from '@tamagui/core';
-import { Card } from '@loreon/tamagui-ui';
+import React from 'react';
+import { Card } from '../components/Card';
 
-export function HomeScreen() {
-  const visualizerLink = useLink({ href: '/visualizer' });
-  const testLink = useLink({ href: '/test' });
-  const settingsLink = useLink({ href: '/settings' });
-
+export const HomeScreen: React.FC = () => {
   return (
-    <YStack flex={1} padding='$4' backgroundColor='$background'>
-      <YStack maxWidth={1200} alignSelf='center' width='100%'>
-        <YStack marginBottom='$8'>
-          <H1
-            fontSize='$12'
-            fontWeight='bold'
-            marginBottom='$4'
-            textAlign='center'
-          >
-            🚀 Bienvenido a Loreon
-          </H1>
-          <Paragraph
-            fontSize='$6'
-            opacity={0.8}
-            lineHeight='$2'
-            textAlign='center'
-          >
-            Tu plataforma integral para gestión de contenido markdown y
-            sincronización con bases de datos.
-          </Paragraph>
-        </YStack>
+    <div className="home-screen">
+      <div className="home-content">
+        <header className="home-header">
+          <h1>Bienvenido a Loreon</h1>
+          <p>Tu plataforma de gestión de contenido con Notion y Supabase</p>
+        </header>
 
-        <XStack $sm={{ flexDirection: 'column' }} gap='$4' marginBottom='$8'>
+        <div className="features-grid">
           <Card
-            title='📚 Visualizador'
-            description='Explora y visualiza archivos markdown de manera elegante.'
-            variant='glass'
+            title="Notion Integration"
+            description="Conecta y sincroniza tu contenido desde Notion de forma automática"
           >
-            <Button {...visualizerLink} backgroundColor='$info' color='white'>
-              Abrir Visualizador
-            </Button>
+            <button className="feature-button">
+              Configurar Notion
+            </button>
           </Card>
 
           <Card
-            title='🧪 Tester'
-            description='Herramientas de testing para validar la integridad de tus repositorios.'
-            variant='glass'
+            title="Supabase Backend"
+            description="Base de datos en tiempo real con autenticación segura"
           >
-            <Button {...testLink} backgroundColor='$warning' color='white'>
-              Abrir Tester
-            </Button>
+            <button className="feature-button">
+              Ver Dashboard
+            </button>
           </Card>
 
           <Card
-            title='🔌 Connect'
-            description='Conecta y sincroniza con múltiples bases de datos.'
-            variant='glass'
+            title="Testing Suite"
+            description="Suite completa de tests con cobertura del 80%+"
           >
-            <Button {...settingsLink} backgroundColor='$success' color='white'>
-              Configurar
-            </Button>
+            <button className="feature-button">
+              Ejecutar Tests
+            </button>
           </Card>
-        </XStack>
-      </YStack>
-    </YStack>
+
+          <Card
+            title="Arquitectura Hexagonal"
+            description="Código limpio y mantenible con separación de responsabilidades"
+          >
+            <button className="feature-button">
+              Ver Documentación
+            </button>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default HomeScreen;
