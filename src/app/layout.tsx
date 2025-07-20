@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components";
+import ClientProviders from "../lib/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,15 +27,17 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Navigation />
-        <main style={{
-          marginLeft: 'var(--nav-width, 60px)',
-          transition: 'margin-left 0.3s ease',
-          minHeight: '100vh',
-          padding: '2rem'
-        }}>
-          {children}
-        </main>
+        <ClientProviders>
+          <Navigation />
+          <main style={{
+            marginLeft: 'var(--nav-width, 60px)',
+            transition: 'margin-left 0.3s ease',
+            minHeight: '100vh',
+            padding: '2rem'
+          }}>
+            {children}
+          </main>
+        </ClientProviders>
       </body>
     </html>
   );
