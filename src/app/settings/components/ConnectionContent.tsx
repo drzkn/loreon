@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Terminal } from '@/components';
+import { Card, Terminal, ConnectionStatus } from '@/components';
 import { useSyncToSupabase } from '../hooks/useSyncToSupabase';
 import styles from './ConnectionContent.module.css';
 
@@ -8,7 +8,9 @@ export const ConnectionContent = () => {
   const { isProcessing, logs, syncToSupabase, clearLogs } = useSyncToSupabase();
 
   return (
-    <div className={`${styles.container} `}>
+    <div className={`${styles.container} `} data-testid="connection-content">
+      <ConnectionStatus />
+
       <section className={styles.syncSection}>
         <h2 className={styles.syncTitle}>🔄 Opciones de sincronización</h2>
         <div className={styles.syncGrid}>

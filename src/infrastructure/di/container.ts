@@ -23,12 +23,14 @@ const baseURL = isNode
 // Configurar headers según el entorno
 const defaultHeaders: Record<string, string> = {};
 if (isNode) {
-  const notionApiKey = getEnvVar('NOTION_API_KEY');
+  // En Node.js, intentar usar las variables sin prefijo VITE_
+  const notionApiKey = getEnvVar('NOTION_API_KEY') || getEnvVar('VITE_NOTION_API_KEY');
   if (notionApiKey) {
     defaultHeaders['Authorization'] = `Bearer ${notionApiKey}`;
     defaultHeaders['Notion-Version'] = '2022-06-28';
   }
 }
+// En el navegador, el proxy se encarga de los headers usando las variables VITE_
 
 // Crear instancias
 const httpClient = new AxiosHttpClient(baseURL, defaultHeaders);
@@ -44,19 +46,13 @@ const getBlockChildrenRecursiveUseCase = new GetBlockChildrenRecursive(notionRep
 
 // Servicios
 const markdownConverterService = new MarkdownConverterService();
-
-// Registrar Supabase dependencies
 const supabaseMarkdownRepository = new SupabaseMarkdownRepository();
-const supabaseMarkdownService = new SupabaseMarkdownService(
-  supabaseMarkdownRepository,
-  markdownConverterService
-);
+const supabaseMarkdownService = new SupabaseMarkdownService(supabaseMarkdownRepository, markdownConverterService);
 
-// Contenedor de dependencias
 export const container = {
-  // Infraestructura
-  httpClient,
+  // Repositorios
   notionRepository,
+  supabaseMarkdownRepository,
 
   // Casos de uso
   getDatabaseUseCase,
@@ -68,19 +64,5 @@ export const container = {
 
   // Servicios
   markdownConverterService,
-
-  // Configuración
-  config: {
-    isNode,
-    isBrowser,
-    baseURL,
-    defaultHeaders
-  },
-
-  // Supabase dependencies
-  supabaseMarkdownRepository,
-  supabaseMarkdownService
-};
-
-// Exportar casos de uso para uso directo
-export { getDatabaseUseCase, getUserUseCase, queryDatabaseUseCase, getPageUseCase, getBlockChildrenUseCase, getBlockChildrenRecursiveUseCase, supabaseMarkdownRepository, supabaseMarkdownService }; 
+  supabaseMarkdownService,
+}; 
