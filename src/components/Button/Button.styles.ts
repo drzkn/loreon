@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-type ButtonVariant = 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+type ButtonVariant = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'loading';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface StyledButtonProps {
@@ -59,6 +59,19 @@ const getVariantStyles = (variant: ButtonVariant) => {
       &:hover:not(:disabled) {
         background: #dc2626;
         border-color: #dc2626;
+      }
+    `,
+    loading: css`
+      background: #6b7280;
+      border: 1px solid #6b7280;
+      color: white;
+      cursor: not-allowed;
+      opacity: 0.8;
+
+      &:hover {
+        background: #6b7280;
+        border-color: #6b7280;
+        transform: none;
       }
     `,
   };
