@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 const CardContainer = styled.div`
   background: ${({ theme }) => theme.colors.glassLight};
@@ -38,12 +38,19 @@ const CardContent = styled.div`
   height: 100%;
 `;
 
-const CardTitle = styled.h3`
+const titleStyles = css`
   color: ${({ theme }) => theme.colors.textPrimary};
   font-weight: 600;
   margin-bottom: ${({ theme }) => theme.spacing.sm};
   font-size: ${({ theme }) => theme.fontSize.xl};
 `;
+
+const CardTitle1 = styled.h1`${titleStyles}`;
+const CardTitle2 = styled.h2`${titleStyles}`;
+const CardTitle3 = styled.h3`${titleStyles}`;
+const CardTitle4 = styled.h4`${titleStyles}`;
+const CardTitle5 = styled.h5`${titleStyles}`;
+const CardTitle6 = styled.h6`${titleStyles}`;
 
 const CardDescription = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
@@ -58,30 +65,45 @@ const CardActions = styled.div`
   margin-top: auto;
 `;
 
+type TitleElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
 interface CardProps {
-  title: string;
-  description: string;
-  className?: string;
-  children?: React.ReactNode;
+    title: string;
+    description: string;
+    titleAs?: TitleElement;
+    className?: string;
+    children?: React.ReactNode;
 }
 
+const titleComponents = {
+    h1: CardTitle1,
+    h2: CardTitle2,
+    h3: CardTitle3,
+    h4: CardTitle4,
+    h5: CardTitle5,
+    h6: CardTitle6,
+};
+
 export const Card: React.FC<CardProps> = ({
-  title,
-  description,
-  className = '',
-  children
+    title,
+    description,
+    titleAs = 'h3',
+    className = '',
+    children
 }) => {
-  return (
-    <CardContainer className={className}>
-      <CardContent>
-        <div>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </div>
-        {children && <CardActions>{children}</CardActions>}
-      </CardContent>
-    </CardContainer>
-  );
+    const CardTitle = titleComponents[titleAs];
+
+    return (
+        <CardContainer className={className}>
+            <CardContent>
+                <div>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                </div>
+                {children && <CardActions>{children}</CardActions>}
+            </CardContent>
+        </CardContainer>
+    );
 };
 
 export default Card;

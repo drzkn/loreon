@@ -1,6 +1,6 @@
 import styles from './Card.module.css';
 
-interface CarProps {
+interface CardProps {
   children?: React.ReactNode;
   title: string;
   description?: string;
@@ -12,7 +12,7 @@ export const Card = ({
   description,
   children,
   titleAs = 'h3',
-}: CarProps) => {
+}: CardProps) => {
   const TitleAs = titleAs;
 
   const titleStyles = {
