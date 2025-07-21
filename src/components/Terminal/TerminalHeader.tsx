@@ -1,4 +1,11 @@
-import styles from './Terminal.module.css';
+import {
+  HeaderContainer,
+  HeaderLeftSection,
+  HeaderDot,
+  HeaderTitle,
+  HeaderRightSection,
+  HeaderButton
+} from './Terminal.styles';
 
 interface TerminalHeaderProps {
   onClearLogs: () => void;
@@ -6,23 +13,20 @@ interface TerminalHeaderProps {
 
 export const TerminalHeader = ({ onClearLogs }: TerminalHeaderProps) => {
   return (
-    <div className={styles.headerContainer}>
-      <div className={styles.headerLeftSection}>
-        <div className={`${styles.headerDot} ${styles.headerDotRed}`}></div>
-        <div className={`${styles.headerDot} ${styles.headerDotYellow}`}></div>
-        <div className={`${styles.headerDot} ${styles.headerDotGreen}`}></div>
-        <span className={styles.headerTitle}>
+    <HeaderContainer>
+      <HeaderLeftSection>
+        <HeaderDot color="red" />
+        <HeaderDot color="yellow" />
+        <HeaderDot color="green" />
+        <HeaderTitle>
           🖥️ Terminal de Sincronización
-        </span>
-      </div>
-      <div className={styles.headerRightSection}>
-        <button
-          onClick={onClearLogs}
-          className={styles.headerButton}
-        >
+        </HeaderTitle>
+      </HeaderLeftSection>
+      <HeaderRightSection>
+        <HeaderButton onClick={onClearLogs}>
           🗑️ Limpiar
-        </button>
-      </div>
-    </div>
+        </HeaderButton>
+      </HeaderRightSection>
+    </HeaderContainer>
   );
 }; 

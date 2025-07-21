@@ -1,4 +1,4 @@
-import styles from './Terminal.module.css';
+import { FooterContainer } from './Terminal.styles';
 
 interface TerminalFooterProps {
   logCount: number;
@@ -7,13 +7,13 @@ interface TerminalFooterProps {
 
 export const TerminalFooter = ({ logCount, isProcessing }: TerminalFooterProps) => {
   return (
-    <div className={styles.footerContainer}>
+    <FooterContainer>
       <span>
         Logs: {logCount}
       </span>
       <span>
         {isProcessing ? '🔄 Procesando...' : '⏸️ Inactivo'}
       </span>
-    </div>
+    </FooterContainer>
   );
 }; 
