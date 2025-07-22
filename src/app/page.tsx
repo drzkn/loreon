@@ -3,13 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   ChatContainer,
+  ChatSection,
   ChatHeader,
   ChatTitle,
   MessagesContainer,
   Message,
+  MessageBubble,
   MessageContent,
   MessageAuthor,
   MessageTime,
+  ActionsSection,
   InputContainer,
   InputWrapper,
   ChatInput,
@@ -90,70 +93,74 @@ export default function Home() {
 
   return (
     <ChatContainer>
-      <ChatHeader>
-        <ChatTitle>Loreon AI</ChatTitle>
-      </ChatHeader>
+      <ChatSection>
+        <ChatHeader>
+          <ChatTitle>Loreon AI</ChatTitle>
+        </ChatHeader>
 
-      <MessagesContainer>
-        {messages.length === 0 ? (
-          <WelcomeMessage>
-            <WelcomeTitle>¡Bienvenido a Loreon AI! 🚀</WelcomeTitle>
-            <WelcomeSubtitle>
-              Tu asistente inteligente para gestión de contenido markdown,
-              sincronización de datos y mucho más. Comienza escribiendo tu primera pregunta.
-            </WelcomeSubtitle>
-          </WelcomeMessage>
-        ) : (
-          messages.map((message) => (
-            <Message key={message.id} $isUser={message.author === 'user'}>
-              <MessageAuthor $isUser={message.author === 'user'}>
-                {message.author === 'user' ? '👤' : '🤖'}
-              </MessageAuthor>
-              <div style={{ flex: 1 }}>
-                <MessageContent $isUser={message.author === 'user'}>
-                  {message.content}
+        <MessagesContainer>
+          {messages.length === 0 ? (
+            <WelcomeMessage>
+              <WelcomeTitle>¡Bienvenido a Loreon AI! 🚀</WelcomeTitle>
+              <WelcomeSubtitle>
+                Tu asistente inteligente para gestión de contenido markdown,
+                sincronización de datos y mucho más. Comienza escribiendo tu primera pregunta.
+              </WelcomeSubtitle>
+            </WelcomeMessage>
+          ) : (
+            messages.map((message) => (
+              <Message key={message.id} $isUser={message.author === 'user'}>
+                <MessageAuthor $isUser={message.author === 'user'}>
+                  {message.author === 'user' ? '👤' : '🤖'}
+                </MessageAuthor>
+                <MessageBubble $isUser={message.author === 'user'}>
+                  <MessageContent $isUser={message.author === 'user'}>
+                    {message.content}
+                  </MessageContent>
+                  <MessageTime $isUser={message.author === 'user'}>
+                    {formatTime(message.timestamp)}
+                  </MessageTime>
+                </MessageBubble>
+              </Message>
+            ))
+          )}
+
+          {isTyping && (
+            <Message $isUser={false}>
+              <MessageAuthor $isUser={false}>🤖</MessageAuthor>
+              <MessageBubble $isUser={false}>
+                <MessageContent $isUser={false}>
+                  <span style={{ opacity: 0.6 }}>Escribiendo...</span>
                 </MessageContent>
-                <MessageTime>
-                  {formatTime(message.timestamp)}
-                </MessageTime>
-              </div>
+              </MessageBubble>
             </Message>
-          ))
-        )}
+          )}
 
-        {isTyping && (
-          <Message $isUser={false}>
-            <MessageAuthor $isUser={false}>🤖</MessageAuthor>
-            <div style={{ flex: 1 }}>
-              <MessageContent $isUser={false}>
-                <span style={{ opacity: 0.6 }}>Escribiendo...</span>
-              </MessageContent>
-            </div>
-          </Message>
-        )}
+          <div ref={messagesEndRef} />
+        </MessagesContainer>
+      </ChatSection>
 
-        <div ref={messagesEndRef} />
-      </MessagesContainer>
-
-      <InputContainer>
-        <InputWrapper>
-          <ChatInput
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Envía un mensaje a Loreon AI..."
-            rows={1}
-            disabled={isTyping}
-          />
-          <SendButton
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isTyping}
-          >
-            ➤
-          </SendButton>
-        </InputWrapper>
-      </InputContainer>
+      <ActionsSection>
+        <InputContainer>
+          <InputWrapper>
+            <ChatInput
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Envía un mensaje a Loreon AI..."
+              rows={1}
+              disabled={isTyping}
+            />
+            <SendButton
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isTyping}
+            >
+              ➤
+            </SendButton>
+          </InputWrapper>
+        </InputContainer>
+      </ActionsSection>
     </ChatContainer>
   );
 }
