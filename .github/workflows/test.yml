@@ -32,12 +32,33 @@ jobs:
 
       - name: 🔍 Run linting
         run: yarn lint
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_BASE_URL: ${{ secrets.NOTION_BASE_URL }}
+          NOTION_API_VERSION: ${{ secrets.NOTION_API_VERSION }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: 🧪 Run tests
         run: yarn test:run
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_BASE_URL: ${{ secrets.NOTION_BASE_URL }}
+          NOTION_API_VERSION: ${{ secrets.NOTION_API_VERSION }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: 📊 Run tests with coverage
         run: yarn test:coverage
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_BASE_URL: ${{ secrets.NOTION_BASE_URL }}
+          NOTION_API_VERSION: ${{ secrets.NOTION_API_VERSION }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: 📈 Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -76,6 +97,13 @@ jobs:
 
       - name: 🏗️ Build application
         run: yarn build
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          NOTION_BASE_URL: ${{ secrets.NOTION_BASE_URL }}
+          NOTION_API_VERSION: ${{ secrets.NOTION_API_VERSION }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
   quality-gate:
     name: 🚦 Quality Gate

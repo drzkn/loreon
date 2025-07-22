@@ -23,8 +23,7 @@ const baseURL = isNode
 // Configurar headers según el entorno
 const defaultHeaders: Record<string, string> = {};
 if (isNode) {
-  // En Node.js, intentar usar las variables sin prefijo VITE_
-  const notionApiKey = getEnvVar('NOTION_API_KEY') || getEnvVar('VITE_NOTION_API_KEY');
+  const notionApiKey = getEnvVar('NOTION_API_KEY');
   if (notionApiKey) {
     defaultHeaders['Authorization'] = `Bearer ${notionApiKey}`;
     defaultHeaders['Notion-Version'] = '2022-06-28';
