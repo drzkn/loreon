@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { getDatabaseUseCase, getUserUseCase, queryDatabaseUseCase, getPageUseCase } from '../infrastructure/di/container';
+import { container } from '../infrastructure/di/container';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -41,7 +41,7 @@ async function testNotionConnection() {
     console.log(`📊 Se encontraron ${databaseIds.length} base(s) de datos para procesar`);
 
     // Obtener información del usuario usando el caso de uso (solo una vez)
-    const userInfo = await getUserUseCase.execute();
+    const userInfo = await container.getUserUseCase.execute();
     console.log('✅GetUserUseCase');
 
     // Arrays para consolidar todos los resultados
@@ -56,19 +56,19 @@ async function testNotionConnection() {
 
       try {
         // Obtener información de la base de datos usando el caso de uso
-        const databaseInfo = await getDatabaseUseCase.execute(databaseId);
+        const databaseInfo = await container.getDatabaseUseCase.execute(databaseId);
         console.log(`✅GetDatabaseUseCase para ${databaseInfo.title || databaseId}`);
         allDatabasesInfo.push(databaseInfo);
 
         // Consultar la base de datos usando el caso de uso
-        const databaseQuery = await queryDatabaseUseCase.execute(databaseId);
+        const databaseQuery = await container.queryDatabaseUseCase.execute(databaseId);
         console.log(`✅QueryDatabaseUseCase - ${databaseQuery.length} páginas encontradas`);
         allDatabaseQueries.push(...databaseQuery);
 
         // Obtener una página específica usando el caso de uso (ejemplo con la primera página)
         if (databaseQuery.length > 0) {
           const firstPageId = databaseQuery[0].id;
-          const pageInfo = await getPageUseCase.execute(firstPageId);
+          const pageInfo = await container.getPageUseCase.execute(firstPageId);
           console.log(`✅GetPageUseCase para página ${firstPageId}`);
           allPagesInfo.push(pageInfo);
         }

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const NOTION_BASE_URL = 'https://api.notion.com/v1';
 
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     path: string[];
-  };
+  }>;
 }
 
 async function proxyToNotion(request: NextRequest, path: string[]) {
@@ -97,27 +97,32 @@ async function proxyToNotion(request: NextRequest, path: string[]) {
   }
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  return proxyToNotion(request, params.path);
+export async function GET(request: NextRequest, { params }: RouteContext) {
+  const { path } = await params;
+  return proxyToNotion(request, path);
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
-  return proxyToNotion(request, params.path);
+export async function POST(request: NextRequest, { params }: RouteContext) {
+  const { path } = await params;
+  return proxyToNotion(request, path);
 }
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
-  return proxyToNotion(request, params.path);
+export async function PUT(request: NextRequest, { params }: RouteContext) {
+  const { path } = await params;
+  return proxyToNotion(request, path);
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  return proxyToNotion(request, params.path);
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
+  const { path } = await params;
+  return proxyToNotion(request, path);
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  return proxyToNotion(request, params.path);
+export async function PATCH(request: NextRequest, { params }: RouteContext) {
+  const { path } = await params;
+  return proxyToNotion(request, path);
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

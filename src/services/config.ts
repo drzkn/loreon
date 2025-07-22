@@ -3,8 +3,8 @@ import axios from 'axios';
 // Función para obtener variables de entorno compatibles con Vite y Node.js
 const getEnvVar = (key: string): string | undefined => {
   // En Vite, usar import.meta.env
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    return import.meta.env[key];
+  if (typeof import.meta !== 'undefined' && (import.meta as unknown as { env?: Record<string, string> }).env) {
+    return (import.meta as unknown as { env: Record<string, string> }).env[key];
   }
   // En Node.js, usar process.env
   return process.env[key];
@@ -13,7 +13,7 @@ const getEnvVar = (key: string): string | undefined => {
 // Detectar si estamos en Node.js o en el navegador
 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
 const isBrowser = typeof window !== 'undefined';
-const isDev = isBrowser ? import.meta.env.DEV : process.env.NODE_ENV === 'development';
+const isDev = isBrowser ? (import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV : process.env.NODE_ENV === 'development';
 
 // Validación de variables de entorno requeridas
 const requiredEnvVars = {
