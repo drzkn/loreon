@@ -2,8 +2,16 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import styles from './Navigation.module.css';
 import { navigationItems } from './Navigation.constants';
+import {
+  GlobalNavigation,
+  NavContainer,
+  NavMainItems,
+  NavFooterItems,
+  NavItem,
+  NavIcon,
+  NavLabel
+} from './Navigation.styles';
 
 export const Navigation: React.FC = () => {
   const router = useRouter();
@@ -22,39 +30,43 @@ export const Navigation: React.FC = () => {
     );
   }, [isExpanded]);
 
-
   return (
-    <nav
-      className={`${styles.globalNavigation} ${isExpanded ? styles.expanded : ''}`}
+    <GlobalNavigation
+      $isExpanded={isExpanded}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      <div className={styles.navContainer}>
-        <div className={styles.navMainItems}>
-          {navigationItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`${styles.navItem} ${pathname === item.path || pathname.startsWith(item.path + '/') ? styles.active : ''}`}
-              title={isExpanded ? item.description : `${item.label} - ${item.description}`}
-            >
-              <span className={styles.navIcon}>{item.icon}</span>
-              {isExpanded && <span className={styles.navLabel}>{item.label}</span>}
-            </button>
-          ))}
-        </div>
+      <NavContainer>
+        <NavMainItems>
+          {navigationItems.map((item) => {
+            const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+            return (
+              <NavItem
+                key={item.path}
+                onClick={() => router.push(item.path)}
+                $isActive={isActive}
+                $isExpanded={isExpanded}
+                title={isExpanded ? item.description : `${item.label} - ${item.description}`}
+              >
+                <NavIcon>{item.icon}</NavIcon>
+                <NavLabel $isExpanded={isExpanded}>{item.label}</NavLabel>
+              </NavItem>
+            );
+          })}
+        </NavMainItems>
 
-        <div className={styles.navFooterItems}>
-          <button
+        <NavFooterItems>
+          <NavItem
             onClick={() => router.push('/settings/connect')}
-            className={`${styles.navItem} ${pathname.startsWith('/settings') ? styles.active : ''}`}
+            $isActive={pathname.startsWith('/settings')}
+            $isExpanded={isExpanded}
             title={isExpanded ? 'Configuración de la aplicación' : 'Configuración - Configuración de la aplicación'}
           >
-            <span className={styles.navIcon}>⚙️</span>
-            {isExpanded && <span className={styles.navLabel}>Configuración</span>}
-          </button>
-        </div>
-      </div>
-    </nav>
+            <NavIcon>⚙️</NavIcon>
+            <NavLabel $isExpanded={isExpanded}>Configuración</NavLabel>
+          </NavItem>
+        </NavFooterItems>
+      </NavContainer>
+    </GlobalNavigation>
   );
 }; 
