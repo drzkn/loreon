@@ -11,8 +11,12 @@ import {
   MessageAuthor,
   MessageTime,
   InputContainer,
+  InputWrapper,
   ChatInput,
-  SendButton
+  SendButton,
+  WelcomeMessage,
+  WelcomeTitle,
+  WelcomeSubtitle
 } from './page.styles';
 
 interface ChatMessage {
@@ -23,16 +27,11 @@ interface ChatMessage {
 }
 
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      content: '¡Hola! Soy tu asistente de Loreon. ¿En qué puedo ayudarte hoy?',
-      author: 'assistant',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,8 +41,15 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [inputValue]);
+
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -54,16 +60,18 @@ export default function Home() {
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
+    setIsTyping(true);
 
     setTimeout(() => {
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: '¡Gracias por tu mensaje! Esta es una respuesta automática. Estoy aquí para ayudarte con Loreon. 🚀',
+        content: '¡Gracias por tu mensaje! 👋 Esta es una respuesta automática de Loreon. Estoy aquí para ayudarte con la gestión de contenido markdown, sincronización de datos y mucho más. ¿En qué puedo asistirte hoy?',
         author: 'assistant',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
-    }, 1000);
+      setIsTyping(false);
+    }, 1500);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -83,40 +91,68 @@ export default function Home() {
   return (
     <ChatContainer>
       <ChatHeader>
-        <ChatTitle>💬 Chat con Loreon</ChatTitle>
+        <ChatTitle>Loreon AI</ChatTitle>
       </ChatHeader>
 
       <MessagesContainer>
-        {messages.map((message) => (
-          <Message key={message.id} $isUser={message.author === 'user'}>
-            <MessageAuthor $isUser={message.author === 'user'}>
-              {message.author === 'user' ? '👤 Tú' : '🤖 Loreon'}
-            </MessageAuthor>
-            <MessageContent $isUser={message.author === 'user'}>
-              {message.content}
-            </MessageContent>
-            <MessageTime>
-              {formatTime(message.timestamp)}
-            </MessageTime>
+        {messages.length === 0 ? (
+          <WelcomeMessage>
+            <WelcomeTitle>¡Bienvenido a Loreon AI! 🚀</WelcomeTitle>
+            <WelcomeSubtitle>
+              Tu asistente inteligente para gestión de contenido markdown,
+              sincronización de datos y mucho más. Comienza escribiendo tu primera pregunta.
+            </WelcomeSubtitle>
+          </WelcomeMessage>
+        ) : (
+          messages.map((message) => (
+            <Message key={message.id} $isUser={message.author === 'user'}>
+              <MessageAuthor $isUser={message.author === 'user'}>
+                {message.author === 'user' ? '👤' : '🤖'}
+              </MessageAuthor>
+              <div style={{ flex: 1 }}>
+                <MessageContent $isUser={message.author === 'user'}>
+                  {message.content}
+                </MessageContent>
+                <MessageTime>
+                  {formatTime(message.timestamp)}
+                </MessageTime>
+              </div>
+            </Message>
+          ))
+        )}
+
+        {isTyping && (
+          <Message $isUser={false}>
+            <MessageAuthor $isUser={false}>🤖</MessageAuthor>
+            <div style={{ flex: 1 }}>
+              <MessageContent $isUser={false}>
+                <span style={{ opacity: 0.6 }}>Escribiendo...</span>
+              </MessageContent>
+            </div>
           </Message>
-        ))}
+        )}
+
         <div ref={messagesEndRef} />
       </MessagesContainer>
 
       <InputContainer>
-        <ChatInput
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Escribe tu mensaje..."
-          rows={1}
-        />
-        <SendButton
-          onClick={handleSendMessage}
-          disabled={!inputValue.trim()}
-        >
-          📤
-        </SendButton>
+        <InputWrapper>
+          <ChatInput
+            ref={inputRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Envía un mensaje a Loreon AI..."
+            rows={1}
+            disabled={isTyping}
+          />
+          <SendButton
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isTyping}
+          >
+            ➤
+          </SendButton>
+        </InputWrapper>
       </InputContainer>
     </ChatContainer>
   );
