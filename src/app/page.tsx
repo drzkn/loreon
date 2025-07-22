@@ -1,49 +1,36 @@
+'use client';
+
 import { Card } from '@/components';
+import {
+  HomeContainer,
+  Header,
+  MainTitle,
+  Subtitle,
+  FeaturesGrid,
+  MainSection,
+  SectionTitle,
+  CharacteristicsGrid,
+  CharacteristicItem,
+  CharacteristicTitle,
+  CharacteristicDescription,
+  Footer,
+  FooterText
+} from './page.styles';
 
 export default function Home() {
   return (
-    <div
-      style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        color: 'white',
-        fontFamily: 'var(--font-geist-sans)',
-      }}
-    >
-      <header style={{ marginBottom: '3rem' }}>
-        <h1
-          style={{
-            fontSize: '3rem',
-            fontWeight: 'bold',
-            marginBottom: '1rem',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
+    <HomeContainer>
+      <Header>
+        <MainTitle>
           🚀 Bienvenido a Loreon
-        </h1>
-        <p
-          style={{
-            fontSize: '1.2rem',
-            opacity: 0.8,
-            lineHeight: '1.6',
-          }}
-        >
+        </MainTitle>
+        <Subtitle>
           Tu plataforma integral para gestión de contenido markdown y
           sincronización con bases de datos.
-        </p>
-      </header>
+        </Subtitle>
+      </Header>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '2rem',
-          marginBottom: '3rem',
-        }}
-      >
+      <FeaturesGrid>
         <Card
           title='📚 Visualizador'
           description='Explora y visualiza archivos markdown de manera elegante.
@@ -64,78 +51,53 @@ export default function Home() {
             Notion, Supabase y más integraciones.'
           titleAs='h2'
         />
-      </div>
+      </FeaturesGrid>
 
-      <section
-        style={{
-          background: 'rgba(16, 185, 129, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          padding: '2rem',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          textAlign: 'center',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: '2rem',
-            marginBottom: '1rem',
-            color: '#10b981',
-          }}
-        >
+      <MainSection>
+        <SectionTitle>
           ✨ Características principales
-        </h2>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '1.5rem',
-            marginTop: '2rem',
-          }}
-        >
-          <div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+        </SectionTitle>
+        <CharacteristicsGrid>
+          <CharacteristicItem>
+            <CharacteristicTitle>
               🎨 Interfaz moderna
-            </h3>
-            <p style={{ opacity: 0.8 }}>
+            </CharacteristicTitle>
+            <CharacteristicDescription>
               Diseño glassmorphism con navegación intuitiva
-            </p>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+            </CharacteristicDescription>
+          </CharacteristicItem>
+          <CharacteristicItem>
+            <CharacteristicTitle>
               📱 Responsive
-            </h3>
-            <p style={{ opacity: 0.8 }}>Optimizado para desktop y móvil</p>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+            </CharacteristicTitle>
+            <CharacteristicDescription>
+              Optimizado para desktop y móvil
+            </CharacteristicDescription>
+          </CharacteristicItem>
+          <CharacteristicItem>
+            <CharacteristicTitle>
               ⚡ Rápido
-            </h3>
-            <p style={{ opacity: 0.8 }}>Built with Next.js 15 y React 19</p>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+            </CharacteristicTitle>
+            <CharacteristicDescription>
+              Built with Next.js 15 y React 19
+            </CharacteristicDescription>
+          </CharacteristicItem>
+          <CharacteristicItem>
+            <CharacteristicTitle>
               🔄 Sincronización
-            </h3>
-            <p style={{ opacity: 0.8 }}>
+            </CharacteristicTitle>
+            <CharacteristicDescription>
               Integración en tiempo real con bases de datos
-            </p>
-          </div>
-        </div>
-      </section>
+            </CharacteristicDescription>
+          </CharacteristicItem>
+        </CharacteristicsGrid>
+      </MainSection>
 
-      <footer
-        style={{
-          textAlign: 'center',
-          marginTop: '3rem',
-          padding: '2rem',
-          opacity: 0.6,
-        }}
-      >
-        <p>
+      <Footer>
+        <FooterText>
           Usa la navegación lateral para explorar todas las funcionalidades →
-        </p>
-      </footer>
-    </div>
+        </FooterText>
+      </Footer>
+    </HomeContainer>
   );
 }

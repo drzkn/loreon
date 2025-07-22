@@ -3,6 +3,15 @@ import { convertBlocksToMarkdown } from '../../../utils/blockToMarkdownConverter
 import { AuthService } from '../../../services/supabase/AuthService';
 import { SupabaseMarkdownRepository } from '../../../adapters/output/infrastructure/supabase';
 
+interface NotionRichText {
+  plain_text?: string;
+}
+
+interface NotionTitleProperty {
+  type: 'title';
+  title: NotionRichText[];
+}
+
 export class ConnectionPageRepository {
   private authService: AuthService;
   private markdownRepository: SupabaseMarkdownRepository;
@@ -33,10 +42,12 @@ export class ConnectionPageRepository {
     if (!pageData.properties) return 'Sin título';
 
     // Buscar propiedades tipo title
-    const titleProp = Object.values(pageData.properties).find((prop: any) => prop?.type === 'title');
+    const titleProp = Object.values(pageData.properties).find((prop): prop is NotionTitleProperty =>
+      typeof prop === 'object' && prop !== null && 'type' in prop && prop.type === 'title'
+    );
 
-    if (titleProp && (titleProp as any).title && (titleProp as any).title.length > 0) {
-      return (titleProp as any).title.map((t: any) => t.plain_text || '').join('');
+    if (titleProp?.title && titleProp.title.length > 0) {
+      return titleProp.title.map((t) => t.plain_text || '').join('');
     }
 
     return 'Sin título';

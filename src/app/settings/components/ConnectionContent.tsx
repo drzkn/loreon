@@ -1,32 +1,40 @@
 'use client';
 
-import { Card, Terminal } from '@/components';
+import { Terminal, Card, Button } from '@/components';
 import { useSyncToSupabase } from '../hooks/useSyncToSupabase';
-import styles from './ConnectionContent.module.css';
+import {
+  Container,
+  SyncSection,
+  SyncTitle,
+  SyncGrid,
+  Section,
+  ButtonContainer
+} from './ConnectionContent.styles';
 
 export const ConnectionContent = () => {
   const { isProcessing, logs, syncToSupabase, clearLogs } = useSyncToSupabase();
 
   return (
-    <div className={`${styles.container} `}>
-      <section className={styles.syncSection}>
-        <h2 className={styles.syncTitle}>🔄 Opciones de sincronización</h2>
-        <div className={styles.syncGrid}>
+    <Container data-testid="connection-content">
+      <SyncSection>
+        <SyncTitle>🔄 Opciones de sincronización</SyncTitle>
+        <SyncGrid>
           <Card
             title='📋 Manual'
             description='Control total sobre cuándo sincronizar'
           >
-            <section className={styles.section}>
-              <div className={styles.buttonContainer}>
-                <button
+            <Section>
+              <ButtonContainer>
+                <Button
                   onClick={syncToSupabase}
                   disabled={isProcessing}
-                  className={`${styles.button} ${isProcessing ? styles.buttonDisabled : styles.buttonActive}`}
+                  variant={isProcessing ? "loading" : "success"}
+                  fullWidth
                 >
                   {isProcessing ? '🔄 Sincronizando...' : '🚀 Sincronizar'}
-                </button>
-              </div>
-            </section>
+                </Button>
+              </ButtonContainer>
+            </Section>
           </Card>
 
           <Terminal
@@ -34,8 +42,8 @@ export const ConnectionContent = () => {
             isProcessing={isProcessing}
             onClearLogs={clearLogs}
           />
-        </div>
-      </section>
-    </div>
+        </SyncGrid>
+      </SyncSection>
+    </Container>
   );
 };

@@ -37,6 +37,9 @@ export default defineConfig({
         'src/ports/output/repositories/INotionRepository.ts',
         'src/ports/output/services/IHttpClient.ts',
         'src/adapters/output/infrastructure/supabase/SupabaseMarkdownRepository/SupabaseMarkdownRepository.ts',
+        'src/app/api/helpers/ConnectionPageRepository.ts',
+        'src/lib/**',
+        '**/*styles*',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
         'src/app/visualizer/page.tsx',

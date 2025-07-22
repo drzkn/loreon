@@ -17,13 +17,22 @@ export async function readSSEMessages(response: Response, maxMessages = 10): Pro
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6))
-              messages.push(data.message)
+            const content = line.slice(6)
+
+            // Manejar mensaje especial SYNC_COMPLETE
+            if (content.startsWith('SYNC_COMPLETE:')) {
+              messages.push(content)
               count++
-            } catch {
-              messages.push(line.slice(6))
-              count++
+            } else {
+              // Intentar parsear como JSON normal
+              try {
+                const data = JSON.parse(content)
+                messages.push(data.message)
+                count++
+              } catch {
+                messages.push(content)
+                count++
+              }
             }
           }
         }

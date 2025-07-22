@@ -1,6 +1,6 @@
 "use client"
 import { useRef, useEffect } from 'react';
-import styles from './Terminal.module.css';
+import { LogsContainer, LogsEmptyState, LogsEntry } from './Terminal.styles';
 
 interface TerminalLogsProps {
   logs: string[];
@@ -15,27 +15,27 @@ export const TerminalLogs = ({ logs }: TerminalLogsProps) => {
     }
   }, [logs]);
 
-  const getLogClassName = (log: string) => {
-    if (log.includes('❌')) return `${styles.logsEntry} ${styles.logsError}`;
-    if (log.includes('✅')) return `${styles.logsEntry} ${styles.logsSuccess}`;
-    if (log.includes('📊')) return `${styles.logsEntry} ${styles.logsInfo}`;
-    return `${styles.logsEntry} ${styles.logsDefault}`;
+  const getLogType = (log: string): 'error' | 'success' | 'info' | 'default' => {
+    if (log.includes('❌')) return 'error';
+    if (log.includes('✅')) return 'success';
+    if (log.includes('📊')) return 'info';
+    return 'default';
   };
 
   return (
-    <div className={styles.logsContainer}>
+    <LogsContainer>
       {logs.length === 0 ? (
-        <div className={styles.logsEmptyState}>
+        <LogsEmptyState>
           Esperando logs de sincronización...
-        </div>
+        </LogsEmptyState>
       ) : (
         logs.map((log, index) => (
-          <div key={index} className={getLogClassName(log)}>
+          <LogsEntry key={index} logType={getLogType(log)}>
             {log}
-          </div>
+          </LogsEntry>
         ))
       )}
       <div ref={terminalEndRef} />
-    </div>
+    </LogsContainer>
   );
 }; 

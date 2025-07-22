@@ -1,6 +1,8 @@
-import styles from './Card.module.css';
+'use client';
 
-interface CarProps {
+import { Container, Section, Description, titleComponents } from './Card.styles';
+
+interface CardProps {
   children?: React.ReactNode;
   title: string;
   description?: string;
@@ -12,22 +14,16 @@ export const Card = ({
   description,
   children,
   titleAs = 'h3',
-}: CarProps) => {
-  const TitleAs = titleAs;
-
-  const titleStyles = {
-    h2: styles.title_h2,
-    h3: styles.title_h3,
-  };
+}: CardProps) => {
+  const TitleComponent = titleComponents[titleAs];
 
   return (
-    <div className={`${styles.container} `}>
-      <section className={styles.section}>
-        <TitleAs className={titleStyles[titleAs]}>{title}</TitleAs>
-        {description && <p className={styles.description}>{description}</p>}
-      </section>
-
+    <Container>
+      <Section>
+        <TitleComponent>{title}</TitleComponent>
+        {description && <Description>{description}</Description>}
+      </Section>
       {children}
-    </div>
+    </Container>
   );
 };

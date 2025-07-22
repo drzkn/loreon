@@ -1,11 +1,33 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
+
+// Mock del getEnvVar para evitar errores de variables de entorno
+vi.mock('@/utils/getEnvVar', () => ({
+  getEnvVar: vi.fn((key: string) => {
+    if (key === 'VITE_SUPABASE_URL' || key === 'SUPABASE_URL') {
+      return 'https://mock-supabase-url.supabase.co';
+    }
+    if (key === 'VITE_SUPABASE_ANON_KEY' || key === 'SUPABASE_ANON_KEY') {
+      return 'mock-supabase-anon-key';
+    }
+    return 'mock-value';
+  })
+}));
+
+// Mock que evita la ejecución del código de inicialización
+vi.mock('../SupabaseClient', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      insert: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      update: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      delete: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      upsert: vi.fn(() => Promise.resolve({ data: [], error: null }))
+    }))
+  }
+}));
+
 import { SupabaseMarkdownRepository } from '../SupabaseMarkdownRepository';
 import type { MarkdownPageInsert } from '../../types';
-
-// Mock simple que evita la ejecución real del código
-vi.mock('../SupabaseClient', () => ({
-  supabase: {}
-}));
 
 describe('SupabaseMarkdownRepository', () => {
   describe('Class Structure', () => {

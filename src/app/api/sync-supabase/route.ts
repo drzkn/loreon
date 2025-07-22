@@ -26,11 +26,11 @@ export async function POST() {
         try {
           sendLog('🚀 Iniciando sincronización con Supabase...');
 
-          // Obtener database IDs de las variables de entorno
-          const databaseIdsStr = process.env.NOTION_DATABASE_ID;
+          // Obtener database IDs de las variables de entorno (intentar ambas versiones)
+          const databaseIdsStr = process.env.VITE_NOTION_DATABASE_ID || process.env.NOTION_DATABASE_ID;
 
           if (!databaseIdsStr) {
-            sendLog('❌ Error: NOTION_DATABASE_ID no configurado en variables de entorno');
+            sendLog('❌ Error: VITE_NOTION_DATABASE_ID o NOTION_DATABASE_ID no configurado en variables de entorno');
             controller.close();
             return;
           }
@@ -98,18 +98,39 @@ export async function POST() {
             }
           };
 
-          sendLog(`SYNC_COMPLETE:${JSON.stringify(finalResult)}`);
+          sendLog(`📊 Resultado final: ${JSON.stringify(finalResult.summary)}`);
+
+          // Enviar mensaje especial SYNC_COMPLETE con el resultado JSON
+          const syncCompleteData = `data: SYNC_COMPLETE:${JSON.stringify(finalResult)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(syncCompleteData));
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-          sendLog(`💥 Error crítico: ${errorMessage}`);
+          sendLog(`💥 Error crítico en sincronización: ${errorMessage}`);
+
+          const errorResult = {
+            success: false,
+            message: `Error crítico: ${errorMessage}`,
+            error: error instanceof Error ? error.stack : 'Error desconocido'
+          };
+
+          sendLog(`❌ Error crítico: ${JSON.stringify(errorResult)}`);
+
+          // Enviar mensaje especial SYNC_COMPLETE con el resultado de error
+          const syncCompleteData = `data: SYNC_COMPLETE:${JSON.stringify(errorResult)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(syncCompleteData));
         } finally {
+          // Cerrar el stream
           controller.close();
         }
       };
 
       // Ejecutar la sincronización
-      syncProcess();
+      syncProcess().catch((error) => {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        sendLog(`💥 Error fatal en el proceso: ${errorMessage}`);
+        controller.close();
+      });
     }
   });
 

@@ -1,4 +1,6 @@
-import styles from './PageHeader.module.css';
+'use client';
+
+import { Header, Title, Description } from './PageHeader.styles';
 
 interface PageHeaderProps {
   title: string;
@@ -7,13 +9,13 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ title, description }: PageHeaderProps) => {
   return (
-    <header className={styles.header}>
-      <h1 className={styles.title}>
+    <Header>
+      <Title>
         {title}
-      </h1>
-      <p className={styles.description}>
+      </Title>
+      <Description>
         {description}
-      </p>
-    </header>
+      </Description>
+    </Header>
   );
 }; 
