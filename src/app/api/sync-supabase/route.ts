@@ -100,6 +100,10 @@ export async function POST() {
 
           sendLog(`📊 Resultado final: ${JSON.stringify(finalResult.summary)}`);
 
+          // Enviar mensaje especial SYNC_COMPLETE con el resultado JSON
+          const syncCompleteData = `data: SYNC_COMPLETE:${JSON.stringify(finalResult)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(syncCompleteData));
+
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
           sendLog(`💥 Error crítico en sincronización: ${errorMessage}`);
@@ -111,6 +115,10 @@ export async function POST() {
           };
 
           sendLog(`❌ Error crítico: ${JSON.stringify(errorResult)}`);
+
+          // Enviar mensaje especial SYNC_COMPLETE con el resultado de error
+          const syncCompleteData = `data: SYNC_COMPLETE:${JSON.stringify(errorResult)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(syncCompleteData));
         } finally {
           // Cerrar el stream
           controller.close();

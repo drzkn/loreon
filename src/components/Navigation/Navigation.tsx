@@ -46,6 +46,7 @@ export const Navigation: React.FC = () => {
                 onClick={() => router.push(item.path)}
                 $isActive={isActive}
                 $isExpanded={isExpanded}
+                data-active={isActive}
                 title={isExpanded ? item.description : `${item.label} - ${item.description}`}
               >
                 <NavIcon>{item.icon}</NavIcon>
@@ -60,6 +61,7 @@ export const Navigation: React.FC = () => {
             onClick={() => router.push('/settings/connect')}
             $isActive={pathname.startsWith('/settings')}
             $isExpanded={isExpanded}
+            data-active={pathname.startsWith('/settings')}
             title={isExpanded ? 'Configuración de la aplicación' : 'Configuración - Configuración de la aplicación'}
           >
             <NavIcon>⚙️</NavIcon>
