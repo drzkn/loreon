@@ -1,5 +1,5 @@
 import { supabase } from '../SupabaseClient';
-import { MarkdownPage, MarkdownPageInsert, MarkdownPageUpdate } from '../types';
+import { MarkdownPage, MarkdownPageInsert, MarkdownPageUpdate, MarkdownPageWithSimilarity } from '../types';
 
 export interface SupabaseMarkdownRepositoryInterface {
   save(markdownData: MarkdownPageInsert): Promise<MarkdownPage>;
@@ -18,6 +18,10 @@ export interface SupabaseMarkdownRepositoryInterface {
     limit?: number;
     offset?: number;
   }): Promise<MarkdownPage[]>;
+  searchByVector(queryEmbedding: number[], options?: {
+    matchThreshold?: number;
+    matchCount?: number;
+  }): Promise<MarkdownPageWithSimilarity[]>;
 }
 
 export class SupabaseMarkdownRepository implements SupabaseMarkdownRepositoryInterface {
@@ -184,6 +188,26 @@ export class SupabaseMarkdownRepository implements SupabaseMarkdownRepositoryInt
 
     if (error) {
       throw new Error(`Error al buscar páginas: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  async searchByVector(queryEmbedding: number[], options?: {
+    matchThreshold?: number;
+    matchCount?: number;
+  }): Promise<MarkdownPageWithSimilarity[]> {
+    const matchThreshold = options?.matchThreshold || 0.78;
+    const matchCount = options?.matchCount || 5;
+
+    const { data, error } = await supabase.rpc('match_documents', {
+      query_embedding: queryEmbedding,
+      match_threshold: matchThreshold,
+      match_count: matchCount
+    });
+
+    if (error) {
+      throw new Error(`Error en búsqueda vectorial: ${error.message}`);
     }
 
     return data || [];
