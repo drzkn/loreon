@@ -14,11 +14,10 @@ const nextConfig: NextConfig = {
 
   // Configuración experimental para optimizar builds
   experimental: {
-    // Optimizar carga de páginas
-    optimizePackageImports: ['@ai-sdk/react', '@ai-sdk/google', 'ai'],
-
-    // Mejoras de performance
-    optimisticClientCache: true,
+    // Solo optimizar imports en desarrollo
+    ...(process.env.NODE_ENV === 'development' && {
+      optimizePackageImports: ['@ai-sdk/react', '@ai-sdk/google', 'ai'],
+    }),
   },
 
   // Configuración de imágenes para cache
@@ -62,16 +61,15 @@ const nextConfig: NextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
-    // Optimizaciones de cache para webpack
-    config.cache = {
-      type: 'filesystem',
-      allowCollectingMemory: true,
-      buildDependencies: {
-        config: [__filename],
-      },
-    };
+    // Solo aplicar cache en desarrollo local, no en CI
+    if (dev && !process.env.CI) {
+      config.cache = {
+        type: 'filesystem',
+        allowCollectingMemory: true,
+      };
+    }
 
-    // Optimizar splits de chunks
+    // Optimizar splits de chunks solo en producción
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',

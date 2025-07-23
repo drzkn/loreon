@@ -25,19 +25,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+          cache: "npm"
 
       - name: 📋 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci --prefer-offline --no-audit
 
       - name: 🔍 Run linting
-        run: yarn lint
+        run: npm run lint
 
       - name: 🧪 Run tests
-        run: yarn test:run
+        run: npm run test:run
 
       - name: 📊 Run tests with coverage
-        run: yarn test:coverage
+        run: npm run test:coverage
 
       - name: 📈 Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -69,13 +69,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: "yarn"
+          cache: "npm"
 
       - name: 📋 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci --prefer-offline --no-audit
 
       - name: 🏗️ Build application
-        run: yarn build
+        run: npm run build
+        env:
+          CI: true
+          NEXT_TELEMETRY_DISABLED: 1
 
   quality-gate:
     name: 🚦 Quality Gate
