@@ -8,14 +8,21 @@ export const runtime = 'edge';
 
 export async function POST(req: Request) {
   try {
+    console.log('🚀 [CHAT API] Recibida petición');
+
     const { messages } = await req.json();
+    console.log('📨 [CHAT API] Mensajes recibidos:', messages?.length || 0);
 
     if (!messages || !Array.isArray(messages)) {
+      console.log('❌ [CHAT API] Error: Mensajes inválidos');
       return new Response('Se requiere un array de mensajes', { status: 400 });
     }
 
     const lastMessage = messages[messages.length - 1];
+    console.log('💬 [CHAT API] Último mensaje:', lastMessage?.content?.substring(0, 50) + '...');
+
     if (!lastMessage?.content) {
+      console.log('❌ [CHAT API] Error: Último mensaje sin contenido');
       return new Response('El último mensaje debe tener contenido', { status: 400 });
     }
 
@@ -23,19 +30,25 @@ export async function POST(req: Request) {
     let searchSummary = '';
 
     try {
-      console.log('🔍 Iniciando búsqueda vectorial para:', lastMessage.content);
+      console.log('🔍 [RAG] Iniciando búsqueda vectorial para:', lastMessage.content.substring(0, 100));
 
+      console.log('🤖 [RAG] Creando servicio de embeddings...');
       const embeddingsService = new EmbeddingsService();
+
+      console.log('🗄️ [RAG] Creando repositorio...');
       const repository = new SupabaseMarkdownRepository();
 
+      console.log('⚡ [RAG] Generando embedding de la query...');
       const queryEmbedding = await embeddingsService.generateEmbedding(lastMessage.content);
+      console.log('✅ [RAG] Embedding generado:', queryEmbedding.length, 'dimensiones');
 
+      console.log('🔎 [RAG] Buscando documentos similares...');
       const documents = await repository.searchByVector(queryEmbedding, {
         matchThreshold: 0.78,
         matchCount: 5
       });
 
-      console.log(`📄 Documentos encontrados: ${documents.length}`);
+      console.log(`📄 [RAG] Documentos encontrados: ${documents.length}`);
 
       if (documents.length > 0) {
         context = documents
@@ -56,48 +69,62 @@ export async function POST(req: Request) {
     let systemPrompt = '';
 
     if (context) {
-      systemPrompt = `Eres Loreon AI, un asistente inteligente especializado en gestión de contenido markdown y bases de conocimiento.
+      systemPrompt = `Eres Loreon AI, un asistente especializado en la gestión de la base de conocimientos personal del usuario.
 
-CONTEXTO ENCONTRADO:
+IMPORTANTE: Tu función es EXCLUSIVAMENTE proporcionar información de la base de conocimientos interna del usuario. NO sugieras fuentes externas como internet, redes sociales, o motores de búsqueda.
+
+CONTEXTO ENCONTRADO EN LA BASE DE CONOCIMIENTOS:
 ${context}
 
 INFORMACIÓN DE BÚSQUEDA:
 ${searchSummary}
 
 INSTRUCCIONES:
-- Usa el contexto proporcionado para responder la pregunta del usuario
-- Si el contexto no es completamente relevante, menciona qué información específica no pudiste encontrar
+- Usa ÚNICAMENTE el contexto proporcionado para responder la pregunta del usuario
+- Si el contexto no es completamente relevante, menciona qué información específica no está disponible en la base de conocimientos
 - Mantén un tono amigable y profesional
-- Proporciona respuestas claras y útiles
-- Si citas información del contexto, menciona el título de la fuente
-- Si la respuesta es parcial, sugiere cómo el usuario podría obtener información más completa`;
+- Proporciona respuestas claras basadas en el contenido personal del usuario
+- SIEMPRE menciona el título de la fuente cuando cites información
+- Si la respuesta es parcial, sugiere que el usuario añada más documentación a su base de conocimientos
+- NO sugieras buscar en fuentes externas, internet, redes sociales o motores de búsqueda
+- Enfócate exclusivamente en el contenido personal disponible`;
 
     } else {
       const userQuery = lastMessage.content;
 
-      systemPrompt = `Eres Loreon AI, un asistente especializado en gestión de contenido markdown.
+      systemPrompt = `Eres Loreon AI, un asistente especializado en la gestión de tu base de conocimientos personal.
 
-CONSULTA: "${userQuery}"
-ESTADO: ${searchSummary}
+IMPORTANTE: Tu función es EXCLUSIVAMENTE buscar y proporcionar información de la base de conocimientos interna del usuario. NO sugieras fuentes externas como internet, redes sociales, o motores de búsqueda.
 
-RESPONDE EXACTAMENTE CON ESTE FORMATO:
+CONSULTA DEL USUARIO: "${userQuery}"
+RESULTADO DE BÚSQUEDA: ${searchSummary}
+
+RESPONDE EXACTAMENTE CON ESTE MENSAJE (sin añadir nada más):
 
 ❌ **No se encontró información relacionada**
 
-Lo siento, no he encontrado información específica sobre "${userQuery}" en la base de conocimientos actual.
+Lo siento, no he encontrado información específica sobre "${userQuery}" en tu base de conocimientos actual.
 
 **Detalles de la búsqueda:**
 ${searchSummary}
 
-**Sugerencias:**
-• Prueba reformular tu pregunta con términos diferentes
-• Verifica si tienes contenido relacionado en Notion que no esté sincronizado
+**Sugerencias para mejorar tu búsqueda:**
+• Reformula tu pregunta usando palabras clave diferentes
+• Verifica si tienes contenido similar en Notion que no esté sincronizado
 • Considera agregar documentación sobre este tema a tu base de conocimientos
 
-¿Hay algo más en lo que pueda ayudarte?`;
+**Recuerda:** Solo puedo buscar en tu contenido personal, no en fuentes externas.
+
+¿Hay algo más de tu base de conocimientos en lo que pueda ayudarte?
+
+NO agregues sugerencias sobre buscar en internet, redes sociales o fuentes externas.`;
     }
 
-    const result = await streamText({
+    console.log('🧠 [GEMINI] Prompt del sistema:', systemPrompt.substring(0, 200) + '...');
+    console.log('💭 [GEMINI] Contexto encontrado:', context ? 'SÍ (' + context.length + ' chars)' : 'NO');
+    console.log('🚀 [GEMINI] Enviando a Gemini 1.5 Flash...');
+
+    const result = streamText({
       model: google('gemini-1.5-flash'),
       system: systemPrompt,
       messages: context ? messages : [{ role: 'user', content: lastMessage.content }],
@@ -105,6 +132,7 @@ ${searchSummary}
       maxTokens: 500,
     });
 
+    console.log('📤 [GEMINI] Respuesta iniciada, enviando stream...');
     return result.toDataStreamResponse();
 
   } catch (error) {
