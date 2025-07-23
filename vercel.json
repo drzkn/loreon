@@ -2,12 +2,6 @@
   "buildCommand": "yarn build",
   "installCommand": "yarn install --frozen-lockfile",
   "framework": "nextjs",
-  "builds": [
-    {
-      "src": "next.config.ts",
-      "use": "@vercel/next"
-    }
-  ],
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 60
