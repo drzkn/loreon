@@ -6,6 +6,8 @@ node_modules
 .pnp.js
 
 # Yarn
+.yarn/cache
+.yarn/install-state.gz
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -15,6 +17,7 @@ node_modules
 
 # Prevent npm lockfile
 package-lock.json
+.npmrc
 
 # Local env files
 .env

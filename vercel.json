@@ -2,13 +2,11 @@
   "buildCommand": "yarn build",
   "installCommand": "yarn install --frozen-lockfile",
   "framework": "nextjs",
+  "nodeVersion": "20.x",
   "builds": [
     {
       "src": "next.config.ts",
-      "use": "@vercel/next",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "use": "@vercel/next"
     }
   ],
   "functions": {
@@ -16,7 +14,6 @@
       "maxDuration": 60
     }
   },
-  "crons": [],
   "headers": [
     {
       "source": "/(.*)",
