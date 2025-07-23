@@ -32,12 +32,27 @@ jobs:
 
       - name: 🔍 Run linting
         run: yarn lint
+        env:
+          CI: true
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
 
       - name: 🧪 Run tests
         run: yarn test:run
+        env:
+          CI: true
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
 
       - name: 📊 Run tests with coverage
         run: yarn test:coverage
+        env:
+          CI: true
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
 
       - name: 📈 Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -79,6 +94,9 @@ jobs:
         env:
           CI: true
           NEXT_TELEMETRY_DISABLED: 1
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
 
   quality-gate:
     name: 🚦 Quality Gate
