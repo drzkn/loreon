@@ -8,21 +8,14 @@ export const runtime = 'edge';
 
 export async function POST(req: Request) {
   try {
-    console.log('🚀 [CHAT API] Recibida petición');
-
     const { messages } = await req.json();
-    console.log('📨 [CHAT API] Mensajes recibidos:', messages?.length || 0);
 
     if (!messages || !Array.isArray(messages)) {
-      console.log('❌ [CHAT API] Error: Mensajes inválidos');
       return new Response('Se requiere un array de mensajes', { status: 400 });
     }
 
     const lastMessage = messages[messages.length - 1];
-    console.log('💬 [CHAT API] Último mensaje:', lastMessage?.content?.substring(0, 50) + '...');
-
     if (!lastMessage?.content) {
-      console.log('❌ [CHAT API] Error: Último mensaje sin contenido');
       return new Response('El último mensaje debe tener contenido', { status: 400 });
     }
 
@@ -30,25 +23,14 @@ export async function POST(req: Request) {
     let searchSummary = '';
 
     try {
-      console.log('🔍 [RAG] Iniciando búsqueda vectorial para:', lastMessage.content.substring(0, 100));
-
-      console.log('🤖 [RAG] Creando servicio de embeddings...');
       const embeddingsService = new EmbeddingsService();
-
-      console.log('🗄️ [RAG] Creando repositorio...');
       const repository = new SupabaseMarkdownRepository();
 
-      console.log('⚡ [RAG] Generando embedding de la query...');
       const queryEmbedding = await embeddingsService.generateEmbedding(lastMessage.content);
-      console.log('✅ [RAG] Embedding generado:', queryEmbedding.length, 'dimensiones');
-
-      console.log('🔎 [RAG] Buscando documentos similares...');
       const documents = await repository.searchByVector(queryEmbedding, {
         matchThreshold: 0.78,
         matchCount: 5
       });
-
-      console.log(`📄 [RAG] Documentos encontrados: ${documents.length}`);
 
       if (documents.length > 0) {
         context = documents
@@ -120,10 +102,6 @@ ${searchSummary}
 NO agregues sugerencias sobre buscar en internet, redes sociales o fuentes externas.`;
     }
 
-    console.log('🧠 [GEMINI] Prompt del sistema:', systemPrompt.substring(0, 200) + '...');
-    console.log('💭 [GEMINI] Contexto encontrado:', context ? 'SÍ (' + context.length + ' chars)' : 'NO');
-    console.log('🚀 [GEMINI] Enviando a Gemini 1.5 Flash...');
-
     const result = streamText({
       model: google('gemini-1.5-flash'),
       system: systemPrompt,
@@ -132,7 +110,6 @@ NO agregues sugerencias sobre buscar en internet, redes sociales o fuentes exter
       maxTokens: 500,
     });
 
-    console.log('📤 [GEMINI] Respuesta iniciada, enviando stream...');
     return result.toDataStreamResponse();
 
   } catch (error) {
