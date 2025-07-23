@@ -10,14 +10,10 @@ export class EmbeddingsService implements EmbeddingsServiceInterface {
   private model;
 
   constructor() {
-    // La API key se configura automáticamente desde GOOGLE_GENERATIVE_AI_API_KEY
     this.model = google.textEmbeddingModel('text-embedding-004', {
       // Usar dimensiones nativas de Google (768)
       taskType: 'RETRIEVAL_DOCUMENT'
     });
-
-    console.log('🟢 Usando Google Generative AI para embeddings');
-    console.log('📝 Modelo: text-embedding-004');
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
