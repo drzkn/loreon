@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
+    "build:cache": "next build --experimental-build-mode=cache",
     "start": "next start",
     "lint": "next lint",
+    "lint:cache": "next lint --cache",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest",
@@ -15,6 +18,8 @@
     "test:ui": "vitest --ui",
     "test:connection": "npx tsx src/examples/config.example.ts",
     "example:supabase": "npx tsx src/examples/supabaseExample.ts",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "clean:cache": "rm -rf .next/cache",
     "prepare": "husky"
   },
   "dependencies": {
