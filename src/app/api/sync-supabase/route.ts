@@ -27,10 +27,10 @@ export async function POST() {
           sendLog('🚀 Iniciando sincronización con Supabase...');
 
           // Obtener database IDs de las variables de entorno (intentar ambas versiones)
-          const databaseIdsStr = process.env.VITE_NOTION_DATABASE_ID || process.env.NOTION_DATABASE_ID;
+          const databaseIdsStr = process.env.NOTION_DATABASE_ID;
 
           if (!databaseIdsStr) {
-            sendLog('❌ Error: VITE_NOTION_DATABASE_ID o NOTION_DATABASE_ID no configurado en variables de entorno');
+            sendLog('❌ Error: NOTION_DATABASE_ID no configurado en variables de entorno');
             controller.close();
             return;
           }

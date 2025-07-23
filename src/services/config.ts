@@ -17,9 +17,9 @@ const isDev = isBrowser ? (import.meta as unknown as { env?: { DEV?: boolean } }
 
 // Validación de variables de entorno requeridas
 const requiredEnvVars = {
-  NOTION_API_KEY: getEnvVar('VITE_NOTION_API_KEY') || getEnvVar('NOTION_API_KEY'),
-  NOTION_BASE_URL: getEnvVar('VITE_NOTION_BASE_URL') || getEnvVar('NOTION_BASE_URL'),
-  NOTION_API_VERSION: getEnvVar('VITE_NOTION_API_VERSION') || getEnvVar('NOTION_API_VERSION'),
+  NOTION_API_KEY: getEnvVar('NOTION_API_KEY'),
+  NOTION_BASE_URL: getEnvVar('NOTION_BASE_URL'),
+  NOTION_API_VERSION: getEnvVar('NOTION_API_VERSION'),
 };
 
 // Verificar que todas las variables necesarias estén presentes

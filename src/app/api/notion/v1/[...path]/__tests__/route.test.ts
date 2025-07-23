@@ -76,6 +76,8 @@ const createMockRequest = (url: string, options?: RequestInit) => {
   return request as unknown as NextRequest;
 };
 
+const createParams = (path: string[]) => Promise.resolve({ path });
+
 describe('Notion API Proxy', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
@@ -92,8 +94,7 @@ describe('Notion API Proxy', () => {
   });
 
   describe('🔑 Authentication & Configuration', () => {
-    it('should use VITE_NOTION_API_KEY when available', async () => {
-      process.env.VITE_NOTION_API_KEY = 'vite-api-key';
+    it('should fallback to NOTION_API_KEY', async () => {
       process.env.NOTION_API_KEY = 'fallback-api-key';
 
       mockFetch.mockResolvedValue({
@@ -104,33 +105,7 @@ describe('Notion API Proxy', () => {
       });
 
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
-
-      await GET(request, { params });
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.notion.com/v1/databases',
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Authorization': 'Bearer vite-api-key'
-          })
-        })
-      );
-    });
-
-    it('should fallback to NOTION_API_KEY when VITE_NOTION_API_KEY is not available', async () => {
-      delete process.env.VITE_NOTION_API_KEY;
-      process.env.NOTION_API_KEY = 'fallback-api-key';
-
-      mockFetch.mockResolvedValue({
-        status: 200,
-        statusText: 'OK',
-        text: () => Promise.resolve('{"data": "success"}'),
-        headers: new Map([['content-type', 'application/json']])
-      });
-
-      const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       await GET(request, { params });
 
@@ -149,7 +124,7 @@ describe('Notion API Proxy', () => {
       delete process.env.NOTION_API_KEY;
 
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       const response = await GET(request, { params });
 
@@ -170,7 +145,7 @@ describe('Notion API Proxy', () => {
 
     it('should handle simple paths correctly', async () => {
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       await GET(request, { params });
 
@@ -182,7 +157,7 @@ describe('Notion API Proxy', () => {
 
     it('should handle nested paths correctly', async () => {
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases/123/query');
-      const params = { path: ['databases', '123', 'query'] };
+      const params = createParams(['databases', '123', 'query']);
 
       await POST(request, { params });
 
@@ -194,7 +169,7 @@ describe('Notion API Proxy', () => {
 
     it('should preserve query parameters', async () => {
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases?page_size=10&start_cursor=abc');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       await GET(request, { params });
 
@@ -217,7 +192,7 @@ describe('Notion API Proxy', () => {
 
     it('should handle GET requests', async () => {
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       await GET(request, { params });
 
@@ -236,7 +211,7 @@ describe('Notion API Proxy', () => {
         body: requestBody
       });
 
-      const params = { path: ['databases', '123', 'query'] };
+      const params = createParams(['databases', '123', 'query']);
 
       await POST(request, { params });
 
@@ -250,11 +225,7 @@ describe('Notion API Proxy', () => {
     });
 
     it('should handle OPTIONS requests correctly', async () => {
-      const request = createMockRequest('http://localhost:3000/api/notion/v1/databases', {
-        method: 'OPTIONS'
-      });
-
-      const response = await OPTIONS(request);
+      const response = await OPTIONS();
 
       expect(response.status).toBe(200);
       expect(response.body).toBeNull();
@@ -273,7 +244,7 @@ describe('Notion API Proxy', () => {
 
     it('should include required Notion headers', async () => {
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       await GET(request, { params });
 
@@ -301,7 +272,7 @@ describe('Notion API Proxy', () => {
       });
 
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       const response = await GET(request, { params });
 
@@ -320,7 +291,7 @@ describe('Notion API Proxy', () => {
       });
 
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases/invalid');
-      const params = { path: ['databases', 'invalid'] };
+      const params = createParams(['databases', 'invalid']);
 
       const response = await GET(request, { params });
 
@@ -333,7 +304,7 @@ describe('Notion API Proxy', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       const response = await GET(request, { params });
 
@@ -358,7 +329,7 @@ describe('Notion API Proxy', () => {
       });
       request.text = vi.fn().mockResolvedValue('');
 
-      const params = { path: ['databases', '123', 'query'] };
+      const params = createParams(['databases', '123', 'query']);
 
       await POST(request, { params });
 
@@ -376,7 +347,7 @@ describe('Notion API Proxy', () => {
       });
       request.text = vi.fn().mockRejectedValue(new Error('Body reading error'));
 
-      const params = { path: ['databases', '123', 'query'] };
+      const params = createParams(['databases', '123', 'query']);
 
       const response = await POST(request, { params });
 
@@ -397,7 +368,7 @@ describe('Notion API Proxy', () => {
 
     it('should add CORS headers to successful responses', async () => {
       const request = createMockRequest('http://localhost:3000/api/notion/v1/databases');
-      const params = { path: ['databases'] };
+      const params = createParams(['databases']);
 
       const response = await GET(request, { params });
 

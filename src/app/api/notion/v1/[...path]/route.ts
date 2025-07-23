@@ -11,7 +11,7 @@ interface RouteContext {
 async function proxyToNotion(request: NextRequest, path: string[]) {
   try {
     // Obtener API key del servidor (no expuesta al cliente)
-    const notionApiKey = process.env.VITE_NOTION_API_KEY || process.env.NOTION_API_KEY;
+    const notionApiKey = process.env.NOTION_API_KEY;
 
     if (!notionApiKey) {
       return NextResponse.json(
