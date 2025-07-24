@@ -14,7 +14,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('Icon', () => {
   it('renders correctly', () => {
-    const { container } = renderWithTheme(<Icon name="send" />);
+    const { container } = renderWithTheme(<Icon name="bot" />);
     const iconContainer = container.firstChild;
     expect(iconContainer).toBeInTheDocument();
   });

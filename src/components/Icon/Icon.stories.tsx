@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import { Icon, type IconName } from './Icon';
+import { Icon } from './Icon';
+import { type IconName } from './Icon.types';
 
 const meta: Meta<typeof Icon> = {
   title: 'Components/Icon',
