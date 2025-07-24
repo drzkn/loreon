@@ -1,5 +1,5 @@
 echo "🔨 Running build before push..."
-npm run build
+yarn build
 
 if [ $? -ne 0 ]; then
   echo "❌ Build failed. Push cancelled."
