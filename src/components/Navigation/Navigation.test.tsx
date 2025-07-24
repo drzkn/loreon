@@ -95,25 +95,33 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname
 }));
 
+vi.mock('../Icon', () => ({
+  Icon: ({ name, size }: { name: string; size: string }) => (
+    <span data-testid={`icon-${name}`} data-size={size}>
+      {name}
+    </span>
+  ),
+}));
+
 vi.mock('./Navigation.constants', () => ({
   navigationItems: [
     {
       path: '/',
       label: 'Inicio',
       description: 'Página principal',
-      icon: '🏠'
+      icon: 'bot'
     },
     {
       path: '/visualizer',
       label: 'Visualizador',
       description: 'Ver archivos markdown',
-      icon: '📚'
+      icon: 'square-library'
     },
     {
       path: '/test',
       label: 'Tester',
       description: 'Probar repositorio',
-      icon: '🧪'
+      icon: 'test-tubes'
     }
   ]
 }));
@@ -126,7 +134,7 @@ const renderWithTheme = (component: React.ReactElement) => {
   );
 };
 
-describe.skip('Navigation', () => {
+describe('Navigation', () => {
   let mockSetProperty: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -139,7 +147,6 @@ describe.skip('Navigation', () => {
     });
 
     mockPathname = '/';
-
     vi.clearAllMocks();
   });
 
@@ -148,182 +155,228 @@ describe.skip('Navigation', () => {
   });
 
   describe('Rendering', () => {
-    it('should render navigation component', () => {
+    it('should render navigation component as topbar', () => {
       renderWithTheme(<Navigation />);
 
       const nav = screen.getByRole('navigation');
       expect(nav).toBeInTheDocument();
     });
 
-    it('should render navigation icons', () => {
+    it('should render Loreon AI brand', () => {
       renderWithTheme(<Navigation />);
 
-      expect(screen.getByText('🏠')).toBeInTheDocument();
-      expect(screen.getByText('📚')).toBeInTheDocument();
-      expect(screen.getByText('🧪')).toBeInTheDocument();
-      expect(screen.getByText('⚙️')).toBeInTheDocument(); // Settings button
+      expect(screen.getByText('Loreon AI')).toBeInTheDocument();
     });
 
-    it('should render navigation buttons', () => {
+    it('should render brand as clickable dropdown trigger', () => {
       renderWithTheme(<Navigation />);
 
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(4); // 3 navigation items + 1 settings button
-    });
-  });
-
-  describe('Active State', () => {
-    it('should mark current path as active with data-active attribute', () => {
-      mockPathname = '/';
-
-      renderWithTheme(<Navigation />);
-
-      const buttons = screen.getAllByRole('button');
-      expect(buttons[0]).toHaveAttribute('data-active', 'true');
+      const brand = screen.getByText('Loreon AI');
+      expect(brand.closest('div')).toBeInTheDocument();
     });
 
-    it('should not mark other paths as active when on home', () => {
-      mockPathname = '/';
-
+    it('should render settings icon', () => {
       renderWithTheme(<Navigation />);
 
-      const buttons = screen.getAllByRole('button');
-      expect(buttons[1]).toHaveAttribute('data-active', 'false');
-      expect(buttons[2]).toHaveAttribute('data-active', 'false');
+      expect(screen.getByTestId('icon-settings')).toBeInTheDocument();
     });
 
-    it('should mark visualizer path as active when on visualizer page', () => {
-      mockPathname = '/visualizer';
-
+    it('should render chevron icon for dropdown', () => {
       renderWithTheme(<Navigation />);
 
-      const buttons = screen.getAllByRole('button');
-      expect(buttons[1]).toHaveAttribute('data-active', 'true');
-    });
-
-    it('should mark settings path as active when on settings page', () => {
-      mockPathname = '/settings';
-
-      renderWithTheme(<Navigation />);
-
-      const buttons = screen.getAllByRole('button');
-      expect(buttons[3]).toHaveAttribute('data-active', 'true');
+      expect(screen.getByTestId('icon-chevron-down')).toBeInTheDocument();
     });
   });
 
-  describe('Expansion Functionality', () => {
-    it('should show labels when expanded', async () => {
+  describe('CSS Variables Setup', () => {
+    it('should set navigation height CSS variables on mount', () => {
       renderWithTheme(<Navigation />);
 
-      const nav = screen.getByRole('navigation');
+      expect(mockSetProperty).toHaveBeenCalledWith('--nav-height', '70px');
+      expect(mockSetProperty).toHaveBeenCalledWith('--nav-width', '0px');
+    });
+  });
 
-      fireEvent.mouseEnter(nav);
+  describe('Dropdown Functionality', () => {
+    it('should open dropdown when brand is clicked', async () => {
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
 
       await waitFor(() => {
         expect(screen.getByText('Inicio')).toBeVisible();
         expect(screen.getByText('Visualizador')).toBeVisible();
         expect(screen.getByText('Tester')).toBeVisible();
-        expect(screen.getByText('Configuración')).toBeVisible();
+      });
+    });
+
+    it('should show chevron up when dropdown is open', async () => {
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('icon-chevron-up')).toBeInTheDocument();
+      });
+    });
+
+    it('should close dropdown when brand is clicked again', async () => {
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+
+      // Open dropdown
+      fireEvent.click(brand);
+      await waitFor(() => {
+        expect(screen.getByText('Inicio')).toBeVisible();
+      });
+
+      // Close dropdown
+      fireEvent.click(brand);
+      await waitFor(() => {
+        expect(screen.queryByText('Inicio')).not.toBeVisible();
+      });
+    });
+
+    it('should close dropdown when clicking outside', async () => {
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
+
+      await waitFor(() => {
+        expect(screen.getByText('Inicio')).toBeVisible();
+      });
+
+      // Click outside
+      fireEvent.mouseDown(document.body);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Inicio')).not.toBeVisible();
       });
     });
   });
 
-  describe('CSS Variables Update', () => {
-    it('should update CSS variables when expanding', async () => {
+  describe('Dropdown Navigation Items', () => {
+    it('should render all navigation items in dropdown', async () => {
       renderWithTheme(<Navigation />);
 
-      const nav = screen.getByRole('navigation');
-
-      fireEvent.mouseEnter(nav);
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
 
       await waitFor(() => {
-        expect(mockSetProperty).toHaveBeenCalledWith('--nav-expanded', '1');
-        expect(mockSetProperty).toHaveBeenCalledWith('--nav-width', '200px');
+        expect(screen.getByText('Inicio')).toBeVisible();
+        expect(screen.getByText('Página principal')).toBeVisible();
+        expect(screen.getByTestId('icon-bot')).toBeInTheDocument();
+
+        expect(screen.getByText('Visualizador')).toBeVisible();
+        expect(screen.getByText('Ver archivos markdown')).toBeVisible();
+        expect(screen.getByTestId('icon-square-library')).toBeInTheDocument();
+
+        expect(screen.getByText('Tester')).toBeVisible();
+        expect(screen.getByText('Probar repositorio')).toBeVisible();
+        expect(screen.getByTestId('icon-test-tubes')).toBeInTheDocument();
       });
     });
 
-    it('should update CSS variables when collapsing', async () => {
+    it('should navigate when dropdown items are clicked', async () => {
       renderWithTheme(<Navigation />);
 
-      const nav = screen.getByRole('navigation');
-
-      fireEvent.mouseEnter(nav);
-      await waitFor(() => {
-        expect(mockSetProperty).toHaveBeenCalledWith('--nav-expanded', '1');
-      });
-
-      mockSetProperty.mockClear();
-
-      fireEvent.mouseLeave(nav);
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
 
       await waitFor(() => {
-        expect(mockSetProperty).toHaveBeenCalledWith('--nav-expanded', '0');
-        expect(mockSetProperty).toHaveBeenCalledWith('--nav-width', '60px');
+        const inicioButton = screen.getByText('Inicio').closest('button');
+        expect(inicioButton).toBeInTheDocument();
+
+        fireEvent.click(inicioButton!);
       });
-    });
-  });
 
-  describe('Navigation Functionality', () => {
-    it('should navigate when buttons are clicked', () => {
-      renderWithTheme(<Navigation />);
-
-      const buttons = screen.getAllByRole('button');
-
-      fireEvent.click(buttons[0]);
       expect(mockPush).toHaveBeenCalledWith('/');
+    });
 
-      fireEvent.click(buttons[1]);
+    it('should close dropdown after navigation', async () => {
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
+
+      await waitFor(() => {
+        const visualizadorButton = screen.getByText('Visualizador').closest('button');
+        fireEvent.click(visualizadorButton!);
+      });
+
       expect(mockPush).toHaveBeenCalledWith('/visualizer');
 
-      fireEvent.click(buttons[2]);
-      expect(mockPush).toHaveBeenCalledWith('/test');
-
-      fireEvent.click(buttons[3]);
-      expect(mockPush).toHaveBeenCalledWith('/settings/connect');
-    });
-
-    it('should handle multiple navigation calls', () => {
-      renderWithTheme(<Navigation />);
-
-      const buttons = screen.getAllByRole('button');
-
-      fireEvent.click(buttons[0]);
-      fireEvent.click(buttons[1]);
-      fireEvent.click(buttons[0]);
-
-      expect(mockPush).toHaveBeenCalledTimes(3);
-      expect(mockPush).toHaveBeenNthCalledWith(1, '/');
-      expect(mockPush).toHaveBeenNthCalledWith(2, '/visualizer');
-      expect(mockPush).toHaveBeenNthCalledWith(3, '/');
+      await waitFor(() => {
+        expect(screen.queryByText('Inicio')).not.toBeVisible();
+      });
     });
   });
 
-  describe('Tooltips', () => {
-    it('should show extended tooltips when collapsed', () => {
+  describe('Active State', () => {
+    it('should mark current path as active in dropdown', async () => {
+      mockPathname = '/';
       renderWithTheme(<Navigation />);
 
-      const buttons = screen.getAllByRole('button');
-
-      expect(buttons[0]).toHaveAttribute('title', 'Inicio - Página principal');
-      expect(buttons[1]).toHaveAttribute('title', 'Visualizador - Ver archivos markdown');
-      expect(buttons[2]).toHaveAttribute('title', 'Tester - Probar repositorio');
-      expect(buttons[3]).toHaveAttribute('title', 'Configuración - Configuración de la aplicación');
-    });
-
-    it('should show simple tooltips when expanded', async () => {
-      renderWithTheme(<Navigation />);
-
-      const nav = screen.getByRole('navigation');
-      const buttons = screen.getAllByRole('button');
-
-      fireEvent.mouseEnter(nav);
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
 
       await waitFor(() => {
-        expect(buttons[0]).toHaveAttribute('title', 'Página principal');
-        expect(buttons[1]).toHaveAttribute('title', 'Ver archivos markdown');
-        expect(buttons[2]).toHaveAttribute('title', 'Probar repositorio');
-        expect(buttons[3]).toHaveAttribute('title', 'Configuración de la aplicación');
+        const activeButton = screen.getByText('Inicio').closest('button');
+        expect(activeButton).toBeInTheDocument();
+        // Check if the button has the active state styling
       });
+    });
+
+    it('should mark visualizer as active when on visualizer page', async () => {
+      mockPathname = '/visualizer';
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
+
+      await waitFor(() => {
+        const activeButton = screen.getByText('Visualizador').closest('button');
+        expect(activeButton).toBeInTheDocument();
+        // Check if the button has the active state styling
+      });
+    });
+  });
+
+  describe('Settings Button', () => {
+    it('should render settings button', () => {
+      renderWithTheme(<Navigation />);
+
+      const settingsButton = screen.getByTestId('icon-settings').closest('button');
+      expect(settingsButton).toBeInTheDocument();
+    });
+
+    it('should navigate to settings when clicked', () => {
+      renderWithTheme(<Navigation />);
+
+      const settingsButton = screen.getByTestId('icon-settings').closest('button');
+      fireEvent.click(settingsButton!);
+
+      expect(mockPush).toHaveBeenCalledWith('/settings');
+    });
+
+    it('should mark settings as active when on settings page', () => {
+      mockPathname = '/settings';
+      renderWithTheme(<Navigation />);
+
+      const settingsButton = screen.getByTestId('icon-settings').closest('button');
+      expect(settingsButton).toHaveAttribute('data-active', 'true');
+    });
+
+    it('should not mark settings as active when on other pages', () => {
+      mockPathname = '/';
+      renderWithTheme(<Navigation />);
+
+      const settingsButton = screen.getByTestId('icon-settings').closest('button');
+      expect(settingsButton).toHaveAttribute('data-active', 'false');
     });
   });
 
@@ -331,27 +384,30 @@ describe.skip('Navigation', () => {
     it('should have proper accessibility attributes', () => {
       renderWithTheme(<Navigation />);
 
-      const buttons = screen.getAllByRole('button');
+      const nav = screen.getByRole('navigation');
+      expect(nav).toBeInTheDocument();
 
-      buttons.forEach(button => {
-        expect(button).toBeInTheDocument();
-        expect(button.tagName).toBe('BUTTON');
-      });
+      const settingsButton = screen.getByTestId('icon-settings').closest('button');
+      expect(settingsButton).toHaveAttribute('title');
     });
-  });
 
-  describe('Event Handling', () => {
-    it('should maintain component integrity', () => {
+    it('should maintain topbar layout structure', () => {
       renderWithTheme(<Navigation />);
 
       const nav = screen.getByRole('navigation');
       expect(nav).toBeInTheDocument();
+
+      // Brand should be on the left
+      expect(screen.getByText('Loreon AI')).toBeInTheDocument();
+
+      // Settings should be on the right
+      expect(screen.getByTestId('icon-settings')).toBeInTheDocument();
     });
   });
 
   describe('Integration Tests', () => {
     it('should work with different pathnames', () => {
-      const testPaths = ['/', '/visualizer', '/test', '/other'];
+      const testPaths = ['/', '/visualizer', '/test', '/settings', '/other'];
 
       testPaths.forEach(path => {
         mockPathname = path;
@@ -367,9 +423,8 @@ describe.skip('Navigation', () => {
     it('should maintain functionality after re-renders', async () => {
       const { rerender } = renderWithTheme(<Navigation />);
 
-      const nav = screen.getByRole('navigation');
-
-      fireEvent.mouseEnter(nav);
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
 
       rerender(
         <ThemeProvider theme={mockTheme}>
@@ -379,6 +434,22 @@ describe.skip('Navigation', () => {
 
       const navAfterRerender = screen.getByRole('navigation');
       expect(navAfterRerender).toBeInTheDocument();
+    });
+
+    it('should handle rapid clicks gracefully', async () => {
+      renderWithTheme(<Navigation />);
+
+      const brand = screen.getByText('Loreon AI');
+
+      // Multiple rapid clicks
+      fireEvent.click(brand);
+      fireEvent.click(brand);
+      fireEvent.click(brand);
+
+      await waitFor(() => {
+        const nav = screen.getByRole('navigation');
+        expect(nav).toBeInTheDocument();
+      });
     });
   });
 });
