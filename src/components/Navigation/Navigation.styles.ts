@@ -35,27 +35,6 @@ export const NavContainer = styled.div`
   margin: 0 auto;
 `;
 
-export const NavMainItems = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1;
-  justify-content: center;
-
-  @media (max-width: 768px) {
-    gap: 0.5rem;
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding: 0 0.5rem;
-    
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`;
-
 export const NavFooterItems = styled.div`
   display: flex;
   align-items: center;
@@ -68,10 +47,97 @@ export const NavBrand = styled.div`
   color: var(--text-primary);
   letter-spacing: -0.025em;
   min-width: fit-content;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
   
   @media (max-width: 768px) {
     font-size: 1.1rem;
   }
+`;
+
+export const DropdownContainer = styled.div<{ $isOpen: boolean }>`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background: var(--background);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.5rem;
+  min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: ${({ $isOpen }) => $isOpen ? 1 : 0};
+  visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
+  transform: ${({ $isOpen }) => $isOpen ? 'translateY(0)' : 'translateY(-10px)'};
+  transition: all 0.2s ease;
+`;
+
+export const DropdownItem = styled.button<{ $isActive: boolean }>`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: ${({ $isActive }) =>
+    $isActive
+      ? 'rgba(16, 185, 129, 0.15)'
+      : 'transparent'
+  };
+  border: 1px solid ${({ $isActive }) =>
+    $isActive
+      ? 'rgba(16, 185, 129, 0.3)'
+      : 'transparent'
+  };
+  color: ${({ $isActive }) =>
+    $isActive ? '#10b981' : 'var(--text-primary)'
+  };
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+  text-align: left;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  &:hover {
+    background: ${({ $isActive }) =>
+    $isActive
+      ? 'rgba(16, 185, 129, 0.2)'
+      : 'rgba(255, 255, 255, 0.05)'
+  };
+    border-color: ${({ $isActive }) =>
+    $isActive
+      ? 'rgba(16, 185, 129, 0.4)'
+      : 'rgba(255, 255, 255, 0.1)'
+  };
+  }
+`;
+
+export const DropdownItemLabel = styled.span`
+  font-size: 0.9rem;
+  font-weight: 500;
+`;
+
+export const DropdownItemDescription = styled.span`
+  font-size: 0.8rem;
+  opacity: 0.7;
+  display: block;
+  margin-top: 0.25rem;
 `;
 
 export const NavItem = styled.button<NavItemProps>`

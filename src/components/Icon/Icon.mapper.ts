@@ -4,7 +4,9 @@ import {
   SquareLibrary,
   type LucideIcon,
   TestTubeDiagonal,
-  Send
+  Send,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { IconName } from "./Icon.types";
 
@@ -13,5 +15,7 @@ export const iconMapper: Record<IconName, LucideIcon> = {
   settings: Settings,
   'test-tubes': TestTubeDiagonal,
   'square-library': SquareLibrary,
-  send: Send
+  send: Send,
+  'chevron-up': ChevronUp,
+  'chevron-down': ChevronDown
 };

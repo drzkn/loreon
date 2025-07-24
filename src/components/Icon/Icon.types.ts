@@ -4,6 +4,8 @@ export type IconName =
   'settings' |
   'test-tubes' |
   'square-library' |
-  'send';
+  'send' |
+  'chevron-up' |
+  'chevron-down';
 
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
