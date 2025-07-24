@@ -1,0 +1,61 @@
+# Tests
+**/__tests__/**
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage/
+.nyc_output/
+
+# Development
+.env.local
+.env.development
+.env.test
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Storybook
+.storybook/
+storybook-static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Temporary
+tmp/
+temp/
+
+# Scripts de desarrollo
+scripts/
+
+# Husky
+.husky/
+
+# Git
+.git/
+.gitignore
+
+# Examples
+src/examples/
+
+# Vitest
+vitest.config.ts
+vitest.setup.ts 

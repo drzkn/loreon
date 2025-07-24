@@ -2,11 +2,20 @@
   "name": "loreon",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "yarn@1.22.18",
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
+    "build:ci": "NODE_ENV=production next build",
+    "build:vercel": "node scripts/verify-deps.js && next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:cache": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest",
@@ -15,20 +24,30 @@
     "test:ui": "vitest --ui",
     "test:connection": "npx tsx src/examples/config.example.ts",
     "example:supabase": "npx tsx src/examples/supabaseExample.ts",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "clean:cache": "rm -rf .next/cache",
     "prepare": "husky"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.22",
+    "@ai-sdk/openai": "^1.3.23",
+    "@ai-sdk/react": "^1.2.12",
+    "@huggingface/inference": "^4.5.3",
     "@supabase/supabase-js": "^2.50.2",
     "@tailwindcss/postcss": "^4.1.11",
+    "ai": "^4.3.19",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
     "dotenv": "^17.0.0",
+    "lucide-react": "^0.525.0",
     "next": "15.3.4",
+    "openai": "^5.10.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "storybook": "^9.0.14",
     "styled-components": "^6.1.19",
-    "supabase": "^2.26.9"
+    "supabase": "^2.26.9",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.1",

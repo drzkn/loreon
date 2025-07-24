@@ -1,103 +1,151 @@
 'use client';
 
-import { Card } from '@/components';
+import { useRef, useEffect } from 'react';
+import { useChat } from '@ai-sdk/react';
 import {
-  HomeContainer,
-  Header,
-  MainTitle,
-  Subtitle,
-  FeaturesGrid,
-  MainSection,
-  SectionTitle,
-  CharacteristicsGrid,
-  CharacteristicItem,
-  CharacteristicTitle,
-  CharacteristicDescription,
-  Footer,
-  FooterText
+  ChatContainer,
+  ChatSection,
+  ChatHeader,
+  ChatTitle,
+  MessagesContainer,
+  Message,
+  MessageBubble,
+  MessageContent,
+  MessageAuthor,
+  MessageTime,
+  ActionsSection,
+  InputContainer,
+  InputWrapper,
+  ChatInput,
+  SendButton,
+  WelcomeMessage,
+  WelcomeTitle,
+  WelcomeSubtitle
 } from './page.styles';
 
 export default function Home() {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Usar el hook useChat para conectar con nuestra API RAG
+  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
+    api: '/api/chat',
+    onResponse: (response) => {
+      console.log('🌐 [FRONTEND] Respuesta recibida:', response.status, response.statusText);
+    },
+    onFinish: (message) => {
+      console.log('✅ [FRONTEND] Mensaje completado:', message.content.substring(0, 100));
+    },
+    onError: (error) => {
+      console.error('❌ [FRONTEND] Error en chat:', error);
+    },
+  });
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      console.log('⌨️ [FRONTEND] Enviando mensaje:', input);
+      handleSubmit(e);
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
-    <HomeContainer>
-      <Header>
-        <MainTitle>
-          🚀 Bienvenido a Loreon
-        </MainTitle>
-        <Subtitle>
-          Tu plataforma integral para gestión de contenido markdown y
-          sincronización con bases de datos.
-        </Subtitle>
-      </Header>
+    <ChatContainer>
+      <ChatSection>
+        <ChatHeader>
+          <ChatTitle>Loreon AI</ChatTitle>
+        </ChatHeader>
 
-      <FeaturesGrid>
-        <Card
-          title='📚 Visualizador'
-          description='Explora y visualiza archivos markdown de manera elegante.
-            Renderizado en tiempo real con soporte completo de sintaxis.'
-          titleAs='h2'
-        />
+        <MessagesContainer>
+          {messages.length === 0 ? (
+            <WelcomeMessage>
+              <WelcomeTitle>¡Bienvenido a Loreon AI! 🚀</WelcomeTitle>
+              <WelcomeSubtitle>
+                Tu asistente inteligente para gestión de contenido markdown,
+                sincronización de datos y búsqueda vectorial. Comienza escribiendo tu primera pregunta.
+              </WelcomeSubtitle>
+            </WelcomeMessage>
+          ) : (
+            messages.map((message) => (
+              <Message key={message.id} $isUser={message.role === 'user'}>
+                <MessageAuthor $isUser={message.role === 'user'}>
+                  {message.role === 'user' ? '👤' : '🤖'}
+                </MessageAuthor>
+                <MessageBubble $isUser={message.role === 'user'}>
+                  <MessageContent $isUser={message.role === 'user'}>
+                    {message.content}
+                  </MessageContent>
+                  <MessageTime $isUser={message.role === 'user'}>
+                    {message.createdAt ? formatTime(message.createdAt) : ''}
+                  </MessageTime>
+                </MessageBubble>
+              </Message>
+            ))
+          )}
 
-        <Card
-          title='🧪 Tester'
-          description='Herramientas de testing para validar la integridad de tus
-            repositorios y verificar la sincronización de datos.'
-          titleAs='h2'
-        />
+          {(status === 'streaming' || status === 'submitted') && (
+            <Message $isUser={false}>
+              <MessageAuthor $isUser={false}>🤖</MessageAuthor>
+              <MessageBubble $isUser={false}>
+                <MessageContent $isUser={false}>
+                  <span style={{ opacity: 0.6 }}>
+                    {status === 'submitted' ? 'Enviando...' : 'Pensando... 🧠'}
+                  </span>
+                </MessageContent>
+              </MessageBubble>
+            </Message>
+          )}
 
-        <Card
-          title='🔌 Connect'
-          description='Conecta y sincroniza con múltiples bases de datos. Soporte para
-            Notion, Supabase y más integraciones.'
-          titleAs='h2'
-        />
-      </FeaturesGrid>
+          <div ref={messagesEndRef} />
+        </MessagesContainer>
+      </ChatSection>
 
-      <MainSection>
-        <SectionTitle>
-          ✨ Características principales
-        </SectionTitle>
-        <CharacteristicsGrid>
-          <CharacteristicItem>
-            <CharacteristicTitle>
-              🎨 Interfaz moderna
-            </CharacteristicTitle>
-            <CharacteristicDescription>
-              Diseño glassmorphism con navegación intuitiva
-            </CharacteristicDescription>
-          </CharacteristicItem>
-          <CharacteristicItem>
-            <CharacteristicTitle>
-              📱 Responsive
-            </CharacteristicTitle>
-            <CharacteristicDescription>
-              Optimizado para desktop y móvil
-            </CharacteristicDescription>
-          </CharacteristicItem>
-          <CharacteristicItem>
-            <CharacteristicTitle>
-              ⚡ Rápido
-            </CharacteristicTitle>
-            <CharacteristicDescription>
-              Built with Next.js 15 y React 19
-            </CharacteristicDescription>
-          </CharacteristicItem>
-          <CharacteristicItem>
-            <CharacteristicTitle>
-              🔄 Sincronización
-            </CharacteristicTitle>
-            <CharacteristicDescription>
-              Integración en tiempo real con bases de datos
-            </CharacteristicDescription>
-          </CharacteristicItem>
-        </CharacteristicsGrid>
-      </MainSection>
-
-      <Footer>
-        <FooterText>
-          Usa la navegación lateral para explorar todas las funcionalidades →
-        </FooterText>
-      </Footer>
-    </HomeContainer>
+      <ActionsSection>
+        <InputContainer>
+          <InputWrapper>
+            <ChatInput
+              ref={inputRef}
+              value={input}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              placeholder="Pregúntame sobre tu contenido..."
+              rows={1}
+              disabled={status !== 'ready'}
+            />
+            <SendButton
+              onClick={(e) => {
+                console.log('🖱️ [FRONTEND] Click en enviar:', input);
+                handleSubmit(e);
+              }}
+              disabled={!input.trim() || status !== 'ready'}
+            >
+              ➤
+            </SendButton>
+          </InputWrapper>
+        </InputContainer>
+      </ActionsSection>
+    </ChatContainer>
   );
 }

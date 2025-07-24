@@ -63,7 +63,7 @@ describe('Supabase client', () => {
       // Act & Assert
       await expect(async () => {
         await import('../SupabaseClient');
-      }).rejects.toThrow('❌ Las variables de entorno VITE_SUPABASE_URL o SUPABASE_URL son requeridas');
+      }).rejects.toThrow('❌ La variable de entorno SUPABASE_URL es requerida');
 
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_URL');
       expect(mockCreateClient).not.toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe('Supabase client', () => {
       // Act & Assert
       await expect(async () => {
         await import('../SupabaseClient');
-      }).rejects.toThrow('❌ Las variables de entorno VITE_SUPABASE_ANON_KEY o SUPABASE_ANON_KEY son requeridas');
+      }).rejects.toThrow('❌ La variable de entorno SUPABASE_ANON_KEY es requerida');
 
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_URL');
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_ANON_KEY');
@@ -94,7 +94,7 @@ describe('Supabase client', () => {
       // Act & Assert
       await expect(async () => {
         await import('../SupabaseClient');
-      }).rejects.toThrow('❌ Las variables de entorno VITE_SUPABASE_URL o SUPABASE_URL son requeridas');
+      }).rejects.toThrow('❌ La variable de entorno SUPABASE_URL es requerida');
 
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_URL');
       expect(mockCreateClient).not.toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe('Supabase client', () => {
       // Act & Assert
       await expect(async () => {
         await import('../SupabaseClient');
-      }).rejects.toThrow('❌ Las variables de entorno VITE_SUPABASE_URL o SUPABASE_URL son requeridas');
+      }).rejects.toThrow('❌ La variable de entorno SUPABASE_URL es requerida');
 
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_URL');
       expect(mockCreateClient).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe('Supabase client', () => {
       // Act & Assert
       await expect(async () => {
         await import('../SupabaseClient');
-      }).rejects.toThrow('❌ Las variables de entorno VITE_SUPABASE_ANON_KEY o SUPABASE_ANON_KEY son requeridas');
+      }).rejects.toThrow('❌ La variable de entorno SUPABASE_ANON_KEY es requerida');
 
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_URL');
       expect(mockGetEnvVar).toHaveBeenCalledWith('SUPABASE_ANON_KEY');

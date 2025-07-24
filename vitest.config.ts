@@ -40,6 +40,7 @@ export default defineConfig({
         'src/app/api/helpers/ConnectionPageRepository.ts',
         'src/lib/**',
         '**/*styles*',
+        '**/scripts',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
         'src/app/visualizer/page.tsx',
