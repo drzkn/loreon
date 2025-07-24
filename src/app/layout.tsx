@@ -30,9 +30,9 @@ export default function RootLayout({
         <ClientProviders>
           <Navigation />
           <main style={{
-            marginLeft: 'var(--nav-width, 60px)',
-            transition: 'margin-left 0.3s ease',
-            minHeight: '100vh',
+            marginTop: 'var(--nav-height, 70px)',
+            transition: 'margin-top 0.3s ease',
+            minHeight: 'calc(100vh - var(--nav-height, 70px))',
             padding: '2rem'
           }}>
             {children}

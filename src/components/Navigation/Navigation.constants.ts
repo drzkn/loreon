@@ -1,20 +1,21 @@
+import { IconName } from "../Icon/Icon.types";
 
 export const navigationItems = [
   {
     path: '/',
-    icon: '🏠',
+    icon: 'bot' as IconName,
     label: 'Inicio',
     description: 'Página principal'
   },
   {
     path: '/visualizer',
-    icon: '📚',
+    icon: 'square-library' as IconName,
     label: 'Visualizador',
     description: 'Ver archivos markdown'
   },
   {
     path: '/test',
-    icon: '🧪',
+    icon: 'test-tubes' as IconName,
     label: 'Tester',
     description: 'Probar repositorio'
   }

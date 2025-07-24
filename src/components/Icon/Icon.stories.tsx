@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import { Icon, type IconName } from './Icon';
+import { Icon } from './Icon';
 
 const meta: Meta<typeof Icon> = {
   title: 'Components/Icon',
@@ -17,9 +17,7 @@ const meta: Meta<typeof Icon> = {
     name: {
       control: 'select',
       options: [
-        'send', 'user', 'bot', 'settings', 'home', 'menu', 'close',
-        'chevron-down', 'chevron-up', 'chevron-left', 'chevron-right',
-        'search', 'plus', 'edit', 'trash', 'save', 'copy', 'eye', 'eye-off'
+        'bot',
       ],
       description: 'Nombre del icono a mostrar'
     },
@@ -44,13 +42,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    name: 'home',
+    name: 'bot',
+    color: '#10b981',
   },
 };
 
 export const AllSizes: Story = {
   args: {
-    name: 'user',
+    name: 'bot',
+    color: '#10b981',
   },
   render: (args) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -75,37 +75,7 @@ export const Clickable: Story = {
   args: {
     name: 'settings',
     size: 'md',
+    color: '#10b981',
     onClick: () => alert('Icon clicked!'),
   },
 };
-
-export const CommonIcons: Story = {
-  render: () => (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
-      gap: '1rem',
-      textAlign: 'center'
-    }}>
-      {[
-        'send', 'user', 'bot', 'settings', 'home', 'menu', 'close',
-        'search', 'plus', 'edit', 'trash', 'save', 'copy', 'eye'
-      ].map((iconName) => (
-        <div key={iconName} style={{ padding: '0.5rem' }}>
-          <Icon name={iconName as IconName} size="lg" />
-          <div style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{iconName}</div>
-        </div>
-      ))}
-    </div>
-  ),
-};
-
-export const Navigation: Story = {
-  render: () => (
-    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-      <Icon name="chevron-left" size="md" />
-      <Icon name="home" size="md" />
-      <Icon name="chevron-right" size="md" />
-    </div>
-  ),
-}; 

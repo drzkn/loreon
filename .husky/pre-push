@@ -1,0 +1,12 @@
+echo "Testing before push"
+yarn test
+
+echo "🔨 Running build before push..."
+yarn build
+
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed. Push cancelled."
+  exit 1
+fi
+
+echo "✅ Build successful. Continuing with push..." 
