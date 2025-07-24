@@ -5,8 +5,6 @@ import { useChat } from '@ai-sdk/react';
 import {
   ChatContainer,
   ChatSection,
-  ChatHeader,
-  ChatTitle,
   MessagesContainer,
   Message,
   MessageBubble,
@@ -74,10 +72,6 @@ export default function Home() {
   return (
     <ChatContainer>
       <ChatSection>
-        <ChatHeader>
-          <ChatTitle>Loreon AI</ChatTitle>
-        </ChatHeader>
-
         <MessagesContainer>
           {messages.length === 0 ? (
             <WelcomeMessage>

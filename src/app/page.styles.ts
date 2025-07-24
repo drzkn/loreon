@@ -3,33 +3,14 @@ import styled from 'styled-components';
 export const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: calc(100vw - var(--nav-width, 60px));
+  height: calc(100vh - var(--nav-height, 70px));
+  width: 100vw;
   position: fixed;
-  top: 0;
-  left: var(--nav-width, 60px);
+  top: var(--nav-height, 70px);
+  left: 0;
   background: var(--background);
   font-family: var(--font-geist-sans);
   overflow: hidden;
-`;
-
-export const ChatHeader = styled.header`
-  padding: 1rem 0;
-  background: var(--background);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  backdrop-filter: blur(10px);
-`;
-
-export const ChatTitle = styled.h1`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  text-align: center;
-  letter-spacing: -0.025em;
 `;
 
 export const ChatSection = styled.div`
