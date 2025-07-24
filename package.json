@@ -8,7 +8,7 @@
     "yarn": ">=1.22.0"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "build:ci": "NODE_ENV=production next build",
