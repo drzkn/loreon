@@ -1,135 +1,268 @@
-# Turborepo starter
+# 🤖 Loreon AI
 
-This Turborepo starter is maintained by the Turborepo core team.
+An intelligent chat application with RAG (Retrieval-Augmented Generation) capabilities that integrates Notion content and enables advanced vector search.
 
-## Using this example
+## ✨ Features
 
-Run the following command:
+- 🤖 **AI Chat** - Conversational interface powered by Vercel AI SDK
+- 📚 **RAG Integration** - Vector search in markdown content using pgvector
+- 🔗 **Notion Integration** - Automatic content synchronization from Notion
+- 📝 **Markdown Visualizer** - Rendering and visualization of markdown files
+- 🎨 **Modern UI** - Components with styled-components and glassmorphism design
+- 🧪 **Complete Testing** - Test suite with Vitest
+- 📖 **Storybook** - Interactive component documentation
+- 🔄 **Git Hooks** - Automatic validation with Husky
 
-```sh
-npx create-turbo@latest
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Static typing
+- **Styled Components** - CSS-in-JS for styling
+- **Lucide React** - Modern iconography
+
+### AI & Backend
+
+- **Vercel AI SDK** - AI model integration
+- **Supabase** - PostgreSQL database with pgvector
+- **Notion API** - Notion workspace integration
+
+### Development & Testing
+
+- **Vitest** - Fast testing framework
+- **Storybook** - Component documentation
+- **ESLint** - Code linting and analysis
+- **Husky** - Git hooks for CI/CD
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js ≥ 20.0.0
+- Yarn ≥ 1.22.0
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/loreon.git
+cd loreon
+
+# Install dependencies
+yarn install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your credentials
 ```
 
-## What's inside?
+### Environment Variables
 
-This Turborepo includes the following packages/apps:
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-### Apps and Packages
+# Notion API
+NOTION_TOKEN=your_notion_token
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+# AI (Vercel AI SDK)
+OPENAI_API_KEY=your_openai_api_key
+# or
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_ai_key
+```
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Development
+
+```bash
+# Start development server
+yarn dev
+
+# Open Storybook
+yarn storybook
+
+# Run tests
+yarn test
+
+# Run tests with coverage
+yarn test:coverage
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── components/        # Page components
+│   └── globals.css        # Global styles
+├── components/            # Reusable components
+│   ├── Icon/             # Icon system
+│   ├── Navigation/       # Navigation with dropdown
+│   ├── Button/           # Base components
+│   └── ...
+├── domain/               # Business logic
+│   ├── entities/         # Domain entities
+│   ├── usecases/         # Use cases
+│   └── repositories/     # Repository interfaces
+├── adapters/             # External adapters
+│   └── output/           # Repository implementations
+├── services/             # Application services
+│   ├── embeddings/       # Embedding generation
+│   ├── markdownConverter/ # Markdown conversion
+│   └── supabase/         # Supabase services
+└── utils/                # General utilities
+```
+
+## 🎯 Available Scripts
+
+### Development
+
+```bash
+yarn dev              # Development server
+yarn build             # Production build
+yarn start             # Production server
+yarn lint              # Code analysis
+```
+
+### Testing
+
+```bash
+yarn test              # Tests in watch mode
+yarn test:run          # Run tests once
+yarn test:coverage     # Tests with coverage
+yarn test:ui           # Visual test interface
+```
+
+### Storybook
+
+```bash
+yarn storybook         # Storybook server
+yarn build-storybook   # Storybook build
+```
 
 ### Utilities
 
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+yarn clean             # Clean Next.js cache
+yarn test:connection   # Test service connections
+yarn example:supabase  # Supabase example
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 🏗️ Architecture
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+### Clean Architecture
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+The project follows Clean Architecture principles with:
 
-### Develop
+- **Entities**: Domain models
+- **Use Cases**: Business logic
+- **Adapters**: External service interfaces
+- **Infrastructure**: Specific implementations
 
-To develop all apps and packages, run the following command:
+### RAG Pipeline
 
-```
-cd my-turborepo
+1. **Ingestion**: Notion content → Markdown
+2. **Processing**: Markdown → Chunks + Embeddings
+3. **Storage**: Supabase with pgvector
+4. **Search**: Query → Embeddings → Similar results
+5. **Generation**: Context + Query → AI response
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+## 🧪 Testing
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+### Testing Strategy
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+- **Unit**: Business logic and utilities
+- **Integration**: Services and repositories
+- **Components**: React Testing Library
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+### Running Tests
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+```bash
+# Tests in watch mode
+yarn test
 
-### Remote Caching
+# Tests with coverage
+yarn test:coverage
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+# Specific tests
+yarn test Navigation.test.tsx
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## 📚 Storybook
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+Interactive component documentation available at:
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+yarn storybook
+# Opens http://localhost:6006
 ```
 
-## Useful Links
+### Documented Components
 
-Learn more about the power of Turborepo:
+- 🎨 **Design System**: Tokens, colors, typography
+- 🧩 **Components**: Button, Icon, Card, Navigation
+- 📱 **Patterns**: Layouts, forms, feedback
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## 🔄 CI/CD
+
+### Git Hooks (Husky)
+
+- **pre-push**: Automatic tests + build
+- **pre-commit**: Automatic linting
+
+### GitHub Actions
+
+```yaml
+# Automatic workflow on push/PR
+- Unit and integration tests
+- Build and validation
+- Deploy to Vercel (production)
+```
+
+## 🚀 Deploy
+
+### Vercel (Recommended)
+
+```bash
+# Automatic deploy by connecting GitHub
+vercel --prod
+```
+
+### Manual
+
+```bash
+yarn build
+yarn start
+```
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -m 'Add: new feature'`
+4. Push branch: `git push origin feature/new-feature`
+5. Create Pull Request
+
+### Code Standards
+
+- **TypeScript**: Strict typing
+- **ESLint**: Custom configuration
+- **Styled Components**: For styling
+- **Tests**: Minimum 80% coverage
+
+## 📝 License
+
+This project is under the MIT License. See [LICENSE](LICENSE) for more details.
+
+## 🆘 Support
+
+- 📧 **Email**: support@loreon.dev
+- 💬 **Issues**: [GitHub Issues](https://github.com/your-username/loreon/issues)
+- 📖 **Docs**: [Complete documentation](https://docs.loreon.dev)
+
+---
+
+Developed with ❤️ using Next.js and Vercel AI SDK
