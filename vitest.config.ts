@@ -43,7 +43,7 @@ export default defineConfig({
         '**/scripts',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
-        'src/app/visualizer/page.tsx',
+        'src/app/settings/connect/page.tsx',
         'src/app/page.tsx'
       ]
     }
