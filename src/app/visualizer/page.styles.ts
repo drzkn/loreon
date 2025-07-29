@@ -331,6 +331,53 @@ export const MarkdownContent = styled.div`
     margin: 2rem 0;
   }
   
+  /* Estilos para toggle headings (details/summary) */
+  details {
+    margin: 1rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+  }
+  
+  summary {
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    list-style: none;
+    outline: none;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    &::-webkit-details-marker {
+      display: none;
+    }
+    
+    /* Flecha personalizada */
+    &::before {
+      content: '▶';
+      color: #10b981;
+      font-size: 0.8em;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.2em;
+      height: 1.2em;
+    }
+  }
+  
+  details[open] summary::before {
+    transform: rotate(90deg);
+  }
+
   /* Estilos específicos para imágenes */
   .markdown-image-container {
     text-align: center;
