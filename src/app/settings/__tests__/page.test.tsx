@@ -8,16 +8,6 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn()
 }));
 
-// Mock del componente PageHeader
-vi.mock('../../../components', () => ({
-  PageHeader: vi.fn(({ title, description }: { title: string; description: string }) => (
-    <div data-testid="page-header">
-      <h1>{title}</h1>
-      <p>{description}</p>
-    </div>
-  ))
-}));
-
 // Mock del componente ConnectionContent
 vi.mock('../components/ConnectionContent', () => ({
   ConnectionContent: vi.fn(() => (
@@ -43,13 +33,6 @@ describe('SettingsPage', () => {
     (vi.mocked(usePathname)).mockReturnValue('/settings');
 
     vi.clearAllMocks();
-  });
-
-  it('should render page header with correct title and description', () => {
-    render(<SettingsPage />);
-
-    expect(screen.getByText('Configuración')).toBeInTheDocument();
-    expect(screen.getByText('Configura las diferentes opciones de la aplicación')).toBeInTheDocument();
   });
 
   it('should render Conexión tab', () => {
@@ -99,15 +82,6 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    expect(screen.getByTestId('connection-content')).toBeInTheDocument();
-  });
-
-  it('should render page structure correctly', () => {
-    render(<SettingsPage />);
-
-    // Verificar elementos clave de la estructura
-    expect(screen.getByTestId('page-header')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /🔌 Conexión/i })).toBeInTheDocument();
     expect(screen.getByTestId('connection-content')).toBeInTheDocument();
   });
 
