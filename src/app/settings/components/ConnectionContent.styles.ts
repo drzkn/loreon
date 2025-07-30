@@ -1,50 +1,114 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-  max-width: 100%;
-  max-height: 100%;
-  margin: 0 auto;
-  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-geist-sans);
-  border-radius: 8px;
+  min-height: 400px;
 `;
 
-export const SyncSection = styled.section`
-  background: var(--nav-active);
-  backdrop-filter: blur(var(--backdrop-blur));
-  -webkit-backdrop-filter: blur(var(--backdrop-blur));
-  padding: 2rem;
-  border: 1px solid var(--nav-active-border);
-  border-radius: 8px;
-`;
-
-export const SyncTitle = styled.h2`
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: var(--success-500);
-`;
-
-export const SyncGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+export const MainContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;  
+  padding-top: 2rem;
 `;
 
 export const Section = styled.section`
   margin-top: 1rem;
+
+  @media (max-width: 480px) {
+    margin-top: 0.75rem;
+  }
 `;
 
 export const ProcessingInfo = styled.div`
   margin-top: 1rem;
-  padding: 0.5rem;
-  background: var(--nav-active);
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
 `;
 
 export const ButtonContainer = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-top: 1rem;
+  
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+`;
+
+export const InfoCard = styled.div`
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+  }
+`;
+
+export const InfoTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+  }
+`;
+
+export const InfoDescription = styled.p`
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  opacity: 0.8;
+  margin: 0;
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+`;
+
+export const TerminalContainer = styled.div`
+  @media (max-width: 480px) {
+    /* Asegurar que el Terminal use todo el ancho */
+    & > div {
+      border-radius: 0.5rem;
+    }
+  }
 `; 

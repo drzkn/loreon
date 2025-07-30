@@ -4,6 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { PageHeader } from '../../components';
 import { ConnectionContent } from './components/ConnectionContent';
+import {
+  SettingsContainer,
+  TabsContainer,
+  TabsHeader,
+  TabButton,
+  TabIcon,
+  TabLabel,
+  DefaultContent
+} from './page.styles';
 
 interface TabConfig {
   id: string;
@@ -51,65 +60,36 @@ export default function SettingsPage() {
         return <ConnectionContent />;
       default:
         return (
-          <div style={{
-            padding: '2rem',
-            textAlign: 'center',
-            fontSize: '1.1rem',
-            opacity: 0.8
-          }}>
+          <DefaultContent>
             Selecciona una pestaña para configurar las opciones correspondientes
-          </div>
+          </DefaultContent>
         );
     }
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <SettingsContainer>
       <PageHeader
         title="Configuración"
         description="Configura las diferentes opciones de la aplicación"
       />
 
-      <div style={{ marginTop: '2rem' }}>
-        <div style={{
-          display: 'flex',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          gap: '1rem'
-        }}>
+      <TabsContainer>
+        <TabsHeader>
           {tabs.map((tab) => (
-            <button
+            <TabButton
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: activeTab === tab.id ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '2px solid #10b981' : '2px solid transparent',
-                color: activeTab === tab.id ? '#10b981' : '#ffffff',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: '500',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
+              $isActive={activeTab === tab.id}
             >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
+              <TabIcon>{tab.icon}</TabIcon>
+              <TabLabel>{tab.label}</TabLabel>
+            </TabButton>
           ))}
-        </div>
+        </TabsHeader>
 
-        <section style={{
-          marginTop: '2rem',
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '8px',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
-          {renderTabContent()}
-        </section>
-      </div>
-    </div>
+        {renderTabContent()}
+      </TabsContainer>
+    </SettingsContainer>
   );
 } 
