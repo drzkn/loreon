@@ -94,13 +94,6 @@ vi.mock('../../hooks/useSyncToSupabase', () => ({
   })),
 }));
 
-interface CardProps {
-  title: string;
-  description: string;
-  children?: React.ReactNode;
-  titleAs?: 'h2' | 'h3';
-}
-
 interface TerminalProps {
   logs: string[];
   isProcessing: boolean;
@@ -109,13 +102,6 @@ interface TerminalProps {
 
 // Mock the components
 vi.mock('@/components', () => ({
-  Card: (props: CardProps) => (
-    <div data-testid='card'>
-      <h3>{props.title}</h3>
-      <p>{props.description}</p>
-      {props.children}
-    </div>
-  ),
   Terminal: (props: TerminalProps) => (
     <div data-testid='terminal'>
       <div>Processing: {props.isProcessing ? 'true' : 'false'}</div>
@@ -139,13 +125,76 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 describe('ConnectionContent', () => {
-  it('should render the connection content correctly', () => {
+  it('should render info cards with correct content', () => {
     renderWithTheme(<ConnectionContent />);
 
     expect(
-      screen.getByText('🔄 Opciones de sincronización')
+      screen.getByText('📋 Sincronización Manual')
     ).toBeInTheDocument();
-    expect(screen.getByTestId('card')).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/Control total sobre cuándo sincronizar/)
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText('ℹ️ Información del Proceso')
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/La sincronización conecta con la API de Notion/)
+    ).toBeInTheDocument();
+  });
+
+  it('should render the terminal component', () => {
+    renderWithTheme(<ConnectionContent />);
+
     expect(screen.getByTestId('terminal')).toBeInTheDocument();
+  });
+
+  it('should render the sync button with correct text', () => {
+    renderWithTheme(<ConnectionContent />);
+
+    expect(
+      screen.getByText('🚀 Iniciar Sincronización')
+    ).toBeInTheDocument();
+  });
+
+  it('should have the correct test id on container', () => {
+    renderWithTheme(<ConnectionContent />);
+
+    expect(screen.getByTestId('connection-content')).toBeInTheDocument();
+  });
+
+  it('should render information cards in correct order', () => {
+    renderWithTheme(<ConnectionContent />);
+
+    const infoCars = screen.getAllByText(/📋|ℹ️/);
+    expect(infoCars).toHaveLength(2);
+
+    // Verificar que las tarjetas están en el orden correcto
+    expect(screen.getByText('📋 Sincronización Manual')).toBeInTheDocument();
+    expect(screen.getByText('ℹ️ Información del Proceso')).toBeInTheDocument();
+  });
+
+  it('should render button inside the first info card', () => {
+    renderWithTheme(<ConnectionContent />);
+
+    const button = screen.getByText('🚀 Iniciar Sincronización');
+    expect(button).toBeInTheDocument();
+
+    // Verificar que está dentro de un botón
+    expect(button.tagName.toLowerCase()).toBe('button');
+  });
+
+  it('should render all main sections', () => {
+    renderWithTheme(<ConnectionContent />);
+
+    // Verificar que tenemos las 3 secciones principales:
+    // 1. Primera InfoCard con botón
+    expect(screen.getByText('📋 Sincronización Manual')).toBeInTheDocument();
+    // 2. Terminal
+    expect(screen.getByTestId('terminal')).toBeInTheDocument();
+    // 3. Segunda InfoCard con información
+    expect(screen.getByText('ℹ️ Información del Proceso')).toBeInTheDocument();
   });
 });

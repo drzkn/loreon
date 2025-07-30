@@ -1,14 +1,16 @@
 'use client';
 
-import { Terminal, Card, Button } from '@/components';
+import { Terminal, Button } from '@/components';
 import { useSyncToSupabase } from '../hooks/useSyncToSupabase';
 import {
   Container,
-  SyncSection,
-  SyncTitle,
-  SyncGrid,
-  Section,
-  ButtonContainer
+  MainContent,
+  ButtonContainer,
+  InfoCard,
+  InfoContent,
+  InfoTitle,
+  InfoDescription,
+  TerminalContainer
 } from './ConnectionContent.styles';
 
 export const ConnectionContent = () => {
@@ -16,34 +18,46 @@ export const ConnectionContent = () => {
 
   return (
     <Container data-testid="connection-content">
-      <SyncSection>
-        <SyncTitle>🔄 Opciones de sincronización</SyncTitle>
-        <SyncGrid>
-          <Card
-            title='📋 Manual'
-            description='Control total sobre cuándo sincronizar'
-          >
-            <Section>
-              <ButtonContainer>
-                <Button
-                  onClick={syncToSupabase}
-                  disabled={isProcessing}
-                  variant={isProcessing ? "loading" : "success"}
-                  fullWidth
-                >
-                  {isProcessing ? '🔄 Sincronizando...' : '🚀 Sincronizar'}
-                </Button>
-              </ButtonContainer>
-            </Section>
-          </Card>
+      <MainContent>
+        <InfoCard>
+          <InfoContent>
+            <InfoTitle>📋 Sincronización Manual</InfoTitle>
+            <InfoDescription>
+              Control total sobre cuándo sincronizar tu contenido desde Notion.
+              Perfecto para cuando hayas realizado cambios importantes y quieras
+              verlos reflejados inmediatamente en el visualizador.
+            </InfoDescription>
+          </InfoContent>
+          <ButtonContainer>
+            <Button
+              onClick={syncToSupabase}
+              disabled={isProcessing}
+              variant={isProcessing ? "loading" : "success"}
+            >
+              {isProcessing ? '🔄 Sincronizando...' : '🚀 Iniciar Sincronización'}
+            </Button>
+          </ButtonContainer>
+        </InfoCard>
 
+        <TerminalContainer>
           <Terminal
             logs={logs}
             isProcessing={isProcessing}
             onClearLogs={clearLogs}
           />
-        </SyncGrid>
-      </SyncSection>
+        </TerminalContainer>
+
+        <InfoCard>
+          <InfoContent>
+            <InfoTitle>ℹ️ Información del Proceso</InfoTitle>
+            <InfoDescription>
+              La sincronización conecta con la API de Notion, obtiene todas las páginas
+              configuradas, las convierte a formato Markdown y las almacena en Supabase.
+              Este proceso puede tardar unos minutos dependiendo de la cantidad de contenido.
+            </InfoDescription>
+          </InfoContent>
+        </InfoCard>
+      </MainContent>
     </Container>
   );
 };
