@@ -42,16 +42,33 @@ export const ProcessingInfo = styled.div`
 export const ButtonContainer = styled.div`
   display: flex;
   gap: 0.75rem;
-  margin-top: 1rem;
+  flex-shrink: 0;
+  
+  /* En desktop, el botón mantiene su tamaño natural */
+  & > button {
+    min-width: 200px;
+    white-space: nowrap;
+  }
   
   @media (max-width: 768px) {
+    width: 100%;
     gap: 0.5rem;
+    
+    /* En tablet y mobile, el botón ocupa todo el ancho */
+    & > button {
+      width: 100%;
+      min-width: unset;
+    }
   }
 
   @media (max-width: 480px) {
-    flex-direction: column;
     gap: 0.5rem;
-    margin-top: 0.75rem;
+    
+    /* En mobile, el botón ocupa todo el ancho */
+    & > button {
+      width: 100%;
+      min-width: unset;
+    }
   }
 `;
 
@@ -60,30 +77,42 @@ export const InfoCard = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
   padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
   
-
   @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
     padding: 1rem;
     border-radius: 0.5rem;
   }
 
   @media (max-width: 480px) {
     padding: 0.75rem;
+    gap: 0.75rem;
   }
+`;
+
+export const InfoContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
 export const InfoTitle = styled.h3`
   font-size: 1rem;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 0.75rem;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 
   @media (max-width: 768px) {
     font-size: 0.95rem;
-    margin-bottom: 0.5rem;
   }
 
   @media (max-width: 480px) {

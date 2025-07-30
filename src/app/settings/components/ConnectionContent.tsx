@@ -7,6 +7,7 @@ import {
   MainContent,
   ButtonContainer,
   InfoCard,
+  InfoContent,
   InfoTitle,
   InfoDescription,
   TerminalContainer
@@ -19,18 +20,19 @@ export const ConnectionContent = () => {
     <Container data-testid="connection-content">
       <MainContent>
         <InfoCard>
-          <InfoTitle>📋 Sincronización Manual</InfoTitle>
-          <InfoDescription>
-            Control total sobre cuándo sincronizar tu contenido desde Notion.
-            Perfecto para cuando hayas realizado cambios importantes y quieras
-            verlos reflejados inmediatamente en el visualizador.
-          </InfoDescription>
+          <InfoContent>
+            <InfoTitle>📋 Sincronización Manual</InfoTitle>
+            <InfoDescription>
+              Control total sobre cuándo sincronizar tu contenido desde Notion.
+              Perfecto para cuando hayas realizado cambios importantes y quieras
+              verlos reflejados inmediatamente en el visualizador.
+            </InfoDescription>
+          </InfoContent>
           <ButtonContainer>
             <Button
               onClick={syncToSupabase}
               disabled={isProcessing}
               variant={isProcessing ? "loading" : "success"}
-              fullWidth
             >
               {isProcessing ? '🔄 Sincronizando...' : '🚀 Iniciar Sincronización'}
             </Button>
@@ -46,12 +48,14 @@ export const ConnectionContent = () => {
         </TerminalContainer>
 
         <InfoCard>
-          <InfoTitle>ℹ️ Información del Proceso</InfoTitle>
-          <InfoDescription>
-            La sincronización conecta con la API de Notion, obtiene todas las páginas
-            configuradas, las convierte a formato Markdown y las almacena en Supabase.
-            Este proceso puede tardar unos minutos dependiendo de la cantidad de contenido.
-          </InfoDescription>
+          <InfoContent>
+            <InfoTitle>ℹ️ Información del Proceso</InfoTitle>
+            <InfoDescription>
+              La sincronización conecta con la API de Notion, obtiene todas las páginas
+              configuradas, las convierte a formato Markdown y las almacena en Supabase.
+              Este proceso puede tardar unos minutos dependiendo de la cantidad de contenido.
+            </InfoDescription>
+          </InfoContent>
         </InfoCard>
       </MainContent>
     </Container>
