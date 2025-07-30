@@ -4,23 +4,14 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   font-family: var(--font-geist-sans);
-  min-height: 400px;
 `;
 
 export const MainContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;  
-  padding-top: 2rem;
-`;
-
-export const Section = styled.section`
-  margin-top: 1rem;
-
-  @media (max-width: 480px) {
-    margin-top: 0.75rem;
-  }
+  gap: 1rem; 
+  padding-top: 2rem; 
 `;
 
 export const ProcessingInfo = styled.div`

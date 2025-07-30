@@ -1,25 +1,5 @@
 import styled from 'styled-components';
 
-export const SettingsContainer = styled.div`
-  padding: 2rem 0rem;
-
-  @media (max-width: 768px) {
-    padding: 1.5rem 0rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 1rem 0rem;
-  }
-`;
-
-export const TabsContainer = styled.div`
-  margin-top: 2rem;
-
-  @media (max-width: 480px) {
-    margin-top: 1.5rem;
-  }
-`;
-
 export const TabsHeader = styled.div`
   display: flex;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

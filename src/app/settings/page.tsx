@@ -2,11 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { PageHeader } from '../../components';
 import { ConnectionContent } from './components/ConnectionContent';
 import {
-  SettingsContainer,
-  TabsContainer,
   TabsHeader,
   TabButton,
   TabIcon,
@@ -26,7 +23,6 @@ const tabs: TabConfig[] = [
     label: 'Conexión',
     icon: '🔌'
   }
-  // Más pestañas se agregarán aquí en el futuro
 ];
 
 export default function SettingsPage() {
@@ -34,7 +30,6 @@ export default function SettingsPage() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState(tabs[0].id);
 
-  // Determinar el tab activo basado en la URL
   useEffect(() => {
     if (pathname === '/settings/connect') {
       setActiveTab('connection');
@@ -46,7 +41,6 @@ export default function SettingsPage() {
   const handleTabClick = (tab: TabConfig) => {
     setActiveTab(tab.id);
 
-    // Cambiar la URL según el tab seleccionado
     if (tab.id === 'connection') {
       router.push('/settings/connect');
     } else {
@@ -68,28 +62,21 @@ export default function SettingsPage() {
   };
 
   return (
-    <SettingsContainer>
-      <PageHeader
-        title="Configuración"
-        description="Configura las diferentes opciones de la aplicación"
-      />
+    <div>
+      <TabsHeader>
+        {tabs.map((tab) => (
+          <TabButton
+            key={tab.id}
+            onClick={() => handleTabClick(tab)}
+            $isActive={activeTab === tab.id}
+          >
+            <TabIcon>{tab.icon}</TabIcon>
+            <TabLabel>{tab.label}</TabLabel>
+          </TabButton>
+        ))}
+      </TabsHeader>
 
-      <TabsContainer>
-        <TabsHeader>
-          {tabs.map((tab) => (
-            <TabButton
-              key={tab.id}
-              onClick={() => handleTabClick(tab)}
-              $isActive={activeTab === tab.id}
-            >
-              <TabIcon>{tab.icon}</TabIcon>
-              <TabLabel>{tab.label}</TabLabel>
-            </TabButton>
-          ))}
-        </TabsHeader>
-
-        {renderTabContent()}
-      </TabsContainer>
-    </SettingsContainer>
+      {renderTabContent()}
+    </div>
   );
 } 
