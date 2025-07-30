@@ -12,11 +12,5 @@ export const navigationItems = [
     icon: 'square-library' as IconName,
     label: 'Visualizador',
     description: 'Ver archivos markdown'
-  },
-  {
-    path: '/test',
-    icon: 'test-tubes' as IconName,
-    label: 'Tester',
-    description: 'Probar repositorio'
   }
 ];
