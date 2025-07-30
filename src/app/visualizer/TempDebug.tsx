@@ -1,8 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  Container,
+  Title,
+  ButtonContainer,
+  TestButton,
+  SupabaseButton,
+  ResultDisplay
+} from './TempDebug.styles';
 
-export function TempDebug() {
+export const TempDebug = () => {
   const [testResult, setTestResult] = useState<string>('🛠️ Debug cargado - Haz clic en los botones');
 
   const testEnvVars = () => {
@@ -30,7 +38,6 @@ export function TempDebug() {
       console.log('🧪 Probando conexión...');
       setTestResult('🔄 Probando Supabase...');
 
-      // Test simple de importación
       const supabaseModule = await import('@/adapters/output/infrastructure/supabase');
       console.log('✅ Módulo importado:', Object.keys(supabaseModule));
 
@@ -49,59 +56,19 @@ export function TempDebug() {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: '80px',
-      right: '10px',
-      background: 'rgba(0,0,0,0.95)',
-      color: 'white',
-      padding: '1rem',
-      borderRadius: '8px',
-      maxWidth: '450px',
-      fontSize: '12px',
-      zIndex: 10000,
-      fontFamily: 'monospace',
-      border: '2px solid #10b981'
-    }}>
-      <h3 style={{ margin: '0 0 1rem 0', color: '#10b981' }}>🛠️ DEBUG TEMPORAL</h3>
-      <div style={{ marginBottom: '1rem' }}>
-        <button onClick={testEnvVars} style={{
-          background: '#10b981',
-          color: 'white',
-          border: 'none',
-          padding: '8px 12px',
-          marginRight: '8px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '11px'
-        }}>
+    <Container>
+      <Title>🛠️ DEBUG TEMPORAL</Title>
+      <ButtonContainer>
+        <TestButton onClick={testEnvVars}>
           🔍 Test Variables
-        </button>
-        <button onClick={testSupabase} style={{
-          background: '#3b82f6',
-          color: 'white',
-          border: 'none',
-          padding: '8px 12px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '11px'
-        }}>
+        </TestButton>
+        <SupabaseButton onClick={testSupabase}>
           🧪 Test Supabase
-        </button>
-      </div>
-      <pre style={{
-        background: 'rgba(255,255,255,0.1)',
-        padding: '8px',
-        borderRadius: '4px',
-        whiteSpace: 'pre-wrap',
-        maxHeight: '250px',
-        overflow: 'auto',
-        margin: 0,
-        fontSize: '10px',
-        lineHeight: '1.3'
-      }}>
+        </SupabaseButton>
+      </ButtonContainer>
+      <ResultDisplay>
         {testResult}
-      </pre>
-    </div>
+      </ResultDisplay>
+    </Container>
   );
 } 

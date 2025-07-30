@@ -27,7 +27,7 @@ import {
   EmptyDescription,
   LoadingSpinner
 } from './page.styles';
-import { TempDebug } from './debug-temp';
+import { TempDebug } from './TempDebug';
 import { Icon } from '@/components';
 import { renderMarkdown } from './page.constants';
 
