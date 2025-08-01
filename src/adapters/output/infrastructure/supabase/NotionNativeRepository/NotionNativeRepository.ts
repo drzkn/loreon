@@ -386,6 +386,101 @@ export class NotionNativeRepository {
     return data || [];
   }
 
+  /**
+   * Busca por vector y retorna resultados en formato compatible con Chat API
+   */
+  async searchByVector(queryEmbedding: number[], options?: {
+    matchThreshold?: number;
+    matchCount?: number;
+  }): Promise<Array<{
+    id: string;
+    title: string;
+    content: string;
+    similarity: number;
+    notion_url?: string | null;
+    chunk_text?: string;
+    section?: string;
+  }>> {
+    const matchThreshold = options?.matchThreshold || 0.78;
+    const matchCount = options?.matchCount || 5;
+
+    // Obtener embeddings similares
+    const embeddings = await this.searchSimilarEmbeddings(
+      queryEmbedding,
+      matchCount,
+      matchThreshold
+    );
+
+    if (embeddings.length === 0) {
+      return [];
+    }
+
+    // Obtener páginas únicas agrupadas por similitud máxima
+    const pageResults = new Map<string, {
+      page: NotionPageRow;
+      maxSimilarity: number;
+      chunks: Array<{ text: string; similarity: number; section?: string }>;
+    }>();
+
+    for (const embedding of embeddings) {
+      // Obtener información de la página (page_id es el UUID interno, no el notion_id)
+      const { data: page, error } = await this.supabase
+        .from('notion_pages')
+        .select('*')
+        .eq('id', embedding.page_id)
+        .single();
+
+      if (error || !page || page.archived) continue;
+
+      const section = embedding.metadata?.section as string | undefined;
+      const chunkInfo = {
+        text: embedding.chunk_text,
+        similarity: embedding.similarity,
+        section
+      };
+
+      if (!pageResults.has(embedding.page_id)) {
+        pageResults.set(embedding.page_id, {
+          page,
+          maxSimilarity: embedding.similarity,
+          chunks: [chunkInfo]
+        });
+      } else {
+        const existing = pageResults.get(embedding.page_id)!;
+        existing.chunks.push(chunkInfo);
+        if (embedding.similarity > existing.maxSimilarity) {
+          existing.maxSimilarity = embedding.similarity;
+        }
+      }
+    }
+
+    // Transformar a formato compatible con Chat API
+    const results = Array.from(pageResults.values())
+      .sort((a, b) => b.maxSimilarity - a.maxSimilarity)
+      .map(({ page, maxSimilarity, chunks }) => {
+        // Combinar chunks relevantes de la misma página
+        const content = chunks
+          .filter(chunk => chunk.similarity >= matchThreshold * 0.8) // Solo chunks relevantes
+          .sort((a, b) => b.similarity - a.similarity)
+          .map(chunk => chunk.section ? `**${chunk.section}**\n${chunk.text}` : chunk.text)
+          .join('\n\n');
+
+        const bestChunk = chunks[0];
+
+        return {
+          id: page.id,
+          title: page.title,
+          content: content || bestChunk.text,
+          similarity: maxSimilarity,
+          notion_url: page.url,
+          chunk_text: bestChunk.text,
+          section: bestChunk.section
+        };
+      });
+
+    return results;
+  }
+
   // ===== SINCRONIZACIÓN =====
 
   /**

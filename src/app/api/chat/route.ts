@@ -1,7 +1,7 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
-import { SupabaseMarkdownRepository } from '@/adapters/output/infrastructure/supabase';
-import { MarkdownPageWithSimilarity } from '@/adapters/output/infrastructure/supabase/types';
+import { NotionNativeRepository } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
+import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
 import { EmbeddingsService } from '@/services/embeddings/EmbeddingsService';
 
 export const runtime = 'edge';
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     try {
       const embeddingsService = new EmbeddingsService();
-      const repository = new SupabaseMarkdownRepository();
+      const repository = new NotionNativeRepository(supabase);
 
       const queryEmbedding = await embeddingsService.generateEmbedding(lastMessage.content);
       const documents = await repository.searchByVector(queryEmbedding, {
@@ -34,11 +34,11 @@ export async function POST(req: Request) {
 
       if (documents.length > 0) {
         context = documents
-          .map((doc: MarkdownPageWithSimilarity) => `**${doc.title}**\n${doc.content}`)
+          .map((doc) => `**${doc.title}**\n${doc.content}`)
           .join('\n\n---\n\n');
 
-        const similarities = documents.map((doc: MarkdownPageWithSimilarity) => `${(doc.similarity * 100).toFixed(1)}%`);
-        searchSummary = `Se revisaron documentos en la base de conocimientos. Los más relevantes: ${documents.map((doc: MarkdownPageWithSimilarity, i: number) => `"${doc.title}" (${similarities[i]} similitud)`).join(', ')}.`;
+        const similarities = documents.map((doc) => `${(doc.similarity * 100).toFixed(1)}%`);
+        searchSummary = `Se revisaron documentos en la base de conocimientos. Los más relevantes: ${documents.map((doc, i) => `"${doc.title}" (${similarities[i]} similitud)`).join(', ')}.`;
       } else {
         searchSummary = 'Se revisaron todos los documentos disponibles pero ninguno está relacionado con tu consulta.';
       }

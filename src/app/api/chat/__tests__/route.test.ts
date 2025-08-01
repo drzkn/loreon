@@ -22,10 +22,14 @@ vi.mock('@/services/embeddings/EmbeddingsService', () => ({
   }))
 }));
 
-vi.mock('@/adapters/output/infrastructure/supabase', () => ({
-  SupabaseMarkdownRepository: vi.fn(() => ({
+vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () => ({
+  NotionNativeRepository: vi.fn(() => ({
     searchByVector: vi.fn(() => Promise.resolve([]))
   }))
+}));
+
+vi.mock('@/adapters/output/infrastructure/supabase/SupabaseClient', () => ({
+  supabase: {} // Mock del cliente de Supabase
 }));
 
 import { POST } from '../route';

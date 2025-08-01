@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure/supabase';
+import { NotionNativeRepository } from '../../adapters/output/infrastructure/supabase/NotionNativeRepository';
+import { supabase } from '../../adapters/output/infrastructure/supabase/SupabaseClient';
 import {
   VisualizerContainer,
   HeaderSection,
@@ -29,20 +30,22 @@ import {
 } from './page.styles';
 import { TempDebug } from './TempDebug';
 import { Icon } from '@/components';
-import { renderMarkdown } from './page.constants';
 
-interface MarkdownPage {
+// Interfaz para páginas del sistema nativo
+interface NotionPageData {
   id: string;
   title: string;
-  content: string;
-  notion_page_id: string;
+  notion_id: string;
+  url?: string;
   created_at: string;
   updated_at: string;
+  htmlContent?: string;
+  plainText?: string;
 }
 
 export default function VisualizerPage() {
-  const [pages, setPages] = useState<MarkdownPage[]>([]);
-  const [selectedPage, setSelectedPage] = useState<MarkdownPage | null>(null);
+  const [pages, setPages] = useState<NotionPageData[]>([]);
+  const [selectedPage, setSelectedPage] = useState<NotionPageData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +54,7 @@ export default function VisualizerPage() {
 
   const repository = useMemo(() => {
     if (typeof window !== 'undefined') {
-      return new SupabaseMarkdownRepository();
+      return new NotionNativeRepository(supabase);
     }
     return null;
   }, []);
@@ -77,16 +80,65 @@ export default function VisualizerPage() {
       setLoading(true);
       setError(null);
 
-      const loadedPages = await repository.findAll({ limit: 1000 });
+      // Obtener páginas del sistema nativo - consulta directa a Supabase
+      const { data: loadedPages, error: pagesError } = await supabase
+        .from('notion_pages')
+        .select('*')
+        .eq('archived', false)
+        .order('updated_at', { ascending: false })
+        .limit(1000);
 
-      setPages(loadedPages.sort((a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      ));
+      if (pagesError) {
+        throw new Error(`Error obteniendo páginas: ${pagesError.message}`);
+      }
 
-      if (loadedPages.length > 0 && !selectedPage) {
-        setSelectedPage(loadedPages[0]);
+      // Transformar datos para el visualizador
+      const transformedPages: NotionPageData[] = [];
+
+      for (const page of loadedPages) {
+        if (page.archived) continue; // Omitir páginas archivadas
+
+        try {
+          // Obtener contenido con bloques para mostrar
+          const blocks = await repository.getPageBlocks(page.id);
+
+          // Generar HTML y texto plano desde los bloques
+          const htmlContent = blocks.map(block => block.html_content).join('\n') || '<p>Sin contenido disponible</p>';
+          const plainText = blocks.map(block => block.plain_text).join(' ') || '';
+
+          transformedPages.push({
+            id: page.id,
+            title: page.title,
+            notion_id: page.notion_id,
+            url: page.url,
+            created_at: page.created_at,
+            updated_at: page.updated_at,
+            htmlContent,
+            plainText
+          });
+        } catch (blockError) {
+          console.warn(`Error obteniendo bloques para página ${page.title}:`, blockError);
+          // Agregar página sin contenido de bloques
+          transformedPages.push({
+            id: page.id,
+            title: page.title,
+            notion_id: page.notion_id,
+            url: page.url,
+            created_at: page.created_at,
+            updated_at: page.updated_at,
+            htmlContent: '<p>Error cargando contenido</p>',
+            plainText: page.title
+          });
+        }
+      }
+
+      setPages(transformedPages);
+
+      if (transformedPages.length > 0 && !selectedPage) {
+        setSelectedPage(transformedPages[0]);
       }
     } catch (err) {
+      console.error('Error cargando páginas:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
@@ -99,7 +151,7 @@ export default function VisualizerPage() {
     const searchLower = searchTerm.toLowerCase();
     return pages.filter(page =>
       page.title.toLowerCase().includes(searchLower) ||
-      page.content.toLowerCase().includes(searchLower)
+      (page.plainText && page.plainText.toLowerCase().includes(searchLower))
     );
   }, [pages, searchTerm]);
 
@@ -112,15 +164,16 @@ export default function VisualizerPage() {
     });
   };
 
-  const getPreviewText = (content: string) => {
-    return content
+  const getPreviewText = (plainText: string) => {
+    if (!plainText) return 'Sin contenido disponible';
+    return plainText
       .replace(/[#*`\[\]]/g, '')
       .replace(/\n+/g, ' ')
       .trim()
       .substring(0, 120);
   };
 
-  const handlePageSelect = (page: MarkdownPage) => {
+  const handlePageSelect = (page: NotionPageData) => {
     setSelectedPage(page);
     setShowSidebar(false);
   };
@@ -134,8 +187,8 @@ export default function VisualizerPage() {
     return (
       <VisualizerContainer>
         <HeaderSection>
-          <Title>📚 Visualizador Markdown</Title>
-          <Subtitle>Explora y visualiza el contenido markdown sincronizado desde Notion</Subtitle>
+          <Title>📚 Visualizador Nativo</Title>
+          <Subtitle>Explora y visualiza el contenido JSON nativo sincronizado desde Notion</Subtitle>
         </HeaderSection>
         <EmptyState>
           <LoadingSpinner>Inicializando visualizador...</LoadingSpinner>
@@ -149,12 +202,13 @@ export default function VisualizerPage() {
       <VisualizerContainer>
         <TempDebug />
         <HeaderSection>
-          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Markdown</Title>
-          <Subtitle>Explora y visualiza el contenido markdown sincronizado desde Notion</Subtitle>
+          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Nativo</Title>
+          <Subtitle>Explora y visualiza el contenido JSON nativo sincronizado desde Notion</Subtitle>
         </HeaderSection>
         <EmptyState>
           <EmptyIcon>❌</EmptyIcon>
           <EmptyTitle>Error al cargar el contenido</EmptyTitle>
+          <EmptyDescription>{error}</EmptyDescription>
         </EmptyState>
       </VisualizerContainer>
     );
@@ -163,8 +217,8 @@ export default function VisualizerPage() {
   return (
     <VisualizerContainer>
       <HeaderSection>
-        <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Markdown</Title>
-        <Subtitle>Explora y visualiza el contenido markdown sincronizado desde Notion</Subtitle>
+        <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Nativo</Title>
+        <Subtitle>Explora y visualiza el contenido JSON nativo sincronizado desde Notion</Subtitle>
       </HeaderSection>
 
       <MainContent>
@@ -190,7 +244,7 @@ export default function VisualizerPage() {
                 <EmptyDescription>
                   {searchTerm
                     ? 'No se encontraron páginas que coincidan con tu búsqueda'
-                    : 'Aún no hay contenido markdown sincronizado. Sincroniza desde Notion para ver páginas aquí.'
+                    : 'Aún no hay contenido nativo sincronizado. Sincroniza desde Notion para ver páginas aquí.'
                   }
                 </EmptyDescription>
               </EmptyState>
@@ -202,7 +256,7 @@ export default function VisualizerPage() {
                   onClick={() => handlePageSelect(page)}
                 >
                   <PageTitle>{page.title}</PageTitle>
-                  <PagePreview>{getPreviewText(page.content)}</PagePreview>
+                  <PagePreview>{getPreviewText(page.plainText || '')}</PagePreview>
                   <PageDate>
                     Actualizado: {formatDate(page.updated_at)}
                   </PageDate>
@@ -223,7 +277,7 @@ export default function VisualizerPage() {
               </ContentHeader>
               <MarkdownContent
                 dangerouslySetInnerHTML={{
-                  __html: renderMarkdown(selectedPage.content)
+                  __html: selectedPage.htmlContent || '<p>Sin contenido disponible</p>'
                 }}
               />
             </>
