@@ -7,5 +7,6 @@ export type {
   Database,
   MarkdownPage,
   MarkdownPageInsert,
-  MarkdownPageUpdate
+  MarkdownPageUpdate,
+  MarkdownPageWithSimilarity
 } from './types'; 
