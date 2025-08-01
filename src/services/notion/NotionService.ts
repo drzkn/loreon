@@ -1,8 +1,8 @@
 import { NotionContentExtractor, NotionBlock, PageContent } from './NotionContentExtractor';
-import { NotionStorageRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionStorageRepository';
 import { EmbeddingsService } from '@/services/embeddings';
 import { Page, Block } from '@/domain/entities';
 import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { NotionBlockRow, NotionPageRow, NotionStorageRepository } from '@/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository';
 
 export interface NotionServiceInterface {
   processAndSavePage(page: Page, blocks: Block[]): Promise<NotionPageRow>;

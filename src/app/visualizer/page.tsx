@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { NotionNativeRepository } from '../../adapters/output/infrastructure/supabase/NotionNativeRepository';
+import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure/supabase';
 import { supabase } from '../../adapters/output/infrastructure/supabase/SupabaseClient';
 import {
   VisualizerContainer,
@@ -30,31 +31,51 @@ import {
 } from './page.styles';
 import { TempDebug } from './TempDebug';
 import { Icon } from '@/components';
+import { renderMarkdown } from './page.constants';
 
-// Interfaz para páginas del sistema nativo
-interface NotionPageData {
+// Interfaz unificada para ambos sistemas
+interface UnifiedPageData {
   id: string;
   title: string;
-  notion_id: string;
+  content: string; // HTML o Markdown según el sistema
+  source: 'native' | 'legacy';
+  notion_id?: string;
   url?: string;
   created_at: string;
   updated_at: string;
-  htmlContent?: string;
-  plainText?: string;
+}
+
+interface SystemStatus {
+  nativePages: number;
+  legacyPages: number;
+  selectedSystem: 'native' | 'legacy' | 'none';
+  error?: string;
 }
 
 export default function VisualizerPage() {
-  const [pages, setPages] = useState<NotionPageData[]>([]);
-  const [selectedPage, setSelectedPage] = useState<NotionPageData | null>(null);
+  const [pages, setPages] = useState<UnifiedPageData[]>([]);
+  const [selectedPage, setSelectedPage] = useState<UnifiedPageData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
+    nativePages: 0,
+    legacyPages: 0,
+    selectedSystem: 'none'
+  });
 
-  const repository = useMemo(() => {
+  const nativeRepository = useMemo(() => {
     if (typeof window !== 'undefined') {
       return new NotionNativeRepository(supabase);
+    }
+    return null;
+  }, []);
+
+  const legacyRepository = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return new SupabaseMarkdownRepository();
     }
     return null;
   }, []);
@@ -64,14 +85,14 @@ export default function VisualizerPage() {
   }, []);
 
   useEffect(() => {
-    if (repository) {
-      loadPages();
+    if (nativeRepository && legacyRepository) {
+      checkSystemsAndLoadPages();
     }
-  }, [repository]);
+  }, [nativeRepository, legacyRepository]);
 
-  const loadPages = async () => {
-    if (!repository) {
-      setError('Repository no disponible en el servidor');
+  const checkSystemsAndLoadPages = async () => {
+    if (!nativeRepository || !legacyRepository) {
+      setError('Repositorios no disponibles en el servidor');
       setLoading(false);
       return;
     }
@@ -80,54 +101,113 @@ export default function VisualizerPage() {
       setLoading(true);
       setError(null);
 
-      // Obtener páginas del sistema nativo - consulta directa a Supabase
+      console.log('🔍 Verificando sistemas disponibles...');
+
+      // Verificar sistema nativo
+      const { data: nativePages, error: nativeError } = await supabase
+        .from('notion_pages')
+        .select('id')
+        .eq('archived', false)
+        .limit(1);
+
+      const nativeCount = nativeError ? 0 : (nativePages?.length || 0);
+
+      // Verificar sistema legacy
+      let legacyCount = 0;
+      try {
+        const legacyPages = await legacyRepository.findAll({ limit: 1 });
+        legacyCount = legacyPages.length;
+      } catch (legacyError) {
+        console.warn('Error verificando sistema legacy:', legacyError);
+      }
+
+      const selectedSystem = nativeCount > 0 ? 'native' : legacyCount > 0 ? 'legacy' : 'none';
+
+      setSystemStatus({
+        nativePages: nativeCount,
+        legacyPages: legacyCount,
+        selectedSystem
+      });
+
+      console.log(`📊 Estado de sistemas: Nativo: ${nativeCount}, Legacy: ${legacyCount}, Usando: ${selectedSystem}`);
+
+      // Cargar páginas del sistema seleccionado
+      if (selectedSystem === 'native') {
+        await loadNativePages();
+      } else if (selectedSystem === 'legacy') {
+        await loadLegacyPages();
+      } else {
+        setPages([]);
+      }
+
+    } catch (err) {
+      console.error('Error verificando sistemas:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido verificando sistemas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadNativePages = async () => {
+    try {
+      console.log('📱 Cargando páginas del sistema nativo...');
+
+      // Obtener páginas del sistema nativo
       const { data: loadedPages, error: pagesError } = await supabase
         .from('notion_pages')
         .select('*')
         .eq('archived', false)
         .order('updated_at', { ascending: false })
-        .limit(1000);
+        .limit(100); // Limitar para mejor rendimiento inicial
 
       if (pagesError) {
-        throw new Error(`Error obteniendo páginas: ${pagesError.message}`);
+        throw new Error(`Error obteniendo páginas nativas: ${pagesError.message}`);
       }
 
-      // Transformar datos para el visualizador
-      const transformedPages: NotionPageData[] = [];
+      if (!loadedPages || loadedPages.length === 0) {
+        console.log('📭 No hay páginas en el sistema nativo');
+        setPages([]);
+        return;
+      }
 
-      for (const page of loadedPages) {
-        if (page.archived) continue; // Omitir páginas archivadas
+      console.log(`📄 Obtenidas ${loadedPages.length} páginas nativas`);
 
+      // Transformar páginas nativas
+      const transformedPages: UnifiedPageData[] = [];
+
+      for (const page of loadedPages.slice(0, 20)) { // Procesar solo las primeras 20 para mejor rendimiento
         try {
-          // Obtener contenido con bloques para mostrar
-          const blocks = await repository.getPageBlocks(page.id);
+          // Obtener bloques para la página
+          const blocks = await nativeRepository!.getPageBlocks(page.id);
 
-          // Generar HTML y texto plano desde los bloques
-          const htmlContent = blocks.map(block => block.html_content).join('\n') || '<p>Sin contenido disponible</p>';
-          const plainText = blocks.map(block => block.plain_text).join(' ') || '';
+          const htmlContent = blocks.length > 0
+            ? blocks.map(block => block.html_content).join('\n')
+            : '<p>Sin contenido de bloques disponible</p>';
 
           transformedPages.push({
             id: page.id,
             title: page.title,
+            content: htmlContent,
+            source: 'native',
             notion_id: page.notion_id,
             url: page.url,
             created_at: page.created_at,
-            updated_at: page.updated_at,
-            htmlContent,
-            plainText
+            updated_at: page.updated_at
           });
+
         } catch (blockError) {
-          console.warn(`Error obteniendo bloques para página ${page.title}:`, blockError);
-          // Agregar página sin contenido de bloques
+          console.warn(`⚠️ Error obteniendo bloques para página ${page.title}:`, blockError);
+
+          // Agregar página sin bloques
           transformedPages.push({
             id: page.id,
             title: page.title,
+            content: '<p>Error cargando contenido de bloques</p>',
+            source: 'native',
             notion_id: page.notion_id,
             url: page.url,
             created_at: page.created_at,
-            updated_at: page.updated_at,
-            htmlContent: '<p>Error cargando contenido</p>',
-            plainText: page.title
+            updated_at: page.updated_at
           });
         }
       }
@@ -137,11 +217,45 @@ export default function VisualizerPage() {
       if (transformedPages.length > 0 && !selectedPage) {
         setSelectedPage(transformedPages[0]);
       }
+
+      console.log(`✅ Cargadas ${transformedPages.length} páginas nativas exitosamente`);
+
     } catch (err) {
-      console.error('Error cargando páginas:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
+      console.error('❌ Error cargando páginas nativas:', err);
+      throw err;
+    }
+  };
+
+  const loadLegacyPages = async () => {
+    try {
+      console.log('📚 Cargando páginas del sistema legacy...');
+
+      const loadedPages = await legacyRepository!.findAll({ limit: 100 });
+
+      const transformedPages: UnifiedPageData[] = loadedPages.map(page => ({
+        id: page.id,
+        title: page.title,
+        content: page.content, // Markdown content
+        source: 'legacy',
+        notion_id: page.notion_page_id || undefined,
+        url: page.notion_url || undefined,
+        created_at: page.created_at,
+        updated_at: page.updated_at
+      }));
+
+      setPages(transformedPages.sort((a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      ));
+
+      if (transformedPages.length > 0 && !selectedPage) {
+        setSelectedPage(transformedPages[0]);
+      }
+
+      console.log(`✅ Cargadas ${transformedPages.length} páginas legacy exitosamente`);
+
+    } catch (err) {
+      console.error('❌ Error cargando páginas legacy:', err);
+      throw err;
     }
   };
 
@@ -151,7 +265,7 @@ export default function VisualizerPage() {
     const searchLower = searchTerm.toLowerCase();
     return pages.filter(page =>
       page.title.toLowerCase().includes(searchLower) ||
-      (page.plainText && page.plainText.toLowerCase().includes(searchLower))
+      page.content.toLowerCase().includes(searchLower)
     );
   }, [pages, searchTerm]);
 
@@ -164,16 +278,17 @@ export default function VisualizerPage() {
     });
   };
 
-  const getPreviewText = (plainText: string) => {
-    if (!plainText) return 'Sin contenido disponible';
-    return plainText
-      .replace(/[#*`\[\]]/g, '')
+  const getPreviewText = (content: string) => {
+    if (!content) return 'Sin contenido disponible';
+    return content
+      .replace(/<[^>]*>/g, '') // Remover HTML tags
+      .replace(/[#*`\[\]]/g, '') // Remover markdown
       .replace(/\n+/g, ' ')
       .trim()
       .substring(0, 120);
   };
 
-  const handlePageSelect = (page: NotionPageData) => {
+  const handlePageSelect = (page: UnifiedPageData) => {
     setSelectedPage(page);
     setShowSidebar(false);
   };
@@ -182,13 +297,35 @@ export default function VisualizerPage() {
     setShowSidebar(true);
   };
 
+  const renderPageContent = (page: UnifiedPageData) => {
+    if (page.source === 'legacy') {
+      // Renderizar Markdown para páginas legacy
+      return (
+        <MarkdownContent
+          dangerouslySetInnerHTML={{
+            __html: renderMarkdown(page.content)
+          }}
+        />
+      );
+    } else {
+      // Renderizar HTML para páginas nativas
+      return (
+        <MarkdownContent
+          dangerouslySetInnerHTML={{
+            __html: page.content || '<p>Sin contenido disponible</p>'
+          }}
+        />
+      );
+    }
+  };
+
   // Mostrar loading durante la hidratación del cliente
   if (!isClient) {
     return (
       <VisualizerContainer>
         <HeaderSection>
-          <Title>📚 Visualizador Nativo</Title>
-          <Subtitle>Explora y visualiza el contenido JSON nativo sincronizado desde Notion</Subtitle>
+          <Title>📚 Visualizador Híbrido</Title>
+          <Subtitle>Sistema inteligente que detecta automáticamente el mejor origen de datos</Subtitle>
         </HeaderSection>
         <EmptyState>
           <LoadingSpinner>Inicializando visualizador...</LoadingSpinner>
@@ -202,8 +339,8 @@ export default function VisualizerPage() {
       <VisualizerContainer>
         <TempDebug />
         <HeaderSection>
-          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Nativo</Title>
-          <Subtitle>Explora y visualiza el contenido JSON nativo sincronizado desde Notion</Subtitle>
+          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Híbrido</Title>
+          <Subtitle>Sistema inteligente que detecta automáticamente el mejor origen de datos</Subtitle>
         </HeaderSection>
         <EmptyState>
           <EmptyIcon>❌</EmptyIcon>
@@ -217,8 +354,17 @@ export default function VisualizerPage() {
   return (
     <VisualizerContainer>
       <HeaderSection>
-        <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Nativo</Title>
-        <Subtitle>Explora y visualiza el contenido JSON nativo sincronizado desde Notion</Subtitle>
+        <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Híbrido</Title>
+        <Subtitle>
+          Sistema: {systemStatus.selectedSystem === 'native' ? '🚀 Nativo JSON' :
+            systemStatus.selectedSystem === 'legacy' ? '📚 Legacy Markdown' :
+              '❓ Sin datos'}
+          {systemStatus.selectedSystem !== 'none' && (
+            <span style={{ marginLeft: '10px', fontSize: '0.8em', opacity: 0.7 }}>
+              ({systemStatus.selectedSystem === 'native' ? systemStatus.nativePages : systemStatus.legacyPages} páginas)
+            </span>
+          )}
+        </Subtitle>
       </HeaderSection>
 
       <MainContent>
@@ -239,13 +385,22 @@ export default function VisualizerPage() {
               <EmptyState>
                 <EmptyIcon>📭</EmptyIcon>
                 <EmptyTitle>
-                  {searchTerm ? 'Sin resultados' : 'No hay páginas'}
+                  {searchTerm ? 'Sin resultados' : 'No hay páginas disponibles'}
                 </EmptyTitle>
                 <EmptyDescription>
-                  {searchTerm
-                    ? 'No se encontraron páginas que coincidan con tu búsqueda'
-                    : 'Aún no hay contenido nativo sincronizado. Sincroniza desde Notion para ver páginas aquí.'
-                  }
+                  {searchTerm ? (
+                    'No se encontraron páginas que coincidan con tu búsqueda'
+                  ) : systemStatus.selectedSystem === 'none' ? (
+                    <>
+                      <strong>No hay datos en ningún sistema.</strong><br /><br />
+                      Para usar el visualizador:<br />
+                      1. Ve a /settings y sincroniza desde Notion (sistema legacy)<br />
+                      2. O usa la API de migración para poblar el sistema nativo<br /><br />
+                      <code>POST /api/sync-notion</code> con pageIds
+                    </>
+                  ) : (
+                    'Todas las páginas se han cargado correctamente'
+                  )}
                 </EmptyDescription>
               </EmptyState>
             ) : (
@@ -255,8 +410,10 @@ export default function VisualizerPage() {
                   $isSelected={selectedPage?.id === page.id}
                   onClick={() => handlePageSelect(page)}
                 >
-                  <PageTitle>{page.title}</PageTitle>
-                  <PagePreview>{getPreviewText(page.plainText || '')}</PagePreview>
+                  <PageTitle>
+                    {page.source === 'native' ? '🚀' : '📚'} {page.title}
+                  </PageTitle>
+                  <PagePreview>{getPreviewText(page.content)}</PagePreview>
                   <PageDate>
                     Actualizado: {formatDate(page.updated_at)}
                   </PageDate>
@@ -270,16 +427,17 @@ export default function VisualizerPage() {
           {selectedPage ? (
             <>
               <ContentHeader>
-                <ContentTitle>{selectedPage.title}</ContentTitle>
+                <ContentTitle>
+                  {selectedPage.source === 'native' ? '🚀' : '📚'} {selectedPage.title}
+                  <span style={{ fontSize: '0.7em', opacity: 0.6, marginLeft: '10px' }}>
+                    ({selectedPage.source === 'native' ? 'Sistema Nativo' : 'Sistema Legacy'})
+                  </span>
+                </ContentTitle>
                 <BackButton onClick={handleBackToList}>
                   ← Volver
                 </BackButton>
               </ContentHeader>
-              <MarkdownContent
-                dangerouslySetInnerHTML={{
-                  __html: selectedPage.htmlContent || '<p>Sin contenido disponible</p>'
-                }}
-              />
+              {renderPageContent(selectedPage)}
             </>
           ) : (
             <EmptyState>
