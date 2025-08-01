@@ -180,9 +180,21 @@ export default function VisualizerPage() {
           // Obtener bloques para la página
           const blocks = await nativeRepository!.getPageBlocks(page.id);
 
-          const htmlContent = blocks.length > 0
-            ? blocks.map(block => block.html_content).join('\n')
-            : '<p>Sin contenido de bloques disponible</p>';
+          let htmlContent;
+
+          if (blocks.length > 0) {
+            // Si hay bloques, usarlos
+            htmlContent = blocks.map(block => block.html_content).join('\n');
+          } else {
+            // Si no hay bloques, usar contenido original desde raw_data
+            const originalContent = page.raw_data?.original_content || '';
+            if (originalContent) {
+              // Renderizar Markdown usando el renderizador que ya funciona
+              htmlContent = renderMarkdown(originalContent);
+            } else {
+              htmlContent = '<p>Sin contenido disponible</p>';
+            }
+          }
 
           transformedPages.push({
             id: page.id,
@@ -198,11 +210,20 @@ export default function VisualizerPage() {
         } catch (blockError) {
           console.warn(`⚠️ Error obteniendo bloques para página ${page.title}:`, blockError);
 
-          // Agregar página sin bloques
+          // Fallback: usar contenido original desde raw_data
+          const originalContent = page.raw_data?.original_content || '';
+          let htmlContent;
+
+          if (originalContent) {
+            htmlContent = renderMarkdown(originalContent);
+          } else {
+            htmlContent = '<p>Error cargando contenido</p>';
+          }
+
           transformedPages.push({
             id: page.id,
             title: page.title,
-            content: '<p>Error cargando contenido de bloques</p>',
+            content: htmlContent,
             source: 'native',
             notion_id: page.notion_id,
             url: page.url,
