@@ -18,7 +18,9 @@ import {
   Monitor,
   Info,
   Trash2,
-  CirclePause
+  CirclePause,
+  User,
+  Brain
 } from 'lucide-react';
 import { IconName } from "./Icon.types";
 
@@ -41,5 +43,7 @@ export const iconMapper: Record<IconName, LucideIcon> = {
   monitor: Monitor,
   info: Info,
   'trash-2': Trash2,
-  'circle-pause': CirclePause
+  'circle-pause': CirclePause,
+  user: User,
+  brain: Brain
 };

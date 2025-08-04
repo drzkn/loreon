@@ -18,6 +18,8 @@ export type IconName =
   'monitor' |
   'info' |
   'trash-2' |
-  'circle-pause';
+  'circle-pause' |
+  'user' |
+  'brain';
 
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';

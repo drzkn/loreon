@@ -86,7 +86,7 @@ export default function Home() {
             messages.map((message) => (
               <Message key={message.id} $isUser={message.role === 'user'}>
                 <MessageAuthor $isUser={message.role === 'user'}>
-                  {message.role === 'user' ? '👤' : '🤖'}
+                  {message.role === 'user' ? <Icon name="user" /> : <Icon name="bot" />}
                 </MessageAuthor>
                 <MessageBubble $isUser={message.role === 'user'}>
                   <MessageContent $isUser={message.role === 'user'}>
@@ -102,11 +102,11 @@ export default function Home() {
 
           {(status === 'streaming' || status === 'submitted') && (
             <Message $isUser={false}>
-              <MessageAuthor $isUser={false}>🤖</MessageAuthor>
+              <MessageAuthor $isUser={false}><Icon name="bot" /></MessageAuthor>
               <MessageBubble $isUser={false}>
                 <MessageContent $isUser={false}>
                   <span style={{ opacity: 0.6 }}>
-                    {status === 'submitted' ? 'Enviando...' : 'Pensando... 🧠'}
+                    {status === 'submitted' ? 'Enviando...' : 'Pensando...'}
                   </span>
                 </MessageContent>
               </MessageBubble>
