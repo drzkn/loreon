@@ -1,3 +1,4 @@
+import { Icon } from '../Icon';
 import {
   HeaderContainer,
   HeaderLeftSection,
@@ -19,12 +20,13 @@ export const TerminalHeader = ({ onClearLogs }: TerminalHeaderProps) => {
         <HeaderDot color="yellow" />
         <HeaderDot color="green" />
         <HeaderTitle>
-          🖥️ Terminal de Sincronización
+          <Icon name="monitor" size="sm" />
+          Terminal de Sincronización
         </HeaderTitle>
       </HeaderLeftSection>
       <HeaderRightSection>
         <HeaderButton onClick={onClearLogs}>
-          🗑️ Limpiar
+          Limpiar
         </HeaderButton>
       </HeaderRightSection>
     </HeaderContainer>

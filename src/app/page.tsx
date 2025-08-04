@@ -20,6 +20,7 @@ import {
   WelcomeTitle,
   WelcomeSubtitle
 } from './page.styles';
+import { Icon } from '@/components';
 
 export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -75,7 +76,7 @@ export default function Home() {
         <MessagesContainer>
           {messages.length === 0 ? (
             <WelcomeMessage>
-              <WelcomeTitle>¡Bienvenido a Loreon AI! 🚀</WelcomeTitle>
+              <WelcomeTitle>¡Bienvenido a Loreon AI! <Icon name="rocket" size="lg" /></WelcomeTitle>
               <WelcomeSubtitle>
                 Tu asistente inteligente para gestión de contenido markdown,
                 sincronización de datos y búsqueda vectorial. Comienza escribiendo tu primera pregunta.
@@ -85,7 +86,7 @@ export default function Home() {
             messages.map((message) => (
               <Message key={message.id} $isUser={message.role === 'user'}>
                 <MessageAuthor $isUser={message.role === 'user'}>
-                  {message.role === 'user' ? '👤' : '🤖'}
+                  {message.role === 'user' ? <Icon name="user" /> : <Icon name="bot" />}
                 </MessageAuthor>
                 <MessageBubble $isUser={message.role === 'user'}>
                   <MessageContent $isUser={message.role === 'user'}>
@@ -101,11 +102,11 @@ export default function Home() {
 
           {(status === 'streaming' || status === 'submitted') && (
             <Message $isUser={false}>
-              <MessageAuthor $isUser={false}>🤖</MessageAuthor>
+              <MessageAuthor $isUser={false}><Icon name="bot" /></MessageAuthor>
               <MessageBubble $isUser={false}>
                 <MessageContent $isUser={false}>
                   <span style={{ opacity: 0.6 }}>
-                    {status === 'submitted' ? 'Enviando...' : 'Pensando... 🧠'}
+                    {status === 'submitted' ? 'Enviando...' : 'Pensando...'}
                   </span>
                 </MessageContent>
               </MessageBubble>

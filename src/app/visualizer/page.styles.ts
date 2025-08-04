@@ -21,24 +21,12 @@ export const HeaderSection = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 0.5rem;
-  letter-spacing: -0.025em;
-  background: linear-gradient(135deg, #10b981, #059669);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-`;
-
-export const Subtitle = styled.p`
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  opacity: 0.8;
-  max-width: 32rem;
-  margin: 0 auto;
+  color: #10b981;
+  gap: 0.25rem
 `;
 
 export const MainContent = styled.div`
@@ -441,12 +429,6 @@ export const EmptyState = styled.div`
   text-align: center;
   padding: 2rem;
   color: var(--text-secondary);
-`;
-
-export const EmptyIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
 `;
 
 export const EmptyTitle = styled.h3`

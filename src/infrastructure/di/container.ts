@@ -9,59 +9,99 @@ import { GetBlockChildrenRecursive } from '@/domain/usecases/GetBlockChildrenRec
 import { SupabaseMarkdownService } from '@/services/supabase';
 import { GetBlockChildren, GetDatabase, QueryDatabaseUseCase } from '@/domain/usecases';
 
-// Detectar si estamos en Node.js o en el navegador
-const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
-const isBrowser = typeof window !== 'undefined';
-
-// Configurar la URL base según el entorno
-const baseURL = isNode
-  ? 'https://api.notion.com/v1'  // Node.js (test:connection)
-  : isBrowser
-    ? '/api/notion/v1'  // Navegador en desarrollo (proxy)
-    : 'https://api.notion.com/v1'; // Producción
-
-// Configurar headers según el entorno
-const defaultHeaders: Record<string, string> = {};
-if (isNode) {
-  const notionApiKey = getEnvVar('NOTION_API_KEY');
-  if (notionApiKey) {
-    defaultHeaders['Authorization'] = `Bearer ${notionApiKey}`;
-    defaultHeaders['Notion-Version'] = '2022-06-28';
-  }
+interface Container {
+  notionRepository: NotionRepository;
+  supabaseMarkdownRepository: SupabaseMarkdownRepository;
+  getDatabaseUseCase: GetDatabase;
+  getUserUseCase: GetUser;
+  queryDatabaseUseCase: QueryDatabaseUseCase;
+  getPageUseCase: GetPage;
+  getBlockChildrenUseCase: GetBlockChildren;
+  getBlockChildrenRecursiveUseCase: GetBlockChildrenRecursive;
+  markdownConverterService: MarkdownConverterService;
+  supabaseMarkdownService: SupabaseMarkdownService;
 }
-// En el navegador, el proxy se encarga de los headers usando las variables VITE_
 
-// Crear instancias
-const httpClient = new AxiosHttpClient(baseURL, defaultHeaders);
-const notionRepository = new NotionRepository(httpClient);
+let _container: Container | null = null;
 
-// Casos de uso
-const getDatabaseUseCase = new GetDatabase(notionRepository);
-const getUserUseCase = new GetUser(notionRepository);
-const queryDatabaseUseCase = new QueryDatabaseUseCase(notionRepository);
-const getPageUseCase = new GetPage(notionRepository);
-const getBlockChildrenUseCase = new GetBlockChildren(notionRepository);
-const getBlockChildrenRecursiveUseCase = new GetBlockChildrenRecursive(notionRepository);
+const createContainer = () => {
+  if (_container) return _container;
 
-// Servicios
-const markdownConverterService = new MarkdownConverterService();
-const supabaseMarkdownRepository = new SupabaseMarkdownRepository();
-const supabaseMarkdownService = new SupabaseMarkdownService(supabaseMarkdownRepository, markdownConverterService);
+  // Detectar si estamos en Node.js o en el navegador
+  const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+  const isBrowser = typeof window !== 'undefined';
 
-export const container = {
-  // Repositorios
-  notionRepository,
-  supabaseMarkdownRepository,
+  // Configurar la URL base según el entorno
+  const baseURL = isNode
+    ? 'https://api.notion.com/v1'  // Node.js (test:connection)
+    : isBrowser
+      ? '/api/notion/v1'  // Navegador en desarrollo (proxy)
+      : 'https://api.notion.com/v1'; // Producción
+
+  // Configurar headers según el entorno
+  const defaultHeaders: Record<string, string> = {};
+  if (isNode) {
+    const notionApiKey = getEnvVar('NOTION_API_KEY');
+    if (notionApiKey) {
+      defaultHeaders['Authorization'] = `Bearer ${notionApiKey}`;
+      defaultHeaders['Notion-Version'] = '2022-06-28';
+    }
+  }
+  // En el navegador, el proxy se encarga de los headers usando las variables VITE_
+
+  // Crear instancias
+  const httpClient = new AxiosHttpClient(baseURL, defaultHeaders);
+  const notionRepository = new NotionRepository(httpClient);
 
   // Casos de uso
-  getDatabaseUseCase,
-  getUserUseCase,
-  queryDatabaseUseCase,
-  getPageUseCase,
-  getBlockChildrenUseCase,
-  getBlockChildrenRecursiveUseCase,
+  const getDatabaseUseCase = new GetDatabase(notionRepository);
+  const getUserUseCase = new GetUser(notionRepository);
+  const queryDatabaseUseCase = new QueryDatabaseUseCase(notionRepository);
+  const getPageUseCase = new GetPage(notionRepository);
+  const getBlockChildrenUseCase = new GetBlockChildren(notionRepository);
+  const getBlockChildrenRecursiveUseCase = new GetBlockChildrenRecursive(notionRepository);
 
   // Servicios
-  markdownConverterService,
-  supabaseMarkdownService,
+  const markdownConverterService = new MarkdownConverterService();
+  const supabaseMarkdownRepository = new SupabaseMarkdownRepository();
+  const supabaseMarkdownService = new SupabaseMarkdownService(supabaseMarkdownRepository, markdownConverterService);
+
+  _container = {
+    // Repositorios
+    notionRepository,
+    supabaseMarkdownRepository,
+
+    // Casos de uso
+    getDatabaseUseCase,
+    getUserUseCase,
+    queryDatabaseUseCase,
+    getPageUseCase,
+    getBlockChildrenUseCase,
+    getBlockChildrenRecursiveUseCase,
+
+    // Servicios
+    markdownConverterService,
+    supabaseMarkdownService,
+  };
+
+  return _container;
+};
+
+export const container = new Proxy({} as Container, {
+  get(target, prop) {
+    const actualContainer = createContainer();
+    return actualContainer[prop as keyof Container];
+  }
+});
+
+// Export para casos que necesitan la información del sistema sin crear instancias
+export const getSystemInfo = () => {
+  const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+  const isBrowser = typeof window !== 'undefined';
+
+  return {
+    isNode,
+    isBrowser,
+    runtime: isNode ? 'nodejs' : isBrowser ? 'browser' : 'unknown'
+  };
 }; 

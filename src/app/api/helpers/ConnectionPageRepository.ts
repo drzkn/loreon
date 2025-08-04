@@ -2,6 +2,7 @@ import { container } from '../../../infrastructure/di/container';
 import { convertBlocksToMarkdown } from '../../../utils/blockToMarkdownConverter/blockToMarkdownConverter';
 import { AuthService } from '../../../services/supabase/AuthService';
 import { SupabaseMarkdownRepository } from '../../../adapters/output/infrastructure/supabase';
+import { EmbeddingsService } from '../../../services/embeddings/EmbeddingsService';
 
 interface NotionRichText {
   plain_text?: string;
@@ -15,6 +16,7 @@ interface NotionTitleProperty {
 export class ConnectionPageRepository {
   private authService: AuthService;
   private markdownRepository: SupabaseMarkdownRepository;
+  private embeddingsService: EmbeddingsService;
 
   constructor(
     public databaseId: string,
@@ -24,6 +26,7 @@ export class ConnectionPageRepository {
   ) {
     this.authService = new AuthService();
     this.markdownRepository = new SupabaseMarkdownRepository();
+    this.embeddingsService = new EmbeddingsService();
   }
 
   log(type: 'info' | 'success' | 'error' | 'warn', message: string, error?: unknown) {
@@ -95,7 +98,7 @@ export class ConnectionPageRepository {
 
       let completedPages = 0;
       let errorPages = 0;
-      const operationStats = { created: 0, updated: 0 };
+      const operationStats = { created: 0, updated: 0, embeddingsGenerated: 0, embeddingErrors: 0 };
 
       const processPage = async (page: { id: string; properties?: Record<string, unknown> }, index: number) => {
         try {
@@ -129,6 +132,7 @@ export class ConnectionPageRepository {
           this.log('info', `🔍 Verificando si la página ya existe en Supabase: "${pageTitle}"`);
           const existingPage = await this.markdownRepository.findByNotionPageId(page.id);
 
+          let savedPage;
           if (existingPage) {
             // Actualizar página existente
             this.log('info', `🔄 Página existente encontrada, actualizando: "${pageTitle}" (Supabase ID: ${existingPage.id})`);
@@ -140,7 +144,7 @@ export class ConnectionPageRepository {
             };
             this.log('info', `💾 Datos de actualización preparados: ${Object.keys(updateData).join(', ')}`);
 
-            await this.markdownRepository.update(existingPage.id, updateData);
+            savedPage = await this.markdownRepository.update(existingPage.id, updateData);
             operationStats.updated++;
             this.log('success', `✅ Página "${pageTitle}" actualizada exitosamente`);
           } else {
@@ -155,10 +159,13 @@ export class ConnectionPageRepository {
             };
             this.log('info', `💾 Datos de creación preparados: ${Object.keys(saveData).join(', ')}`);
 
-            const savedPage = await this.markdownRepository.save(saveData);
+            savedPage = await this.markdownRepository.save(saveData);
             operationStats.created++;
             this.log('success', `✅ Página "${pageTitle}" creada exitosamente (Supabase ID: ${savedPage.id})`);
           }
+
+          // Generar embedding automáticamente
+          await this.generateEmbeddingForPage(savedPage, pageTitle, markdownContent, operationStats);
 
           completedPages++;
 
@@ -195,19 +202,28 @@ export class ConnectionPageRepository {
       // Estadísticas finales detalladas
       const successRate = ((completedPages - errorPages) / pages.length * 100).toFixed(1);
       const totalOperations = operationStats.created + operationStats.updated;
+      const embeddingSuccessRate = operationStats.embeddingsGenerated > 0
+        ? ((operationStats.embeddingsGenerated / (operationStats.embeddingsGenerated + operationStats.embeddingErrors)) * 100).toFixed(1)
+        : '0';
 
       this.log('info', `📊 Estadísticas de sincronización:`);
       this.log('info', `📊 • Total de páginas procesadas: ${completedPages}/${pages.length}`);
       this.log('info', `📊 • Tasa de éxito: ${successRate}%`);
       this.log('info', `📊 • Operaciones exitosas: ${totalOperations}`);
+      this.log('info', `📊 • Embeddings generados: ${operationStats.embeddingsGenerated}`);
+      this.log('info', `📊 • Errores de embeddings: ${operationStats.embeddingErrors}`);
+      this.log('info', `📊 • Tasa de éxito embeddings: ${embeddingSuccessRate}%`);
       this.log('info', `📊 • Database ID: ${this.databaseId}`);
 
       this.log('success', `🎉 ¡Sincronización con Supabase completada!\n\n` +
         `✨ ${operationStats.created} páginas nuevas creadas\n` +
         `🔄 ${operationStats.updated} páginas existentes actualizadas\n` +
+        `🧠 ${operationStats.embeddingsGenerated} embeddings generados\n` +
         `❌ ${errorPages} páginas con errores\n` +
+        `⚠️ ${operationStats.embeddingErrors} errores de embeddings\n` +
         `📊 Total procesado: ${completedPages}/${pages.length} (${successRate}% éxito)\n\n` +
         `🗄️ Los archivos markdown están ahora disponibles en tu base de datos de Supabase.\n` +
+        `🔍 Los embeddings permiten búsqueda vectorial inteligente.\n` +
         `🚫 No hay duplicados: el sistema actualiza automáticamente las páginas existentes.`);
 
     } catch (error) {
@@ -216,6 +232,40 @@ export class ConnectionPageRepository {
     } finally {
       this.setIsProcessing(false);
       this.setProgress(null);
+    }
+  }
+
+  private async generateEmbeddingForPage(
+    savedPage: { id: string },
+    pageTitle: string,
+    markdownContent: string,
+    operationStats: { embeddingsGenerated: number; embeddingErrors: number }
+  ): Promise<void> {
+    try {
+      this.log('info', `🧠 Generando embedding para: "${pageTitle}"`);
+
+      // Preparar texto para embedding: título + contenido
+      const textForEmbedding = `${pageTitle}\n\n${markdownContent}`;
+
+      // Generar embedding
+      const embedding = await this.embeddingsService.generateEmbedding(textForEmbedding);
+
+      // Actualizar la página con el embedding
+      await this.markdownRepository.update(savedPage.id, {
+        embedding: embedding,
+        updated_at: new Date().toISOString()
+      });
+
+      operationStats.embeddingsGenerated++;
+      this.log('success', `✅ Embedding generado para "${pageTitle}" (${embedding.length} dimensiones)`);
+
+    } catch (embeddingError) {
+      operationStats.embeddingErrors++;
+      const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Error desconocido';
+      this.log('error', `❌ Error generando embedding para "${pageTitle}": ${errorMessage}`, embeddingError);
+
+      // No fallar toda la sincronización por un error de embedding
+      this.log('warn', `⚠️ Continuando sin embedding para "${pageTitle}"`);
     }
   }
 } 

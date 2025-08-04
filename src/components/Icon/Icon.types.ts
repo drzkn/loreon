@@ -6,6 +6,20 @@ export type IconName =
   'square-library' |
   'send' |
   'chevron-up' |
-  'chevron-down';
+  'chevron-down' |
+  'chevron-right' |
+  'chevron-left' |
+  'x' |
+  'rocket' |
+  'mailbox' |
+  'book-open' |
+  'plug' |
+  'notebook' |
+  'monitor' |
+  'info' |
+  'trash-2' |
+  'circle-pause' |
+  'user' |
+  'brain';
 
-export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';

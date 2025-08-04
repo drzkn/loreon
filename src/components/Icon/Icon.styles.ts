@@ -1,8 +1,8 @@
 'use client'
 
 import styled from 'styled-components';
+import { IconSize } from './Icon.types';
 
-type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 interface IconContainerProps {
   $size: IconSize;
@@ -16,6 +16,7 @@ const sizeMap: Record<IconSize, string> = {
   md: '1.25rem',
   lg: '1.5rem',
   xl: '2rem',
+  xxl: '2.5rem'
 };
 
 export const IconContainer = styled.div<IconContainerProps>`

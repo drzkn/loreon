@@ -6,7 +6,21 @@ import {
   TestTubeDiagonal,
   Send,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  X,
+  Rocket,
+  Mail,
+  BookOpen,
+  Plug,
+  Notebook,
+  Monitor,
+  Info,
+  Trash2,
+  CirclePause,
+  User,
+  Brain
 } from 'lucide-react';
 import { IconName } from "./Icon.types";
 
@@ -17,5 +31,19 @@ export const iconMapper: Record<IconName, LucideIcon> = {
   'square-library': SquareLibrary,
   send: Send,
   'chevron-up': ChevronUp,
-  'chevron-down': ChevronDown
+  'chevron-down': ChevronDown,
+  'chevron-right': ChevronRight,
+  'chevron-left': ChevronLeft,
+  x: X,
+  rocket: Rocket,
+  mailbox: Mail,
+  'book-open': BookOpen,
+  plug: Plug,
+  notebook: Notebook,
+  monitor: Monitor,
+  info: Info,
+  'trash-2': Trash2,
+  'circle-pause': CirclePause,
+  user: User,
+  brain: Brain
 };

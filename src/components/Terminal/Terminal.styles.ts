@@ -40,6 +40,11 @@ export const HeaderTitle = styled.span`
   font-size: 0.9rem;
   font-weight: bold;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem
+
 `;
 
 export const HeaderRightSection = styled.div`
@@ -55,6 +60,10 @@ export const HeaderButton = styled.button`
   color: white;
   font-size: 0.8rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   
   &:hover {
     background: rgba(255, 255, 255, 0.2);

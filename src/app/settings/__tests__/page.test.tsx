@@ -38,14 +38,13 @@ describe('SettingsPage', () => {
   it('should render Conexión tab', () => {
     render(<SettingsPage />);
 
-    expect(screen.getByText('🔌')).toBeInTheDocument();
     expect(screen.getByText('Conexión')).toBeInTheDocument();
   });
 
   it('should navigate to connect page when Conexión tab is clicked', () => {
     render(<SettingsPage />);
 
-    const connectTab = screen.getByRole('button', { name: /🔌 Conexión/i });
+    const connectTab = screen.getByRole('button', { name: /Conexión/i });
     fireEvent.click(connectTab);
 
     expect(mockPush).toHaveBeenCalledWith('/settings/connect');
@@ -61,7 +60,7 @@ describe('SettingsPage', () => {
     render(<SettingsPage />);
 
     // Verificar que los elementos están presentes (sin verificar estilos específicos)
-    const connectTab = screen.getByRole('button', { name: /🔌 Conexión/i });
+    const connectTab = screen.getByRole('button', { name: /Conexión/i });
     expect(connectTab).toBeInTheDocument();
 
     // Verificar que el tab es clickeable
@@ -88,10 +87,9 @@ describe('SettingsPage', () => {
   it('should show tab icon and label', () => {
     render(<SettingsPage />);
 
-    const tabButton = screen.getByRole('button', { name: /🔌 Conexión/i });
+    const tabButton = screen.getByRole('button', { name: /Conexión/i });
 
     // Verificar que contiene tanto el icono como el label
-    expect(tabButton).toHaveTextContent('🔌');
     expect(tabButton).toHaveTextContent('Conexión');
   });
 }); 

@@ -16,10 +16,10 @@ describe('Terminal', () => {
 
     render(<Terminal logs={[]} isProcessing={false} onClearLogs={mockOnClearLogs} />);
 
-    expect(screen.getByText('🖥️ Terminal de Sincronización')).toBeInTheDocument();
+    expect(screen.getByText('Terminal de Sincronización')).toBeInTheDocument();
     expect(screen.getByText('Esperando logs de sincronización...')).toBeInTheDocument();
     expect(screen.getByText('Logs: 0')).toBeInTheDocument();
-    expect(screen.getByText('⏸️ Inactivo')).toBeInTheDocument();
+    expect(screen.getByText('Inactivo')).toBeInTheDocument();
   });
 
   it('should render terminal with logs', () => {
@@ -39,8 +39,8 @@ describe('Terminal', () => {
 
     render(<Terminal logs={[]} isProcessing={true} onClearLogs={mockOnClearLogs} />);
 
-    expect(screen.getByText('🔄 Procesando...')).toBeInTheDocument();
-    expect(screen.queryByText('⏸️ Inactivo')).not.toBeInTheDocument();
+    expect(screen.getByText('Procesando...')).toBeInTheDocument();
+    expect(screen.queryByText('Inactivo')).not.toBeInTheDocument();
   });
 
   it('should render inactive state correctly', () => {
@@ -48,8 +48,8 @@ describe('Terminal', () => {
 
     render(<Terminal logs={[]} isProcessing={false} onClearLogs={mockOnClearLogs} />);
 
-    expect(screen.getByText('⏸️ Inactivo')).toBeInTheDocument();
-    expect(screen.queryByText('🔄 Procesando...')).not.toBeInTheDocument();
+    expect(screen.getByText('Inactivo')).toBeInTheDocument();
+    expect(screen.queryByText('Procesando...')).not.toBeInTheDocument();
   });
 
   it('should call onClearLogs when clear button is clicked', () => {
@@ -57,7 +57,7 @@ describe('Terminal', () => {
 
     render(<Terminal logs={['Log 1']} isProcessing={false} onClearLogs={mockOnClearLogs} />);
 
-    const clearButton = screen.getByText('🗑️ Limpiar');
+    const clearButton = screen.getByText('Limpiar');
     fireEvent.click(clearButton);
 
     expect(mockOnClearLogs).toHaveBeenCalledTimes(1);
@@ -68,7 +68,7 @@ describe('Terminal', () => {
 
     render(<Terminal logs={[]} isProcessing={false} onClearLogs={mockOnClearLogs} />);
 
-    const clearButton = screen.getByText('🗑️ Limpiar');
+    const clearButton = screen.getByText('Limpiar');
     expect(clearButton).toBeInTheDocument();
     expect(clearButton.tagName).toBe('BUTTON');
   });
@@ -101,10 +101,10 @@ describe('Terminal', () => {
     render(<Terminal logs={['Test log']} isProcessing={false} onClearLogs={mockOnClearLogs} />);
 
     // Verificar que todos los componentes internos están presentes
-    expect(screen.getByText('🖥️ Terminal de Sincronización')).toBeInTheDocument();
-    expect(screen.getByText('🗑️ Limpiar')).toBeInTheDocument();
+    expect(screen.getByText('Terminal de Sincronización')).toBeInTheDocument();
+    expect(screen.getByText('Limpiar')).toBeInTheDocument();
     expect(screen.getByText('Test log')).toBeInTheDocument();
     expect(screen.getByText('Logs: 1')).toBeInTheDocument();
-    expect(screen.getByText('⏸️ Inactivo')).toBeInTheDocument();
+    expect(screen.getByText('Inactivo')).toBeInTheDocument();
   });
 }); 
