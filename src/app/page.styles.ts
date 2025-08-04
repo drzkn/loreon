@@ -4,6 +4,7 @@ export const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: calc(100vh - var(--nav-height, 70px));
+  height: calc(100dvh - var(--nav-height, 70px)); /* Soporte para unidades dinámicas */
   width: 100vw;
   position: fixed;
   top: var(--nav-height, 70px);
@@ -11,6 +12,15 @@ export const ChatContainer = styled.div`
   background: var(--background);
   font-family: var(--font-geist-sans);
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    position: fixed;
+    height: 100vh;
+    height: 100dvh;
+    top: 0;
+    padding-top: var(--nav-height, 70px);
+    overflow: auto;
+  }
 `;
 
 export const ChatSection = styled.div`
@@ -18,6 +28,12 @@ export const ChatSection = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+  }
 `;
 
 export const MessagesContainer = styled.div`
@@ -51,14 +67,18 @@ export const Message = styled.div<{ $isUser: boolean }>`
   gap: 0.75rem;
   max-width: 65%;
   width: fit-content;
-  margin: ${props => props.$isUser ? '0.5rem 4rem 0.5rem auto' : '0.5rem auto 0.5rem 4rem'};
-  flex-direction: ${props => props.$isUser ? 'row-reverse' : 'row'};
+  ${({ $isUser }) => `
+    margin: ${$isUser ? '0.5rem 4rem 0.5rem auto' : '0.5rem auto 0.5rem 4rem'};
+    flex-direction: ${$isUser ? 'row-reverse' : 'row'};
+  `}
   
   @media (max-width: 768px) {
-    padding: 0.75rem 1rem;
-    gap: 0.5rem;
-    max-width: 80%;
-    margin: ${props => props.$isUser ? '0.5rem 1rem 0.5rem auto' : '0.5rem auto 0.5rem 1rem'};
+    gap: 0;
+    ${({ $isUser }) => `
+      padding: ${$isUser ? '0.75rem 1rem' : '0.5rem 0'};
+      max-width: ${$isUser ? '80%' : '100%'};
+      margin: ${$isUser ? '0.5rem 1rem 0.5rem auto' : '0.5rem 0'};
+    `}
   }
 `;
 
@@ -71,13 +91,20 @@ export const MessageAuthor = styled.div<{ $isUser: boolean }>`
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  background: ${props => props.$isUser
-    ? 'linear-gradient(135deg, #10b981, #059669)'
-    : 'linear-gradient(135deg, #8b5cf6, #7c3aed)'};
   color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   align-self: flex-end;
   margin-bottom: 0.5rem;
+  
+  ${({ $isUser }) => `
+    background: ${$isUser
+      ? 'linear-gradient(135deg, #10b981, #059669)'
+      : 'linear-gradient(135deg, #8b5cf6, #7c3aed)'};
+  `}
+  
+  @media (max-width: 768px) {
+    display: none; /* Ocultar avatares en móviles para ambos usuarios */
+  }
 `;
 
 export const MessageBubble = styled.div<{ $isUser: boolean }>`
@@ -88,14 +115,7 @@ export const MessageBubble = styled.div<{ $isUser: boolean }>`
 `;
 
 export const MessageContent = styled.div<{ $isUser: boolean }>`
-  background: ${props => props.$isUser
-    ? 'linear-gradient(135deg, #059669, #047857)'
-    : 'rgba(255, 255, 255, 0.05)'};
-  color: ${props => props.$isUser ? '#ffffff' : 'var(--text-primary)'};
   padding: 0.75rem 1rem;
-  border-radius: ${props => props.$isUser
-    ? '1.25rem 1.25rem 0.25rem 1.25rem'
-    : '1.25rem 1.25rem 1.25rem 0.25rem'};
   line-height: 1.6;
   font-size: 1rem;
   letter-spacing: 0.01em;
@@ -103,12 +123,33 @@ export const MessageContent = styled.div<{ $isUser: boolean }>`
   word-break: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   
-  ${props => props.$isUser && `
-    font-weight: 500;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  ${({ $isUser }) => `
+    background: ${$isUser
+      ? 'linear-gradient(135deg, #059669, #047857)'
+      : 'rgba(255, 255, 255, 0.05)'};
+    color: ${$isUser ? '#ffffff' : 'var(--text-primary)'};
+    border-radius: ${$isUser
+      ? '1.25rem 1.25rem 0.25rem 1.25rem'
+      : '1.25rem 1.25rem 1.25rem 0.25rem'};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    
+    ${$isUser ? `
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    ` : ''}
   `}
+  
+  @media (max-width: 768px) {
+    ${({ $isUser }) => `
+      background: ${$isUser
+      ? 'linear-gradient(135deg, #059669, #047857)'
+      : 'transparent'};
+      border-radius: ${$isUser ? '1.25rem' : '0'};
+      box-shadow: ${$isUser ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none'};
+      padding: 0.5rem 1rem 0rem 1rem;
+    `}
+  }
 `;
 
 export const MessageTime = styled.div<{ $isUser: boolean }>`
@@ -116,8 +157,15 @@ export const MessageTime = styled.div<{ $isUser: boolean }>`
   color: var(--text-secondary);
   opacity: 0.6;
   font-weight: 400;
-  text-align: ${props => props.$isUser ? 'right' : 'left'};
-  padding: 0 0.25rem;
+  padding: 0 0.5rem;
+  
+  ${({ $isUser }) => `
+    text-align: ${$isUser ? 'right' : 'left'};
+  `}
+  
+  @media (max-width: 768px) {
+    padding: 0 1rem;
+  }
 `;
 
 export const ActionsSection = styled.div`
@@ -125,6 +173,13 @@ export const ActionsSection = styled.div`
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.5rem;
   min-height: auto;
+  flex-shrink: 0;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    flex-shrink: 0;
+  }
 `;
 
 export const InputContainer = styled.div`

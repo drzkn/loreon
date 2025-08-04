@@ -55,6 +55,51 @@ export default function Home() {
     }
   }, [input]);
 
+  useEffect(() => {
+    const handleInputFocus = () => {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'end',
+              inline: 'nearest'
+            });
+          }
+        }, 300);
+      }
+    };
+
+    const handleResize = () => {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile && document.activeElement === inputRef.current) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'end',
+              inline: 'nearest'
+            });
+          }
+        }, 150);
+      }
+    };
+
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('focus', handleInputFocus);
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', handleResize);
+
+      return () => {
+        inputElement.removeEventListener('focus', handleInputFocus);
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('orientationchange', handleResize);
+      };
+    }
+  }, []);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
