@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { NotionNativeRepository } from '../../adapters/output/infrastructure/supabase/NotionNativeRepository';
 import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure/supabase';
 import { supabase } from '../../adapters/output/infrastructure/supabase/SupabaseClient';
@@ -82,13 +82,7 @@ export default function VisualizerPage() {
     setIsClient(true);
   }, []);
 
-  useEffect(() => {
-    if (nativeRepository && legacyRepository) {
-      checkSystemsAndLoadPages();
-    }
-  }, [nativeRepository, legacyRepository]);
-
-  const checkSystemsAndLoadPages = async () => {
+  const checkSystemsAndLoadPages = useCallback(async () => {
     if (!nativeRepository || !legacyRepository) {
       setError('Repositorios no disponibles en el servidor');
       setLoading(false);
@@ -144,7 +138,14 @@ export default function VisualizerPage() {
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nativeRepository, legacyRepository]);
+
+  useEffect(() => {
+    if (nativeRepository && legacyRepository) {
+      checkSystemsAndLoadPages();
+    }
+  }, [nativeRepository, legacyRepository, checkSystemsAndLoadPages]);
 
   const loadNativePages = async () => {
     try {
