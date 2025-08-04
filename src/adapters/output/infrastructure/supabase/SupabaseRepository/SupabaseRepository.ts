@@ -24,7 +24,7 @@ export interface SupabaseMarkdownRepositoryInterface {
   }): Promise<MarkdownPageWithSimilarity[]>;
 }
 
-export class SupabaseMarkdownRepository implements SupabaseMarkdownRepositoryInterface {
+export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
 
   async save(markdownData: MarkdownPageInsert): Promise<MarkdownPage> {
     const { data, error } = await supabase
