@@ -114,6 +114,9 @@ vi.mock('@/components', () => ({
       {children}
     </button>
   ),
+  Icon: ({ name }: { name: string }) => (
+    <div data-testid={`icon-${name}`}>{name}</div>
+  ),
 }));
 
 const renderWithTheme = (component: React.ReactElement) => {
@@ -129,7 +132,7 @@ describe('ConnectionContent', () => {
     renderWithTheme(<ConnectionContent />);
 
     expect(
-      screen.getByText('📋 Sincronización Manual')
+      screen.getByText('Sincronización Manual')
     ).toBeInTheDocument();
 
     expect(
@@ -137,7 +140,7 @@ describe('ConnectionContent', () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText('ℹ️ Información del Proceso')
+      screen.getByText('Información del Proceso')
     ).toBeInTheDocument();
 
     expect(
@@ -155,7 +158,7 @@ describe('ConnectionContent', () => {
     renderWithTheme(<ConnectionContent />);
 
     expect(
-      screen.getByText('🚀 Iniciar Sincronización')
+      screen.getByText('Iniciar Sincronización')
     ).toBeInTheDocument();
   });
 
@@ -168,18 +171,18 @@ describe('ConnectionContent', () => {
   it('should render information cards in correct order', () => {
     renderWithTheme(<ConnectionContent />);
 
-    const infoCars = screen.getAllByText(/📋|ℹ️/);
-    expect(infoCars).toHaveLength(2);
+    expect(screen.getByText('Sincronización Manual')).toBeInTheDocument();
+    expect(screen.getByText('Información del Proceso')).toBeInTheDocument();
 
     // Verificar que las tarjetas están en el orden correcto
-    expect(screen.getByText('📋 Sincronización Manual')).toBeInTheDocument();
-    expect(screen.getByText('ℹ️ Información del Proceso')).toBeInTheDocument();
+    expect(screen.getByText('Sincronización Manual')).toBeInTheDocument();
+    expect(screen.getByText('Información del Proceso')).toBeInTheDocument();
   });
 
   it('should render button inside the first info card', () => {
     renderWithTheme(<ConnectionContent />);
 
-    const button = screen.getByText('🚀 Iniciar Sincronización');
+    const button = screen.getByText('Iniciar Sincronización');
     expect(button).toBeInTheDocument();
 
     // Verificar que está dentro de un botón
@@ -191,10 +194,10 @@ describe('ConnectionContent', () => {
 
     // Verificar que tenemos las 3 secciones principales:
     // 1. Primera InfoCard con botón
-    expect(screen.getByText('📋 Sincronización Manual')).toBeInTheDocument();
+    expect(screen.getByText('Sincronización Manual')).toBeInTheDocument();
     // 2. Terminal
     expect(screen.getByTestId('terminal')).toBeInTheDocument();
     // 3. Segunda InfoCard con información
-    expect(screen.getByText('ℹ️ Información del Proceso')).toBeInTheDocument();
+    expect(screen.getByText('Información del Proceso')).toBeInTheDocument();
   });
 });
