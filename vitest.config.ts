@@ -46,7 +46,6 @@ export default defineConfig({
         'src/app/test/page.tsx',
         'src/app/settings/connect/page.tsx',
         'src/app/page.tsx',
-        /** Repositorios de Supabase - excluidos del coverage */
         'src/adapters/output/infrastructure/supabase/NotionNativeRepository/NotionNativeRepository.ts',
         'src/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository.ts'
       ]
