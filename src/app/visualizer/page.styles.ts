@@ -32,15 +32,6 @@ export const Title = styled.h1`
   background-clip: text;
 `;
 
-export const Subtitle = styled.p`
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  opacity: 0.8;
-  max-width: 32rem;
-  margin: 0 auto;
-`;
-
 export const MainContent = styled.div`
   flex: 1;
   display: flex;

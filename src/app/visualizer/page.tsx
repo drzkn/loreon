@@ -8,7 +8,6 @@ import {
   VisualizerContainer,
   HeaderSection,
   Title,
-  Subtitle,
   MainContent,
   SidebarSection,
   SearchContainer,
@@ -345,8 +344,7 @@ export default function VisualizerPage() {
     return (
       <VisualizerContainer>
         <HeaderSection>
-          <Title>📚 Visualizador Híbrido</Title>
-          <Subtitle>Sistema inteligente que detecta automáticamente el mejor origen de datos</Subtitle>
+          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador</Title>
         </HeaderSection>
         <EmptyState>
           <LoadingSpinner>Inicializando visualizador...</LoadingSpinner>
@@ -360,8 +358,7 @@ export default function VisualizerPage() {
       <VisualizerContainer>
         <TempDebug />
         <HeaderSection>
-          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Híbrido</Title>
-          <Subtitle>Sistema inteligente que detecta automáticamente el mejor origen de datos</Subtitle>
+          <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador</Title>
         </HeaderSection>
         <EmptyState>
           <EmptyIcon>❌</EmptyIcon>
@@ -375,17 +372,7 @@ export default function VisualizerPage() {
   return (
     <VisualizerContainer>
       <HeaderSection>
-        <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador Híbrido</Title>
-        <Subtitle>
-          Sistema: {systemStatus.selectedSystem === 'native' ? '🚀 Nativo JSON' :
-            systemStatus.selectedSystem === 'legacy' ? '📚 Legacy Markdown' :
-              '❓ Sin datos'}
-          {systemStatus.selectedSystem !== 'none' && (
-            <span style={{ marginLeft: '10px', fontSize: '0.8em', opacity: 0.7 }}>
-              ({systemStatus.selectedSystem === 'native' ? systemStatus.nativePages : systemStatus.legacyPages} páginas)
-            </span>
-          )}
-        </Subtitle>
+        <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador</Title>
       </HeaderSection>
 
       <MainContent>
