@@ -21,15 +21,12 @@ export const HeaderSection = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 0.5rem;
-  letter-spacing: -0.025em;
-  background: linear-gradient(135deg, #10b981, #059669);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #10b981;
+  gap: 0.25rem
 `;
 
 export const MainContent = styled.div`

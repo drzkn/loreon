@@ -1,8 +1,8 @@
 'use client'
 
 import styled from 'styled-components';
+import { IconSize } from './Icon.types';
 
-type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 interface IconContainerProps {
   $size: IconSize;
