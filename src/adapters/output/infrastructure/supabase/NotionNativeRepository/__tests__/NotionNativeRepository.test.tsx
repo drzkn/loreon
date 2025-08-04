@@ -110,75 +110,13 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       expect(result).toBeNull();
     });
 
-    it.skip('should get pages by database ID', async () => {
-      const mockPages = [
-        { id: 'uuid-1', title: 'Page 1' },
-        { id: 'uuid-2', title: 'Page 2' }
-      ];
 
-      mockResponse.data = mockPages;
-
-      const result = await repository.getPagesByDatabaseId('db-123');
-
-      expect(result).toEqual(mockPages);
-    });
   });
 
   describe('Bloques - Operaciones básicas', () => {
-    it.skip('should save blocks successfully', async () => {
-      const mockBlocks = [
-        {
-          notion_id: 'block-1',
-          type: 'paragraph',
-          content: { text: 'Test content' },
-          position: 0,
-          has_children: false,
-          raw_data: { block: 'data' }
-        }
-      ];
 
-      const mockSavedBlocks = [
-        {
-          id: 'uuid-block-1',
-          page_id: 'page-123',
-          ...mockBlocks[0],
-          plain_text: 'Test content',
-          html_content: '<p>Test content</p>',
-          created_at: '2024-01-01T00:00:00Z'
-        }
-      ];
 
-      // Mock para delete primero (retorna promesa resuelta)
-      const deleteChain = createMockChain({ data: null, error: null });
-      mockSupabaseClient.from.mockReturnValueOnce(deleteChain);
 
-      // Mock para insert después
-      mockResponse.data = mockSavedBlocks;
-
-      const result = await repository.saveBlocks('page-123', mockBlocks);
-
-      expect(result).toEqual(mockSavedBlocks);
-    });
-
-    it.skip('should get page blocks', async () => {
-      const mockBlocks = [
-        {
-          id: 'uuid-block-1',
-          notion_id: 'block-1',
-          page_id: 'page-123',
-          type: 'paragraph',
-          content: { text: 'Test content' },
-          position: 0,
-          has_children: false
-        }
-      ];
-
-      mockResponse.data = mockBlocks;
-
-      const result = await repository.getPageBlocks('page-123');
-
-      expect(result).toEqual(mockBlocks);
-    });
 
     it('should get hierarchical blocks using RPC', async () => {
       const mockHierarchicalBlocks = [
@@ -198,49 +136,11 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       expect(result).toEqual(mockHierarchicalBlocks);
     });
 
-    it.skip('should search blocks by text', async () => {
-      const mockSearchResults = [
-        {
-          id: 'uuid-block-1',
-          notion_id: 'block-1',
-          plain_text: 'Test query content'
-        }
-      ];
 
-      mockResponse.data = mockSearchResults;
-
-      const result = await repository.searchBlocks('test query', 25);
-
-      expect(result).toEqual(mockSearchResults);
-    });
   });
 
   describe('Embeddings - Operaciones básicas', () => {
-    it.skip('should save embeddings', async () => {
-      const mockEmbeddings = [
-        {
-          block_id: 'block-123',
-          page_id: 'page-123',
-          embedding: [0.1, 0.2, 0.3],
-          content_hash: 'hash123',
-          chunk_index: 0,
-          chunk_text: 'Test chunk text',
-          metadata: { section: 'intro' }
-        }
-      ];
 
-      const mockSavedEmbeddings = mockEmbeddings.map(emb => ({
-        id: 'embedding-123',
-        ...emb,
-        created_at: '2024-01-01T00:00:00Z'
-      }));
-
-      mockResponse.data = mockSavedEmbeddings;
-
-      const result = await repository.saveEmbeddings(mockEmbeddings);
-
-      expect(result).toEqual(mockSavedEmbeddings);
-    });
 
     it('should search similar embeddings', async () => {
       const mockSimilarResults = [
@@ -267,13 +167,7 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       expect(result).toEqual(mockSimilarResults);
     });
 
-    it.skip('should delete embeddings by content hash', async () => {
-      mockResponse.data = null;
 
-      await repository.deleteEmbeddingsByContentHash('hash123');
-
-      expect(mockSupabaseClient.from).toHaveBeenCalledWith('notion_embeddings');
-    });
 
     it('should search by vector and format results', async () => {
       // Mock para searchSimilarEmbeddings
@@ -346,43 +240,9 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       expect(result).toEqual(mockSyncLog);
     });
 
-    it.skip('should update sync log', async () => {
-      mockResponse.data = null;
 
-      await repository.updateSyncLog('sync-123', {
-        status: 'completed',
-        pages_processed: 10,
-        blocks_processed: 50
-      });
 
-      expect(mockSupabaseClient.from).toHaveBeenCalledWith('notion_sync_log');
-    });
 
-    it.skip('should get storage statistics', async () => {
-      // Mock para cada llamada individual
-      const mockCountChain1 = createMockChain({ data: null, error: null, count: 100 } as { data: unknown; error: unknown; count?: number });
-      const mockCountChain2 = createMockChain({ data: null, error: null, count: 500 } as { data: unknown; error: unknown; count?: number });
-      const mockCountChain3 = createMockChain({ data: null, error: null, count: 1000 } as { data: unknown; error: unknown; count?: number });
-      const mockSyncChain = createMockChain({
-        data: { completed_at: '2024-01-01T00:00:00Z' },
-        error: null
-      });
-
-      mockSupabaseClient.from
-        .mockReturnValueOnce(mockCountChain1)  // notion_pages
-        .mockReturnValueOnce(mockCountChain2)  // notion_blocks  
-        .mockReturnValueOnce(mockCountChain3)  // notion_embeddings
-        .mockReturnValueOnce(mockSyncChain);   // notion_sync_log
-
-      const result = await repository.getStorageStats();
-
-      expect(result).toEqual({
-        totalPages: 100,
-        totalBlocks: 500,
-        totalEmbeddings: 1000,
-        lastSync: '2024-01-01T00:00:00Z'
-      });
-    });
   });
 
   describe('Error Handling', () => {
@@ -409,15 +269,7 @@ describe('NotionNativeRepository - Simplified Tests', () => {
   });
 
   describe('Edge Cases', () => {
-    it.skip('should handle empty results gracefully', async () => {
-      mockResponse.data = null;
 
-      const pagesResult = await repository.getPagesByDatabaseId('empty-db');
-      const blocksResult = await repository.getPageBlocks('empty-page');
-
-      expect(pagesResult).toEqual([]);
-      expect(blocksResult).toEqual([]);
-    });
 
     it('should handle archived pages in vector search', async () => {
       const mockSimilarResults = [
@@ -448,12 +300,6 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       expect(result).toEqual([]);
     });
 
-    it.skip('should handle default parameters correctly', async () => {
-      mockResponse.data = [];
 
-      await repository.searchBlocks('query');
-
-      expect(mockSupabaseClient.from).toHaveBeenCalled();
-    });
   });
 });
