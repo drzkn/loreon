@@ -34,7 +34,7 @@ describe('SupabaseMarkdownRepository', () => {
     it('should be a constructible class', () => {
       expect(SupabaseRepository).toBeDefined();
       expect(typeof SupabaseRepository).toBe('function');
-      expect(SupabaseRepository.name).toBe('SupabaseMarkdownRepository');
+      expect(SupabaseRepository.name).toBe('SupabaseRepository');
     });
 
     it('should create an instance', () => {
