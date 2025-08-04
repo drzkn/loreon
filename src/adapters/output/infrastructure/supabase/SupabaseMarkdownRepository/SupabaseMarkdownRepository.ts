@@ -197,7 +197,7 @@ export class SupabaseMarkdownRepository implements SupabaseMarkdownRepositoryInt
     matchThreshold?: number;
     matchCount?: number;
   }): Promise<MarkdownPageWithSimilarity[]> {
-    const matchThreshold = options?.matchThreshold || 0.78;
+    const matchThreshold = options?.matchThreshold || 0.6; // Threshold optimizado por defecto
     const matchCount = options?.matchCount || 5;
 
     const { data, error } = await supabase.rpc('match_documents', {
