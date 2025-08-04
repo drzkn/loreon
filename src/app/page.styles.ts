@@ -147,7 +147,7 @@ export const MessageContent = styled.div<{ $isUser: boolean }>`
       : 'transparent'};
       border-radius: ${$isUser ? '1.25rem' : '0'};
       box-shadow: ${$isUser ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none'};
-      padding: 0.75rem 1rem;
+      padding: 0.5rem 1rem 0rem 1rem;
     `}
   }
 `;
@@ -157,14 +157,14 @@ export const MessageTime = styled.div<{ $isUser: boolean }>`
   color: var(--text-secondary);
   opacity: 0.6;
   font-weight: 400;
-  padding: 0 0.25rem;
+  padding: 0 0.5rem;
   
   ${({ $isUser }) => `
     text-align: ${$isUser ? 'right' : 'left'};
   `}
   
   @media (max-width: 768px) {
-    padding: 0 0.25rem; /* Padding uniforme sin avatares */
+    padding: 0 1rem;
   }
 `;
 
