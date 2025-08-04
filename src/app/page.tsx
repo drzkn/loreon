@@ -20,6 +20,7 @@ import {
   WelcomeTitle,
   WelcomeSubtitle
 } from './page.styles';
+import { Icon } from '@/components';
 
 export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -75,7 +76,7 @@ export default function Home() {
         <MessagesContainer>
           {messages.length === 0 ? (
             <WelcomeMessage>
-              <WelcomeTitle>¡Bienvenido a Loreon AI! 🚀</WelcomeTitle>
+              <WelcomeTitle>¡Bienvenido a Loreon AI! <Icon name="rocket" size="lg" /></WelcomeTitle>
               <WelcomeSubtitle>
                 Tu asistente inteligente para gestión de contenido markdown,
                 sincronización de datos y búsqueda vectorial. Comienza escribiendo tu primera pregunta.

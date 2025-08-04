@@ -12,7 +12,7 @@ export const TerminalFooter = ({ logCount, isProcessing }: TerminalFooterProps) 
         Logs: {logCount}
       </span>
       <span>
-        {isProcessing ? '🔄 Procesando...' : '⏸️ Inactivo'}
+        {isProcessing ? 'Procesando...' : 'Inactivo'}
       </span>
     </FooterContainer>
   );

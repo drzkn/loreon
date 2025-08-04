@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Icon } from './Icon';
+import { iconMapper } from './Icon.mapper';
 
 const meta: Meta<typeof Icon> = {
   title: 'Components/Icon',
@@ -16,9 +17,7 @@ const meta: Meta<typeof Icon> = {
   argTypes: {
     name: {
       control: 'select',
-      options: [
-        'bot',
-      ],
+      options: Object.keys(iconMapper),
       description: 'Nombre del icono a mostrar'
     },
     size: {

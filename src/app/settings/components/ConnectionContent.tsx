@@ -1,6 +1,6 @@
 'use client';
 
-import { Terminal, Button } from '@/components';
+import { Terminal, Button, Icon } from '@/components';
 import { useSyncToSupabase } from '../hooks/useSyncToSupabase';
 import {
   Container,
@@ -21,7 +21,7 @@ export const ConnectionContent = () => {
       <MainContent>
         <InfoCard>
           <InfoContent>
-            <InfoTitle>📋 Sincronización Manual</InfoTitle>
+            <InfoTitle><Icon name="notebook" /> Sincronización Manual</InfoTitle>
             <InfoDescription>
               Control total sobre cuándo sincronizar tu contenido desde Notion.
               Perfecto para cuando hayas realizado cambios importantes y quieras
@@ -34,7 +34,7 @@ export const ConnectionContent = () => {
               disabled={isProcessing}
               variant={isProcessing ? "loading" : "success"}
             >
-              {isProcessing ? '🔄 Sincronizando...' : '🚀 Iniciar Sincronización'}
+              {isProcessing ? 'Sincronizando...' : 'Iniciar Sincronización'}
             </Button>
           </ButtonContainer>
         </InfoCard>
@@ -49,7 +49,7 @@ export const ConnectionContent = () => {
 
         <InfoCard>
           <InfoContent>
-            <InfoTitle>ℹ️ Información del Proceso</InfoTitle>
+            <InfoTitle><Icon name="info" /> Información del Proceso</InfoTitle>
             <InfoDescription>
               La sincronización conecta con la API de Notion, obtiene todas las páginas
               configuradas, las convierte a formato Markdown y las almacena en Supabase.

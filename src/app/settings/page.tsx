@@ -10,18 +10,20 @@ import {
   TabLabel,
   DefaultContent
 } from './page.styles';
+import { Icon } from '@/components';
+import { IconName } from '@/components/Icon';
 
 interface TabConfig {
   id: string;
   label: string;
-  icon: string;
+  icon: IconName;
 }
 
 const tabs: TabConfig[] = [
   {
     id: 'connection',
     label: 'Conexión',
-    icon: '🔌'
+    icon: 'plug' as IconName
   }
 ];
 
@@ -70,7 +72,7 @@ export default function SettingsPage() {
             onClick={() => handleTabClick(tab)}
             $isActive={activeTab === tab.id}
           >
-            <TabIcon>{tab.icon}</TabIcon>
+            <TabIcon><Icon name={tab.icon} /></TabIcon>
             <TabLabel>{tab.label}</TabLabel>
           </TabButton>
         ))}

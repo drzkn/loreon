@@ -23,7 +23,6 @@ import {
   BackButton,
   MarkdownContent,
   EmptyState,
-  EmptyIcon,
   EmptyTitle,
   EmptyDescription,
   LoadingSpinner
@@ -361,7 +360,7 @@ export default function VisualizerPage() {
           <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador</Title>
         </HeaderSection>
         <EmptyState>
-          <EmptyIcon>❌</EmptyIcon>
+          <Icon name="x" size="md" />
           <EmptyTitle>Error al cargar el contenido</EmptyTitle>
           <EmptyDescription>{error}</EmptyDescription>
         </EmptyState>
@@ -391,7 +390,7 @@ export default function VisualizerPage() {
               <LoadingSpinner>Cargando páginas...</LoadingSpinner>
             ) : filteredPages.length === 0 ? (
               <EmptyState>
-                <EmptyIcon>📭</EmptyIcon>
+                <Icon name="mailbox" size="xl" />
                 <EmptyTitle>
                   {searchTerm ? 'Sin resultados' : 'No hay páginas disponibles'}
                 </EmptyTitle>
@@ -419,7 +418,7 @@ export default function VisualizerPage() {
                   onClick={() => handlePageSelect(page)}
                 >
                   <PageTitle>
-                    {page.source === 'native' ? '🚀' : '📚'} {page.title}
+                    {page.title}
                   </PageTitle>
                   <PagePreview>{getPreviewText(page.content)}</PagePreview>
                   <PageDate>
@@ -436,20 +435,19 @@ export default function VisualizerPage() {
             <>
               <ContentHeader>
                 <ContentTitle>
-                  {selectedPage.source === 'native' ? '🚀' : '📚'} {selectedPage.title}
                   <span style={{ fontSize: '0.7em', opacity: 0.6, marginLeft: '10px' }}>
                     ({selectedPage.source === 'native' ? 'Sistema Nativo' : 'Sistema Legacy'})
                   </span>
                 </ContentTitle>
                 <BackButton onClick={handleBackToList}>
-                  ← Volver
+                  <Icon name="chevron-left" /> Volver
                 </BackButton>
               </ContentHeader>
               {renderPageContent(selectedPage)}
             </>
           ) : (
             <EmptyState>
-              <EmptyIcon>📄</EmptyIcon>
+              <Icon name="book-open" size="xxl" color="white" />
               <EmptyTitle>Selecciona una página</EmptyTitle>
               <EmptyDescription>
                 Elige una página de la lista para ver su contenido aquí

@@ -239,6 +239,10 @@ export const WelcomeTitle = styled.h2`
   color: var(--text-primary);
   margin-bottom: 0.5rem;
   letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 `;
 
 export const WelcomeSubtitle = styled.p`

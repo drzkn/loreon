@@ -431,12 +431,6 @@ export const EmptyState = styled.div`
   color: var(--text-secondary);
 `;
 
-export const EmptyIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-`;
-
 export const EmptyTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 500;
