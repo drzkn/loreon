@@ -26,29 +26,29 @@ vi.mock('../SupabaseClient', () => ({
   }
 }));
 
-import { SupabaseMarkdownRepository } from '../SupabaseMarkdownRepository';
+import { SupabaseRepository } from '../SupabaseRepository';
 import type { MarkdownPageInsert } from '../../types';
 
 describe('SupabaseMarkdownRepository', () => {
   describe('Class Structure', () => {
     it('should be a constructible class', () => {
-      expect(SupabaseMarkdownRepository).toBeDefined();
-      expect(typeof SupabaseMarkdownRepository).toBe('function');
-      expect(SupabaseMarkdownRepository.name).toBe('SupabaseMarkdownRepository');
+      expect(SupabaseRepository).toBeDefined();
+      expect(typeof SupabaseRepository).toBe('function');
+      expect(SupabaseRepository.name).toBe('SupabaseMarkdownRepository');
     });
 
     it('should create an instance', () => {
-      const instance = new SupabaseMarkdownRepository();
-      expect(instance).toBeInstanceOf(SupabaseMarkdownRepository);
-      expect(instance.constructor).toBe(SupabaseMarkdownRepository);
+      const instance = new SupabaseRepository();
+      expect(instance).toBeInstanceOf(SupabaseRepository);
+      expect(instance.constructor).toBe(SupabaseRepository);
     });
   });
 
   describe('Interface Implementation', () => {
-    let repository: SupabaseMarkdownRepository;
+    let repository: SupabaseRepository;
 
     beforeAll(() => {
-      repository = new SupabaseMarkdownRepository();
+      repository = new SupabaseRepository();
     });
 
     it('should implement all required methods', () => {
@@ -65,7 +65,7 @@ describe('SupabaseMarkdownRepository', () => {
 
       requiredMethods.forEach(method => {
         expect(repository).toHaveProperty(method);
-        expect(typeof repository[method as keyof SupabaseMarkdownRepository]).toBe('function');
+        expect(typeof repository[method as keyof SupabaseRepository]).toBe('function');
       });
     });
 
@@ -157,10 +157,10 @@ describe('SupabaseMarkdownRepository', () => {
   });
 
   describe('Method Existence', () => {
-    let repository: SupabaseMarkdownRepository;
+    let repository: SupabaseRepository;
 
     beforeAll(() => {
-      repository = new SupabaseMarkdownRepository();
+      repository = new SupabaseRepository();
     });
 
     it('should have save method', () => {
@@ -206,11 +206,11 @@ describe('SupabaseMarkdownRepository', () => {
 
   describe('Interface Compliance', () => {
     it('should implement SupabaseMarkdownRepositoryInterface', () => {
-      const repository = new SupabaseMarkdownRepository();
+      const repository = new SupabaseRepository();
 
       // Verificar que implementa la interfaz correctamente
       const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(repository))
-        .filter(name => name !== 'constructor' && typeof repository[name as keyof SupabaseMarkdownRepository] === 'function');
+        .filter(name => name !== 'constructor' && typeof repository[name as keyof SupabaseRepository] === 'function');
 
       expect(methods).toContain('save');
       expect(methods).toContain('findByNotionPageId');
@@ -224,7 +224,7 @@ describe('SupabaseMarkdownRepository', () => {
 
     it('should have proper TypeScript interface compliance', () => {
       // Este test valida que TypeScript puede verificar los tipos correctamente
-      const repository = new SupabaseMarkdownRepository();
+      const repository = new SupabaseRepository();
 
       // Verificar que las propiedades existen y son funciones
       const interfaceProperties = [
@@ -240,7 +240,7 @@ describe('SupabaseMarkdownRepository', () => {
 
       interfaceProperties.forEach(prop => {
         expect(repository).toHaveProperty(prop);
-        expect(typeof repository[prop as keyof SupabaseMarkdownRepository]).toBe('function');
+        expect(typeof repository[prop as keyof SupabaseRepository]).toBe('function');
       });
     });
   });
