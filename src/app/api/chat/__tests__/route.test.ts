@@ -8,11 +8,16 @@ vi.mock('@/services/embeddings/EmbeddingsService', () => ({
   }))
 }));
 
-// Mock del SupabaseMarkdownRepository
-vi.mock('@/adapters/output/infrastructure/supabase', () => ({
-  SupabaseMarkdownRepository: vi.fn(() => ({
+// Mock del NotionNativeRepository
+vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () => ({
+  NotionNativeRepository: vi.fn(() => ({
     searchByVector: vi.fn(() => Promise.resolve([]))
   }))
+}));
+
+// Mock del SupabaseClient
+vi.mock('@/adapters/output/infrastructure/supabase/SupabaseClient', () => ({
+  supabase: {} // Mock del cliente de Supabase
 }));
 
 // Mock del Google AI SDK

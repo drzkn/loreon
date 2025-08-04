@@ -2,6 +2,7 @@ import { NotionContentExtractor, NotionBlock, PageContent } from './NotionConten
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
 import { EmbeddingsService } from '@/services/embeddings';
 import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { Block } from '@/domain/entities';
 
 // Tipos para la migración
 export interface MigrationResult {
@@ -330,11 +331,103 @@ export class NotionMigrationService {
 
   // Métodos privados
 
+  /**
+   * Obtiene una página y todos sus bloques desde la API de Notion
+   */
   private async fetchNotionPageWithBlocks(pageId: string): Promise<NotionApiResponse> {
-    // TODO: Implementar la llamada real a la API de Notion
-    // Este método debería usar el NotionRepository existente para obtener la página y sus bloques
-    // TODO: Implementar con NotionRepository existente
-    throw new Error(`fetchNotionPageWithBlocks debe implementarse con tu API de Notion existente. PageId: ${pageId}`);
+    try {
+      console.log(`📥 Obteniendo página desde Notion API: ${pageId}`);
+
+      // Importar container dinámicamente para evitar dependencias circulares
+      const { container } = await import('@/infrastructure/di/container');
+
+      // 1. Obtener la página desde Notion
+      const page = await container.getPageUseCase.execute(pageId);
+      console.log(`📄 Página obtenida: ${pageId}`);
+
+      // 2. Obtener todos los bloques de la página recursivamente
+      const blockResult = await container.getBlockChildrenRecursiveUseCase.execute(pageId, {
+        maxDepth: 10, // Profundidad máxima para evitar bucles infinitos
+        includeEmptyBlocks: true
+      });
+      console.log(`🧱 Bloques obtenidos: ${blockResult.blocks.length}`);
+
+      // 3. Transformar Page a NotionPageData (crear estructura básica)
+      const notionPageData: NotionPageData = {
+        id: page.id,
+        title: `Página ${page.id}`, // Título básico, se puede mejorar
+        url: page.url,
+        properties: page.properties || {},
+        created_time: page.createdTime || new Date().toISOString(),
+        last_edited_time: page.lastEditedTime || new Date().toISOString(),
+        archived: false
+      };
+
+      // 4. Transformar Block[] a NotionBlock[]
+      const notionBlocks: NotionBlock[] = blockResult.blocks.map(block => ({
+        id: block.id,
+        object: 'block',
+        type: block.type,
+        parent: {
+          type: 'page_id',
+          page_id: pageId
+        },
+        created_time: block.createdTime || new Date().toISOString(),
+        created_by: { object: 'user', id: 'unknown' },
+        last_edited_time: block.lastEditedTime || new Date().toISOString(),
+        last_edited_by: { object: 'user', id: 'unknown' },
+        archived: false,
+        has_children: block.hasChildren || false,
+        content: block.data || {},
+        plainText: this.extractPlainTextFromBlock(block),
+        rich_text: []
+      }));
+
+      console.log(`✅ Transformación completada: ${notionBlocks.length} bloques procesados`);
+
+      return {
+        page: notionPageData,
+        blocks: notionBlocks
+      };
+
+    } catch (error) {
+      console.error(`❌ Error obteniendo página ${pageId} desde Notion:`, error);
+      throw new Error(`Failed to fetch page ${pageId} from Notion: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Extrae texto plano de un bloque
+   */
+  private extractPlainTextFromBlock(block: Block): string {
+    // Intentar extraer texto de diferentes tipos de contenido desde block.data
+    if (block.data) {
+      // Para rich_text (paragraph, heading, etc.)
+      if (block.data.rich_text && Array.isArray(block.data.rich_text)) {
+        return (block.data.rich_text as Array<{ plain_text?: string; text?: { content?: string } }>)
+          .map(rt => rt.plain_text || rt.text?.content || '')
+          .join('');
+      }
+
+      // Para text content directo
+      if (block.data.text && typeof block.data.text === 'string') {
+        return block.data.text;
+      }
+
+      // Para titles (heading blocks)
+      if (block.data.title && Array.isArray(block.data.title)) {
+        return (block.data.title as Array<{ plain_text?: string; text?: { content?: string } }>)
+          .map(t => t.plain_text || t.text?.content || '')
+          .join('');
+      }
+
+      // Para plain_text directo
+      if (block.data.plain_text && typeof block.data.plain_text === 'string') {
+        return block.data.plain_text;
+      }
+    }
+
+    return '';
   }
 
   private async saveNotionPageStructure(notionData: NotionApiResponse): Promise<NotionPageRow> {
@@ -343,12 +436,12 @@ export class NotionMigrationService {
     const pageData = {
       notion_id: page.id,
       title: this.extractPageTitle(page),
-      parent_id: page.parent?.page_id || page.parent?.database_id,
-      database_id: page.parent?.type === 'database_id' ? page.parent.database_id : undefined,
+      parent_id: page.parent?.page_id || (page.parent as { database_id?: string })?.database_id,
+      database_id: page.parent?.type === 'database_id' ? (page.parent as { database_id: string }).database_id : undefined,
       url: page.url,
-      icon_emoji: page.icon?.type === 'emoji' ? page.icon.emoji : undefined,
-      icon_url: page.icon?.type === 'file' ? page.icon.file?.url : undefined,
-      cover_url: page.cover?.type === 'file' ? page.cover.file?.url : undefined,
+      icon_emoji: page.icon?.type === 'emoji' ? (page.icon as { emoji: string }).emoji : undefined,
+      icon_url: page.icon?.type === 'file' ? (page.icon as { file: { url: string } }).file?.url : undefined,
+      cover_url: page.cover?.type === 'file' ? (page.cover as { file: { url: string } }).file?.url : undefined,
       notion_created_time: page.created_time,
       notion_last_edited_time: page.last_edited_time,
       archived: page.archived,
@@ -362,14 +455,14 @@ export class NotionMigrationService {
   private async saveNotionBlocks(pageId: string, blocks: NotionBlock[]): Promise<NotionBlockRow[]> {
     const blocksData = blocks.map((block, index) => ({
       notion_id: block.id,
-      parent_block_id: block.parent.type === 'block_id' ? block.parent.block_id : undefined,
+      parent_block_id: block.parent.type === 'block_id' ? (block.parent as { block_id: string }).block_id : undefined,
       type: block.type,
-      content: (block[block.type] as Record<string, unknown>) || {},
+      content: (block.content || {}) as Record<string, unknown>,
       position: index,
       has_children: block.has_children,
-      notion_created_time: block.created_time,
-      notion_last_edited_time: block.last_edited_time,
-      archived: block.archived,
+      notion_created_time: block.created_time || undefined,
+      notion_last_edited_time: block.last_edited_time || undefined,
+      archived: block.archived || false,
       raw_data: block as Record<string, unknown>
     }));
 
@@ -397,21 +490,21 @@ export class NotionMigrationService {
     // Preparar datos para guardar
     const embeddingsData = chunks.map((chunk, index) => {
       const relatedBlock = blocks.find(block =>
-        chunk.metadata.blockIds.includes(block.notion_id)
+        chunk.metadata?.blockIds?.includes(block.notion_id)
       );
 
       return {
-        block_id: relatedBlock?.id || blocks[0].id, // Fallback al primer bloque
+        block_id: relatedBlock?.id || blocks[0]?.id || '', // Fallback al primer bloque
         page_id: pageId,
         embedding: embeddings[index],
         content_hash: pageContent.contentHash,
-        chunk_index: chunk.metadata.chunkIndex,
+        chunk_index: chunk.metadata?.chunkIndex || index,
         chunk_text: chunk.text,
         metadata: {
-          section: chunk.metadata.section,
-          blockIds: chunk.metadata.blockIds,
-          startOffset: chunk.metadata.startOffset,
-          endOffset: chunk.metadata.endOffset,
+          section: chunk.metadata?.section,
+          blockIds: chunk.metadata?.blockIds || [],
+          startOffset: chunk.metadata?.startOffset || 0,
+          endOffset: chunk.metadata?.endOffset || 0,
           pageTitle: pageContent.sections[0]?.heading || 'Sin título'
         }
       };
@@ -437,11 +530,11 @@ export class NotionMigrationService {
 
   private extractPageTitle(page: NotionPageData): string {
     // Extraer título de las propiedades de la página
-    const properties = page.properties as Record<string, Record<string, unknown>>;
+    const properties = page.properties as Record<string, { type?: string; title?: Array<{ plain_text?: string }> }>;
 
     for (const prop of Object.values(properties)) {
       if (prop.type === 'title' && prop.title && Array.isArray(prop.title)) {
-        return prop.title.map((t: Record<string, unknown>) => t.plain_text || '').join('');
+        return prop.title.map(t => t.plain_text || '').join('');
       }
     }
 
