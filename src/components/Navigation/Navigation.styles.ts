@@ -41,6 +41,92 @@ export const NavFooterItems = styled.div`
   gap: 1rem;
 `;
 
+export const UserSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+`;
+
+export const UserAvatar = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+`;
+
+export const UserDropdown = styled.div<{ $isOpen: boolean }>`
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  min-width: 200px;
+  display: ${({ $isOpen }) => ($isOpen ? 'block' : 'none')};
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+`;
+
+export const UserDropdownItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  &.danger {
+    color: #fca5a5;
+    
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+`;
+
+export const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.25rem;
+`;
+
+export const UserName = styled.div`
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+`;
+
+export const UserEmail = styled.div`
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+`;
+
 export const NavBrand = styled.div`
   font-size: 1.25rem;
   font-weight: 600;
