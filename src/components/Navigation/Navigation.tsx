@@ -144,7 +144,7 @@ export const Navigation: React.FC = () => {
                 </UserDropdownItem>
 
                 <UserDropdownItem className="danger" onClick={handleLogout}>
-                  <Icon name="log-out" size="sm" />
+                  <Icon name="logout" size="sm" />
                   Cerrar Sesión
                 </UserDropdownItem>
               </UserDropdown>
