@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { POST } from '../route';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 describe('/api/auth/notion/verify-token', () => {
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe('/api/auth/notion/verify-token', () => {
     vi.restoreAllMocks();
   });
 
-  const createMockRequest = (body: any) => {
+  const createMockRequest = (body: Record<string, unknown>) => {
     const mockRequest = {
       json: vi.fn().mockResolvedValue(body),
     } as unknown as NextRequest;
@@ -60,7 +60,7 @@ describe('/api/auth/notion/verify-token', () => {
         person: { email: 'test@example.com' }
       };
 
-      (fetch as any).mockResolvedValueOnce({
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue(mockUserData),
       });
@@ -88,7 +88,7 @@ describe('/api/auth/notion/verify-token', () => {
     it('debería manejar token inválido (401)', async () => {
       const errorMessage = 'Unauthorized';
 
-      (fetch as any).mockResolvedValueOnce({
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 401,
         text: vi.fn().mockResolvedValue(errorMessage),
@@ -109,7 +109,7 @@ describe('/api/auth/notion/verify-token', () => {
     it('debería manejar error de servidor de Notion (500)', async () => {
       const errorMessage = 'Internal Server Error';
 
-      (fetch as any).mockResolvedValueOnce({
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
         status: 500,
         text: vi.fn().mockResolvedValue(errorMessage),
@@ -129,7 +129,7 @@ describe('/api/auth/notion/verify-token', () => {
     it('debería manejar error de red', async () => {
       const networkError = new Error('Network Error');
 
-      (fetch as any).mockRejectedValueOnce(networkError);
+      (fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(networkError);
 
       const request = createMockRequest({ token: 'valid_token' });
 
@@ -143,7 +143,7 @@ describe('/api/auth/notion/verify-token', () => {
     });
 
     it('debería manejar error desconocido', async () => {
-      (fetch as any).mockRejectedValueOnce('Unknown error');
+      (fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce('Unknown error');
 
       const request = createMockRequest({ token: 'valid_token' });
 
@@ -171,7 +171,7 @@ describe('/api/auth/notion/verify-token', () => {
     it('debería usar la versión correcta de la API de Notion', async () => {
       const mockUserData = { id: 'user123', name: 'Test User' };
 
-      (fetch as any).mockResolvedValueOnce({
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue(mockUserData),
       });
@@ -192,7 +192,7 @@ describe('/api/auth/notion/verify-token', () => {
     it('debería usar el método GET correcto', async () => {
       const mockUserData = { id: 'user123', name: 'Test User' };
 
-      (fetch as any).mockResolvedValueOnce({
+      (fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue(mockUserData),
       });
