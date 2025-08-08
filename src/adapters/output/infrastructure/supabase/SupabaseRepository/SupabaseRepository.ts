@@ -1,5 +1,6 @@
-import { supabase } from '../SupabaseClient';
+import { supabase, supabaseServer } from '../index';
 import { MarkdownPage, MarkdownPageInsert, MarkdownPageUpdate, MarkdownPageWithSimilarity } from '../types';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface SupabaseMarkdownRepositoryInterface {
   save(markdownData: MarkdownPageInsert): Promise<MarkdownPage>;
@@ -25,9 +26,14 @@ export interface SupabaseMarkdownRepositoryInterface {
 }
 
 export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
+  private client: SupabaseClient;
+
+  constructor(useServerClient: boolean = false) {
+    this.client = useServerClient ? supabaseServer : supabase;
+  }
 
   async save(markdownData: MarkdownPageInsert): Promise<MarkdownPage> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('markdown_pages')
       .insert(markdownData)
       .select()
@@ -41,7 +47,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
   }
 
   async findByNotionPageId(notionPageId: string): Promise<MarkdownPage | null> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('markdown_pages')
       .select('*')
       .eq('notion_page_id', notionPageId)
@@ -59,7 +65,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
   }
 
   async findById(id: string): Promise<MarkdownPage | null> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('markdown_pages')
       .select('*')
       .eq('id', id)
@@ -81,7 +87,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
   }): Promise<MarkdownPage[]> {
-    let query = supabase.from('markdown_pages').select('*');
+    let query = this.client.from('markdown_pages').select('*');
 
     if (options?.limit) {
       query = query.limit(options.limit);
@@ -109,7 +115,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
   }
 
   async update(id: string, updateData: MarkdownPageUpdate): Promise<MarkdownPage> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('markdown_pages')
       .update(updateData)
       .eq('id', id)
@@ -124,7 +130,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await this.client
       .from('markdown_pages')
       .delete()
       .eq('id', id);
@@ -139,7 +145,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
     const existingPage = await this.findByNotionPageId(markdownData.notion_page_id);
     const isUpdate = existingPage !== null;
 
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from('markdown_pages')
       .upsert(markdownData, {
         onConflict: 'notion_page_id',
@@ -166,7 +172,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
     limit?: number;
     offset?: number;
   }): Promise<MarkdownPage[]> {
-    let supabaseQuery = supabase
+    let supabaseQuery = this.client
       .from('markdown_pages')
       .select('*')
       .or(`title.ilike.%${query}%,content.ilike.%${query}%`);
@@ -200,7 +206,7 @@ export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
     const matchThreshold = options?.matchThreshold || 0.6; // Threshold optimizado por defecto
     const matchCount = options?.matchCount || 5;
 
-    const { data, error } = await supabase.rpc('match_documents', {
+    const { data, error } = await this.client.rpc('match_documents', {
       query_embedding: queryEmbedding,
       match_threshold: matchThreshold,
       match_count: matchCount
