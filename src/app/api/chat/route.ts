@@ -1,6 +1,13 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
-import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { supabaseServer as supabase } from '@/adapters/output/infrastructure/supabase';
+
+interface NotionPage {
+  notion_id: string;
+  title: string;
+  properties: Record<string, unknown>;
+  archived: boolean;
+}
 
 export const runtime = 'edge';
 
@@ -21,9 +28,6 @@ export async function POST(req: Request) {
     let searchSummary = '';
 
     try {
-      console.log(`🔍 Búsqueda nativa directa para: "${lastMessage.content}"`);
-
-      // 1. Obtener todas las páginas nativas con contenido
       const { data: nativePages } = await supabase
         .from('notion_pages')
         .select('*')
@@ -32,11 +36,7 @@ export async function POST(req: Request) {
       if (!nativePages || nativePages.length === 0) {
         searchSummary = 'No hay páginas disponibles en el sistema nativo.';
       } else {
-        console.log(`📄 Páginas nativas disponibles: ${nativePages.length}`);
-
-        // 2. Extraer palabras clave de la pregunta y buscar páginas relevantes
         const extractKeywords = (text: string): string[] => {
-          // Remover palabras comunes y extraer términos significativos
           const stopWords = ['qué', 'que', 'sabes', 'sobre', 'información', 'tienes', 'conoces', 'dime', 'explica', 'cuéntame'];
           const words = text.toLowerCase()
             .replace(/[¿?¡!.,;:()]/g, ' ')
@@ -46,9 +46,8 @@ export async function POST(req: Request) {
         };
 
         const keywords = extractKeywords(lastMessage.content);
-        console.log(`🔍 Palabras clave extraídas: [${keywords.join(', ')}]`);
 
-        const relevantPages = nativePages.filter(page => {
+        const relevantPages = nativePages.filter((page: NotionPage) => {
           return keywords.some(keyword => {
             const titleMatch = page.title.toLowerCase().includes(keyword);
             const propertiesMatch = JSON.stringify(page.properties).toLowerCase().includes(keyword);
@@ -56,25 +55,21 @@ export async function POST(req: Request) {
           });
         });
 
-        console.log(`🎯 Páginas relevantes encontradas: ${relevantPages.length}`);
-        relevantPages.forEach(page => {
+        relevantPages.forEach((page: NotionPage) => {
           console.log(`   - "${page.title}" (notion_id: ${page.notion_id})`);
         });
 
         if (relevantPages.length > 0) {
-          // 3. Obtener contenido desde el sistema legacy para estas páginas
           const pageContents: string[] = [];
 
-          for (const page of relevantPages.slice(0, 3)) { // Limitar a 3 páginas
+          for (const page of relevantPages.slice(0, 5)) {
             try {
-              // Buscar contenido legacy por notion_id O por título
               let { data: legacyContent } = await supabase
                 .from('markdown_pages')
                 .select('content, title')
                 .eq('notion_page_id', page.notion_id)
                 .limit(1);
 
-              // Si no se encuentra por notion_id, buscar por título exacto
               if (!legacyContent || legacyContent.length === 0) {
                 const { data: contentByTitle } = await supabase
                   .from('markdown_pages')
@@ -94,26 +89,21 @@ export async function POST(req: Request) {
 
                 if (cleanContent.length > 50) {
                   pageContents.push(`**${page.title}**\n${cleanContent}`);
-                  console.log(`📝 Contenido agregado: "${page.title}" (${cleanContent.length} caracteres)`);
                 }
               } else {
-                // Fallback: usar solo título y propiedades
                 const propsText = Object.entries(page.properties || {})
                   .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
                   .join(', ');
                 pageContents.push(`**${page.title}**\n${propsText}`);
-                console.log(`📝 Fallback agregado: "${page.title}"`);
               }
             } catch (error) {
-              console.log(`⚠️ Error obteniendo contenido para "${page.title}": ${error}`);
+              console.error(`⚠️ Error obteniendo contenido para "${page.title}": ${error}`);
             }
           }
 
           if (pageContents.length > 0) {
             context = pageContents.join('\n\n---\n\n');
-            searchSummary = `Se encontraron ${pageContents.length} documentos relevantes en la base de conocimientos nativa: ${relevantPages.map(p => `"${p.title}"`).join(', ')}.`;
-            console.log(`✅ Contexto generado: ${context.length} caracteres`);
-            console.log(`📝 Contexto: ${context.substring(0, 200)}...`);
+            searchSummary = `Se encontraron ${pageContents.length} documentos relevantes en la base de conocimientos nativa: ${relevantPages.map((p: NotionPage) => `"${p.title}"`).join(', ')}.`;
           } else {
             searchSummary = 'Se encontraron páginas relevantes pero sin contenido suficiente.';
           }
