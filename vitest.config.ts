@@ -42,12 +42,14 @@ export default defineConfig({
         '**/*styles*',
         '**/scripts',
         '**/TempDebug.tsx',
+        'src/components/Icon/GoogleIcon.tsx',
+        'src/components/Icon/NotionIcon.tsx',
+        'src/adapters/output/infrastructure/supabase/NotionNativeRepository/NotionNativeRepository.ts',
+        'src/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository.ts',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
         'src/app/settings/connect/page.tsx',
         'src/app/page.tsx',
-        'src/adapters/output/infrastructure/supabase/NotionNativeRepository/NotionNativeRepository.ts',
-        'src/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository.ts'
       ]
     }
   },
