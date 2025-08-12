@@ -48,7 +48,6 @@ export const TokenSyncTab: React.FC<TokenSyncTabProps> = ({ token }) => {
 
   return (
     <>
-      {/* Información del Token */}
       <InfoCard>
         <InfoContent>
           <InfoTitle>
@@ -72,7 +71,6 @@ export const TokenSyncTab: React.FC<TokenSyncTabProps> = ({ token }) => {
         </ButtonContainer>
       </InfoCard>
 
-      {/* Terminal de Logs */}
       <TerminalContainer>
         <Terminal
           logs={logs}
@@ -81,7 +79,6 @@ export const TokenSyncTab: React.FC<TokenSyncTabProps> = ({ token }) => {
         />
       </TerminalContainer>
 
-      {/* Información del Proceso */}
       <InfoCard>
         <InfoContent>
           <InfoTitle><Icon name="info" /> Información del Token</InfoTitle>
