@@ -9,8 +9,7 @@ import {
   GlobalNavigation,
   NavContainer,
   NavBrand,
-  NavFooterItems,
-  NavItem,
+  NavItems,
   DropdownContainer,
   DropdownItem,
   DropdownItemLabel,
@@ -111,16 +110,7 @@ export const Navigation: React.FC = () => {
           </DropdownContainer>
         </div>
 
-        <NavFooterItems>
-          <NavItem
-            onClick={() => router.push('/settings')}
-            $isActive={pathname.startsWith('/settings')}
-            data-active={pathname.startsWith('/settings')}
-            title="Configuración - Configuración de la aplicación"
-          >
-            <Icon name="settings" size="md" />
-          </NavItem>
-
+        <NavItems>
           {isAuthenticated && userProfile && (
             <UserSection ref={userDropdownRef}>
               <UserAvatar onClick={handleUserClick}>
@@ -150,7 +140,7 @@ export const Navigation: React.FC = () => {
               </UserDropdown>
             </UserSection>
           )}
-        </NavFooterItems>
+        </NavItems>
       </NavContainer>
     </GlobalNavigation>
   );
