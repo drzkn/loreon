@@ -12,7 +12,6 @@ import {
   ErrorMessage
 } from './page.styles';
 import { Icon } from '@/components';
-import { GoogleIcon } from '@/components/Icon/GoogleIcon';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -76,7 +75,7 @@ export default function LoginPage() {
           >
             {isLoading ? 'Conectando...' : (
               <>
-                Continuar con Google <GoogleIcon />
+                Continuar con Google <Icon name='google' />
               </>
             )}
           </LoginButton>
