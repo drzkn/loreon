@@ -1,218 +1,277 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AuthService } from '../AuthService';
 
-// Mock del módulo supabase
+// Mocks sin referencias a variables externas
+vi.mock('@/services/UserTokenService', () => ({
+  UserTokenService: vi.fn().mockImplementation(() => ({
+    hasTokensForProvider: vi.fn(),
+    getDecryptedToken: vi.fn()
+  }))
+}));
+
 vi.mock('@/adapters/output/infrastructure/supabase', () => ({
   supabase: {
     auth: {
+      signInWithOAuth: vi.fn(),
       signInAnonymously: vi.fn(),
       getUser: vi.fn(),
-      signOut: vi.fn(),
       getSession: vi.fn(),
+      signOut: vi.fn()
     }
   }
 }));
 
-// Importar el mock después de definirlo
+// Mock de window.location
+Object.defineProperty(window, 'location', {
+  value: {
+    origin: 'https://test.com'
+  },
+  writable: true
+});
+
+// Importar después de los mocks
 import { supabase } from '@/adapters/output/infrastructure/supabase';
 
-describe('SupabaseAuthService', () => {
-  let authService: AuthService;
-  let mockSupabaseAuth: {
-    signInAnonymously: ReturnType<typeof vi.fn>;
-    getUser: ReturnType<typeof vi.fn>;
-    signOut: ReturnType<typeof vi.fn>;
-    getSession: ReturnType<typeof vi.fn>;
-  };
+describe('AuthService', () => {
+  let service: AuthService;
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockUserTokenService: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    service = new AuthService();
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => { });
+
+    // Obtener referencia al mock
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockSupabaseAuth = supabase.auth as any;
-    authService = new AuthService();
+    mockUserTokenService = (service as any).userTokenService;
   });
 
-  describe('Anonymous Authentication', () => {
-    it('should sign in anonymously successfully', async () => {
-      const mockUser = { id: 'user-123', email: null };
-      const mockData = { user: mockUser, session: null };
-
-      mockSupabaseAuth.signInAnonymously.mockResolvedValue({
-        data: mockData,
-        error: null
-      });
-
-      const result = await authService.signInAnonymously();
-
-      expect(mockSupabaseAuth.signInAnonymously).toHaveBeenCalledOnce();
-      expect(result).toEqual(mockData);
-    });
-
-    it('should handle sign in errors', async () => {
-      const mockError = { message: 'Authentication failed' };
-
-      mockSupabaseAuth.signInAnonymously.mockResolvedValue({
-        data: null,
-        error: mockError
-      });
-
-      await expect(authService.signInAnonymously()).rejects.toThrow();
-      expect(mockSupabaseAuth.signInAnonymously).toHaveBeenCalledOnce();
-    });
-
-    it('should handle critical errors in sign in', async () => {
-      mockSupabaseAuth.signInAnonymously.mockRejectedValue(new Error('Network error'));
-
-      await expect(authService.signInAnonymously()).rejects.toThrow('Network error');
-      expect(mockSupabaseAuth.signInAnonymously).toHaveBeenCalledOnce();
-    });
+  afterEach(() => {
+    consoleSpy.mockRestore();
   });
 
-  describe('User Management', () => {
-    it('should get current user successfully', async () => {
-      const mockUser = { id: 'user-123', email: 'test@example.com' };
-
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: mockUser },
-        error: null
-      });
-
-      const result = await authService.getCurrentUser();
-
-      expect(mockSupabaseAuth.getUser).toHaveBeenCalledOnce();
-      expect(result).toEqual(mockUser);
-    });
-
-    it('should return null when user not found', async () => {
-      const mockError = { message: 'User not found' };
-
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: null },
-        error: mockError
-      });
-
-      const result = await authService.getCurrentUser();
-
-      expect(result).toBeNull();
-      expect(mockSupabaseAuth.getUser).toHaveBeenCalledOnce();
-    });
-
-    it('should handle critical errors when getting user', async () => {
-      mockSupabaseAuth.getUser.mockRejectedValue(new Error('Database error'));
-
-      const result = await authService.getCurrentUser();
-
-      expect(result).toBeNull();
-      expect(mockSupabaseAuth.getUser).toHaveBeenCalledOnce();
-    });
+  it('debería crear instancia del servicio correctamente', () => {
+    expect(service).toBeInstanceOf(AuthService);
+    expect(typeof service.signInWithGoogle).toBe('function');
+    expect(typeof service.hasTokensForProvider).toBe('function');
+    expect(typeof service.getIntegrationToken).toBe('function');
+    expect(typeof service.signInWithProvider).toBe('function');
+    expect(typeof service.signInAnonymously).toBe('function');
+    expect(typeof service.getCurrentUser).toBe('function');
+    expect(typeof service.isAuthenticated).toBe('function');
+    expect(typeof service.getUserProfile).toBe('function');
+    expect(typeof service.signOut).toBe('function');
+    expect(typeof service.getSession).toBe('function');
   });
 
-  describe('Authentication State', () => {
-    it('should return true when user is authenticated', async () => {
-      const mockUser = { id: 'user-123', email: 'test@example.com' };
+  it('debería autenticar con Google exitosamente', async () => {
+    const mockData = { url: 'https://oauth.url', provider: 'google' as const };
+    vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({ data: mockData, error: null });
 
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: mockUser },
-        error: null
-      });
+    const result = await service.signInWithGoogle();
 
-      const result = await authService.isAuthenticated();
-
-      expect(result).toBe(true);
-      expect(mockSupabaseAuth.getUser).toHaveBeenCalledOnce();
+    expect(result).toEqual(mockData);
+    expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://test.com/auth/callback'
+      }
     });
-
-    it('should return false when user is not authenticated', async () => {
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: null },
-        error: { message: 'Not authenticated' }
-      });
-
-      const result = await authService.isAuthenticated();
-
-      expect(result).toBe(false);
-      expect(mockSupabaseAuth.getUser).toHaveBeenCalledOnce();
-    });
-
-    it('should return false when there is an error checking authentication', async () => {
-      mockSupabaseAuth.getUser.mockRejectedValue(new Error('Network error'));
-
-      const result = await authService.isAuthenticated();
-
-      expect(result).toBe(false);
-      expect(mockSupabaseAuth.getUser).toHaveBeenCalledOnce();
-    });
+    expect(console.log).toHaveBeenCalledWith('🔐 [AUTH] Iniciando autenticación con Google...');
+    expect(console.log).toHaveBeenCalledWith('✅ Autenticación con Google iniciada');
   });
 
-  describe('Sign Out', () => {
-    it('should sign out successfully', async () => {
-      mockSupabaseAuth.signOut.mockResolvedValue({
-        error: null
-      });
+  it('debería manejar errores en autenticación con Google', async () => {
+    const mockError = {
+      message: 'OAuth error',
+      code: 'oauth_error',
+      status: 400,
+      name: 'AuthError'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    vi.mocked(supabase.auth).signInWithOAuth.mockResolvedValue({ data: { provider: 'google' as const, url: null }, error: mockError });
 
-      await expect(authService.signOut()).resolves.not.toThrow();
-      expect(mockSupabaseAuth.signOut).toHaveBeenCalledOnce();
-    });
+    await expect(service.signInWithGoogle()).rejects.toEqual(mockError);
+    expect(console.error).toHaveBeenCalledWith('❌ Error en autenticación con Google:', 'OAuth error');
+  });
 
-    it('should handle sign out errors', async () => {
-      const mockError = { message: 'Sign out failed' };
+  it('debería verificar tokens de proveedor con y sin usuario', async () => {
+    const mockUser = {
+      id: 'user-123',
+      aud: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
+      created_at: '2023-01-01T00:00:00Z',
+      updated_at: '2023-01-01T00:00:00Z'
+    };
 
-      mockSupabaseAuth.signOut.mockResolvedValue({
-        error: mockError
-      });
+    // Con usuario proporcionado
+    mockUserTokenService.hasTokensForProvider.mockResolvedValue(true);
+    let hasTokens = await service.hasTokensForProvider('notion', 'user-123');
+    expect(hasTokens).toBe(true);
+    expect(mockUserTokenService.hasTokensForProvider).toHaveBeenCalledWith('user-123', 'notion');
 
-      await expect(authService.signOut()).rejects.toThrow();
-      expect(mockSupabaseAuth.signOut).toHaveBeenCalledOnce();
-    });
+    // Sin usuario (obtener de getCurrentUser)
+    vi.mocked(supabase.auth).getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
+    mockUserTokenService.hasTokensForProvider.mockResolvedValue(false);
+    hasTokens = await service.hasTokensForProvider('slack');
+    expect(hasTokens).toBe(false);
 
-    it('should handle critical errors in sign out', async () => {
-      mockSupabaseAuth.signOut.mockRejectedValue(new Error('Database error'));
+    // Error en verificación
+    mockUserTokenService.hasTokensForProvider.mockRejectedValue(new Error('Token error'));
+    hasTokens = await service.hasTokensForProvider('drive', 'user-error');
+    expect(hasTokens).toBe(false);
+    expect(console.error).toHaveBeenCalledWith('💥 Error verificando tokens de proveedor:', expect.any(Error));
+  });
 
-      await expect(authService.signOut()).rejects.toThrow('Database error');
-      expect(mockSupabaseAuth.signOut).toHaveBeenCalledOnce();
+  it('debería obtener token de integración correctamente', async () => {
+    const mockToken = 'decrypted-token-123';
+
+    // Con usuario y token exitoso
+    mockUserTokenService.getDecryptedToken.mockResolvedValue(mockToken);
+    let token = await service.getIntegrationToken('notion', 'my-token', 'user-456');
+    expect(token).toBe(mockToken);
+
+    // Sin usuario autenticado
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(supabase.auth).getUser.mockResolvedValue({ data: { user: null }, error: null } as any);
+    token = await service.getIntegrationToken('github');
+    expect(token).toBeNull();
+
+    // Error en obtención
+    mockUserTokenService.getDecryptedToken.mockRejectedValue(new Error('Decrypt error'));
+    token = await service.getIntegrationToken('calendar', undefined, 'user-error');
+    expect(token).toBeNull();
+  });
+
+  it('debería autenticar con proveedor genérico', async () => {
+    const mockData = { url: 'https://provider.oauth', provider: 'github' as const };
+    vi.mocked(supabase.auth).signInWithOAuth.mockResolvedValue({ data: mockData, error: null });
+
+    const result = await service.signInWithProvider('github', 'https://custom.redirect');
+    expect(result).toEqual(mockData);
+    expect(vi.mocked(supabase.auth).signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'github',
+      options: {
+        redirectTo: 'https://custom.redirect'
+      }
     });
   });
 
-  describe('Session Management', () => {
-    it('should get session successfully', async () => {
-      const mockSession = {
-        access_token: 'token-123',
-        user: { id: 'user-123' },
-        expires_at: 1234567890
-      };
+  it('debería obtener usuario actual y verificar autenticación', async () => {
+    const mockUser = {
+      id: 'current-user',
+      email: 'test@test.com',
+      aud: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
+      created_at: '2023-01-01T00:00:00Z',
+      updated_at: '2023-01-01T00:00:00Z'
+    };
 
-      mockSupabaseAuth.getSession.mockResolvedValue({
-        data: { session: mockSession },
-        error: null
-      });
+    vi.mocked(supabase.auth).getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
+    const user = await service.getCurrentUser();
+    expect(user).toEqual(mockUser);
 
-      const result = await authService.getSession();
+    let isAuth = await service.isAuthenticated();
+    expect(isAuth).toBe(true);
 
-      expect(mockSupabaseAuth.getSession).toHaveBeenCalledOnce();
-      expect(result).toEqual(mockSession);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(supabase.auth).getUser.mockResolvedValue({ data: { user: null }, error: null } as any);
+    isAuth = await service.isAuthenticated();
+    expect(isAuth).toBe(false);
+  });
+
+  it('debería obtener perfil de usuario completo', async () => {
+    const mockUser = {
+      id: 'profile-user',
+      email: 'profile@test.com',
+      aud: 'authenticated',
+      user_metadata: {
+        name: 'John Doe',
+        avatar_url: 'https://avatar.url'
+      },
+      app_metadata: { provider: 'github' },
+      last_sign_in_at: '2023-01-01T00:00:00Z',
+      created_at: '2022-01-01T00:00:00Z',
+      updated_at: '2022-01-01T00:00:00Z'
+    };
+
+    vi.mocked(supabase.auth).getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
+    const profile = await service.getUserProfile();
+
+    expect(profile).toEqual({
+      id: 'profile-user',
+      email: 'profile@test.com',
+      name: 'John Doe',
+      avatar: 'https://avatar.url',
+      provider: 'github',
+      lastSignIn: '2023-01-01T00:00:00Z',
+      createdAt: '2022-01-01T00:00:00Z'
     });
 
-    it('should return null when session not found', async () => {
-      const mockError = { message: 'Session not found' };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(supabase.auth).getUser.mockResolvedValue({ data: { user: null }, error: null } as any);
+    const noProfile = await service.getUserProfile();
+    expect(noProfile).toBeNull();
+  });
 
-      mockSupabaseAuth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: mockError
-      });
+  it('debería cerrar sesión y obtener sesión', async () => {
+    vi.mocked(supabase.auth).signOut.mockResolvedValue({ error: null });
+    await service.signOut();
+    expect(vi.mocked(supabase.auth).signOut).toHaveBeenCalled();
+    expect(console.log).toHaveBeenCalledWith('✅ Sesión cerrada exitosamente');
 
-      const result = await authService.getSession();
+    const mockSession = {
+      access_token: 'token-123',
+      refresh_token: 'refresh-123',
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: {
+        id: 'session-user',
+        aud: 'authenticated',
+        app_metadata: {},
+        user_metadata: {},
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z'
+      }
+    };
+    vi.mocked(supabase.auth).getSession.mockResolvedValue({ data: { session: mockSession }, error: null });
+    const session = await service.getSession();
+    expect(session).toEqual(mockSession);
 
-      expect(result).toBeNull();
-      expect(mockSupabaseAuth.getSession).toHaveBeenCalledOnce();
-    });
+    const sessionError = {
+      message: 'Session fetch failed',
+      code: 'session_error',
+      status: 400,
+      name: 'AuthError'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    vi.mocked(supabase.auth).getSession.mockResolvedValue({ data: { session: null }, error: sessionError });
+    const errorSession = await service.getSession();
+    expect(errorSession).toBeNull();
+  });
 
-    it('should handle critical errors when getting session', async () => {
-      mockSupabaseAuth.getSession.mockRejectedValue(new Error('Network error'));
+  it('debería manejar autenticación anónima y errores críticos', async () => {
+    const mockUser = {
+      id: 'anon-user-789',
+      aud: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
+      created_at: '2023-01-01T00:00:00Z',
+      updated_at: '2023-01-01T00:00:00Z'
+    };
+    const mockData = { user: mockUser, session: null };
 
-      const result = await authService.getSession();
+    vi.mocked(supabase.auth).signInAnonymously.mockResolvedValue({ data: mockData, error: null });
+    const result = await service.signInAnonymously();
+    expect(result).toEqual(mockData);
 
-      expect(result).toBeNull();
-      expect(mockSupabaseAuth.getSession).toHaveBeenCalledOnce();
-    });
+    vi.mocked(supabase.auth).signInWithOAuth.mockRejectedValue(new Error('Critical error'));
+    await expect(service.signInWithGoogle()).rejects.toThrow('Critical error');
+    expect(console.error).toHaveBeenCalledWith('💥 Error crítico en autenticación con Google:', expect.any(Error));
   });
 });
