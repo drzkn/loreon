@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useTokens } from '@/contexts/TokenContext';
+import { useTokens } from '@/contexts/TokenContext/TokenContext';
 
 export const useSettingsTokens = () => {
   const { userProfile, isAuthenticated } = useAuth();

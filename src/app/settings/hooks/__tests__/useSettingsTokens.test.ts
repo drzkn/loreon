@@ -5,7 +5,7 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn()
 }));
 
-vi.mock('@/contexts/TokenContext', () => ({
+vi.mock('@/contexts/TokenContext/TokenContext', () => ({
   useTokens: vi.fn()
 }));
 
@@ -13,7 +13,7 @@ vi.spyOn(console, 'log').mockImplementation(() => { });
 
 import { useSettingsTokens } from '../useSettingsTokens';
 import { useAuth } from '@/hooks/useAuth';
-import { useTokens } from '@/contexts/TokenContext';
+import { useTokens } from '@/contexts/TokenContext/TokenContext';
 
 const mockUseAuth = vi.mocked(useAuth);
 const mockUseTokens = vi.mocked(useTokens);
