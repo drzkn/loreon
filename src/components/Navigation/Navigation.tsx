@@ -4,23 +4,33 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../Icon';
 import { navigationItems } from './Navigation.constants';
+import { useAuth } from '@/hooks/useAuth';
 import {
   GlobalNavigation,
   NavContainer,
   NavBrand,
-  NavFooterItems,
-  NavItem,
+  NavItems,
   DropdownContainer,
   DropdownItem,
   DropdownItemLabel,
-  DropdownItemDescription
+  DropdownItemDescription,
+  UserSection,
+  UserAvatar,
+  UserDropdown,
+  UserDropdownItem,
+  UserInfo,
+  UserName,
+  UserEmail
 } from './Navigation.styles';
 
 export const Navigation: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const { userProfile, isAuthenticated, signOut } = useAuth();
 
   useEffect(() => {
     document.documentElement.style.setProperty('--nav-height', '70px');
@@ -31,6 +41,9 @@ export const Navigation: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setIsUserDropdownOpen(false);
       }
     };
 
@@ -47,6 +60,24 @@ export const Navigation: React.FC = () => {
   const handleItemClick = (path: string) => {
     router.push(path);
     setIsDropdownOpen(false);
+  };
+
+  const handleUserClick = () => {
+    setIsUserDropdownOpen(!isUserDropdownOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Error durante logout:', error);
+    }
+  };
+
+  const getUserInitial = () => {
+    if (!userProfile?.name) return userProfile?.email?.[0]?.toUpperCase() || 'U';
+    return userProfile.name[0].toUpperCase();
   };
 
   return (
@@ -79,16 +110,37 @@ export const Navigation: React.FC = () => {
           </DropdownContainer>
         </div>
 
-        <NavFooterItems>
-          <NavItem
-            onClick={() => router.push('/settings')}
-            $isActive={pathname.startsWith('/settings')}
-            data-active={pathname.startsWith('/settings')}
-            title="Configuración - Configuración de la aplicación"
-          >
-            <Icon name="settings" size="md" />
-          </NavItem>
-        </NavFooterItems>
+        <NavItems>
+          {isAuthenticated && userProfile && (
+            <UserSection ref={userDropdownRef}>
+              <UserAvatar onClick={handleUserClick}>
+                {getUserInitial()}
+              </UserAvatar>
+
+              <UserDropdown $isOpen={isUserDropdownOpen}>
+                <UserInfo>
+                  <UserName>{userProfile.name || 'Usuario'}</UserName>
+                  <UserEmail>{userProfile.email}</UserEmail>
+                </UserInfo>
+
+                <UserDropdownItem onClick={() => router.push('/profile')}>
+                  <Icon name="user" size="sm" />
+                  Mi Perfil
+                </UserDropdownItem>
+
+                <UserDropdownItem onClick={() => router.push('/settings')}>
+                  <Icon name="settings" size="sm" />
+                  Configuración
+                </UserDropdownItem>
+
+                <UserDropdownItem className="danger" onClick={handleLogout}>
+                  <Icon name="logout" size="sm" />
+                  Cerrar Sesión
+                </UserDropdownItem>
+              </UserDropdown>
+            </UserSection>
+          )}
+        </NavItems>
       </NavContainer>
     </GlobalNavigation>
   );

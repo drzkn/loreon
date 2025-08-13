@@ -27,7 +27,7 @@ coverage
 out/
 build
 dist
-
+repomix-output.xml
 
 # Debug
 npm-debug.log*

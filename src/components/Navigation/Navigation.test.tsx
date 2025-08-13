@@ -7,7 +7,6 @@ import { Navigation } from './Navigation';
 const mockPush = vi.fn();
 let mockPathname = '/';
 
-// Mock theme para styled components
 const mockTheme = {
   colors: {
     bgPrimary: '#0b0f1a',
@@ -95,6 +94,22 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname
 }));
 
+const mockSignOut = vi.fn();
+const mockUserProfile = {
+  id: 'test-user-id',
+  email: 'test@example.com',
+  name: 'Test User',
+  avatar: null
+};
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    userProfile: mockUserProfile,
+    isAuthenticated: true,
+    signOut: mockSignOut
+  })
+}));
+
 vi.mock('../Icon', () => ({
   Icon: ({ name, size }: { name: string; size: string }) => (
     <span data-testid={`icon-${name}`} data-size={size}>
@@ -148,6 +163,7 @@ describe('Navigation', () => {
 
     mockPathname = '/';
     vi.clearAllMocks();
+    mockSignOut.mockClear();
   });
 
   afterEach(() => {
@@ -178,7 +194,14 @@ describe('Navigation', () => {
     it('should render settings icon', () => {
       renderWithTheme(<Navigation />);
 
-      expect(screen.getByTestId('icon-settings')).toBeInTheDocument();
+      const settingsIcons = screen.getAllByTestId('icon-settings');
+      expect(settingsIcons.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should render user avatar when authenticated', () => {
+      renderWithTheme(<Navigation />);
+
+      expect(screen.getByText('T')).toBeInTheDocument(); // First letter of "Test User"
     });
 
     it('should render chevron icon for dropdown', () => {
@@ -346,62 +369,14 @@ describe('Navigation', () => {
     });
   });
 
-  describe('Settings Button', () => {
-    it('should render settings button', () => {
-      renderWithTheme(<Navigation />);
-
-      const settingsButton = screen.getByTestId('icon-settings').closest('button');
-      expect(settingsButton).toBeInTheDocument();
-    });
-
-    it('should navigate to settings when clicked', () => {
-      renderWithTheme(<Navigation />);
-
-      const settingsButton = screen.getByTestId('icon-settings').closest('button');
-      fireEvent.click(settingsButton!);
-
-      expect(mockPush).toHaveBeenCalledWith('/settings');
-    });
-
-    it('should mark settings as active when on settings page', () => {
-      mockPathname = '/settings';
-      renderWithTheme(<Navigation />);
-
-      const settingsButton = screen.getByTestId('icon-settings').closest('button');
-      expect(settingsButton).toHaveAttribute('data-active', 'true');
-    });
-
-    it('should not mark settings as active when on other pages', () => {
-      mockPathname = '/';
-      renderWithTheme(<Navigation />);
-
-      const settingsButton = screen.getByTestId('icon-settings').closest('button');
-      expect(settingsButton).toHaveAttribute('data-active', 'false');
-    });
-  });
-
   describe('Component Structure', () => {
-    it('should have proper accessibility attributes', () => {
-      renderWithTheme(<Navigation />);
-
-      const nav = screen.getByRole('navigation');
-      expect(nav).toBeInTheDocument();
-
-      const settingsButton = screen.getByTestId('icon-settings').closest('button');
-      expect(settingsButton).toHaveAttribute('title');
-    });
-
     it('should maintain topbar layout structure', () => {
       renderWithTheme(<Navigation />);
 
       const nav = screen.getByRole('navigation');
       expect(nav).toBeInTheDocument();
 
-      // Brand should be on the left
       expect(screen.getByText('Loreon AI')).toBeInTheDocument();
-
-      // Settings should be on the right
-      expect(screen.getByTestId('icon-settings')).toBeInTheDocument();
     });
   });
 
@@ -450,6 +425,55 @@ describe('Navigation', () => {
         const nav = screen.getByRole('navigation');
         expect(nav).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('User Functionality', () => {
+    it('should render user avatar with correct initial', () => {
+      renderWithTheme(<Navigation />);
+
+      const avatar = screen.getByText('T');
+      expect(avatar).toBeInTheDocument();
+    });
+
+    it('should open user dropdown when avatar is clicked', async () => {
+      renderWithTheme(<Navigation />);
+
+      const avatar = screen.getByText('T');
+      fireEvent.click(avatar);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test User')).toBeVisible();
+        expect(screen.getByText('test@example.com')).toBeVisible();
+      });
+    });
+
+    it('should render user menu items', async () => {
+      renderWithTheme(<Navigation />);
+
+      const avatar = screen.getByText('T');
+      fireEvent.click(avatar);
+
+      await waitFor(() => {
+        expect(screen.getByText('Mi Perfil')).toBeVisible();
+        expect(screen.getByText('Configuración')).toBeVisible();
+        expect(screen.getByText('Cerrar Sesión')).toBeVisible();
+      });
+    });
+
+    it('should call signOut when logout is clicked', async () => {
+      renderWithTheme(<Navigation />);
+
+      const avatar = screen.getByText('T');
+      fireEvent.click(avatar);
+
+      await waitFor(() => {
+        const logoutButton = screen.getByText('Cerrar Sesión');
+        fireEvent.click(logoutButton);
+      });
+
+      expect(mockSignOut).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/auth/login');
     });
   });
 });

@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Bot,
   Settings,
@@ -20,11 +21,18 @@ import {
   Trash2,
   CirclePause,
   User,
-  Brain
+  Brain,
+  Plus,
+  Trash,
+  Key,
+  LogOut,
+  PartyPopper
 } from 'lucide-react';
+import { NotionIcon } from './NotionIcon';
 import { IconName } from "./Icon.types";
+import { GoogleIcon } from './GoogleIcon';
 
-export const iconMapper: Record<IconName, LucideIcon> = {
+export const iconMapper: Record<IconName, LucideIcon | React.FC> = {
   bot: Bot,
   settings: Settings,
   'test-tubes': TestTubeDiagonal,
@@ -45,5 +53,12 @@ export const iconMapper: Record<IconName, LucideIcon> = {
   'trash-2': Trash2,
   'circle-pause': CirclePause,
   user: User,
-  brain: Brain
+  brain: Brain,
+  plus: Plus,
+  trash: Trash,
+  key: Key,
+  logout: LogOut,
+  notion: NotionIcon,
+  google: GoogleIcon,
+  "party-popper": PartyPopper
 };

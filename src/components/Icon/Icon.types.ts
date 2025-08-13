@@ -20,6 +20,13 @@ export type IconName =
   'trash-2' |
   'circle-pause' |
   'user' |
-  'brain';
+  'brain' |
+  'plus' |
+  'trash' |
+  'key' |
+  'logout' |
+  'notion' |
+  'google' |
+  'party-popper';
 
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';

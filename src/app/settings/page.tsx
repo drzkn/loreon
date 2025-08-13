@@ -1,84 +1,51 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ConnectionContent } from './components/ConnectionContent';
+import { Icon } from '@/components';
 import {
-  TabsHeader,
-  TabButton,
+  SettingsContainer,
+  SettingsHeader,
+  SettingsTitle,
+  TabsContainer,
+  Tab,
   TabIcon,
   TabLabel,
-  DefaultContent
+  ContentContainer
 } from './page.styles';
-import { Icon } from '@/components';
-import { IconName } from '@/components/Icon';
-
-interface TabConfig {
-  id: string;
-  label: string;
-  icon: IconName;
-}
-
-const tabs: TabConfig[] = [
-  {
-    id: 'connection',
-    label: 'Conexión',
-    icon: 'plug' as IconName
-  }
-];
 
 export default function SettingsPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
 
-  useEffect(() => {
-    if (pathname === '/settings/connect') {
-      setActiveTab('connection');
-    } else {
-      setActiveTab(tabs[0].id);
-    }
-  }, [pathname]);
+  const isConnectionTab = pathname === '/settings' || pathname === '/settings/connect';
 
-  const handleTabClick = (tab: TabConfig) => {
-    setActiveTab(tab.id);
-
-    if (tab.id === 'connection') {
-      router.push('/settings/connect');
-    } else {
-      router.push('/settings');
-    }
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'connection':
-        return <ConnectionContent />;
-      default:
-        return (
-          <DefaultContent>
-            Selecciona una pestaña para configurar las opciones correspondientes
-          </DefaultContent>
-        );
-    }
+  const handleTabClick = (path: string) => {
+    router.push(path);
   };
 
   return (
-    <div>
-      <TabsHeader>
-        {tabs.map((tab) => (
-          <TabButton
-            key={tab.id}
-            onClick={() => handleTabClick(tab)}
-            $isActive={activeTab === tab.id}
+    <SettingsContainer>
+      <SettingsHeader>
+        <SettingsTitle>Configuración</SettingsTitle>
+        <TabsContainer>
+          <Tab
+            onClick={() => handleTabClick('/settings/connect')}
+            $isActive={isConnectionTab}
+            role="button"
+            aria-label="Conexión"
           >
-            <TabIcon><Icon name={tab.icon} /></TabIcon>
-            <TabLabel>{tab.label}</TabLabel>
-          </TabButton>
-        ))}
-      </TabsHeader>
+            <TabIcon>
+              <Icon name="plug" size="md" />
+            </TabIcon>
+            <TabLabel>Conexión</TabLabel>
+          </Tab>
+        </TabsContainer>
+      </SettingsHeader>
 
-      {renderTabContent()}
-    </div>
+      <ContentContainer>
+        {isConnectionTab && <ConnectionContent />}
+      </ContentContainer>
+    </SettingsContainer>
   );
-} 
+}

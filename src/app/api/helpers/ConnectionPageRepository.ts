@@ -22,10 +22,11 @@ export class ConnectionPageRepository {
     public databaseId: string,
     private setIsProcessing: (processing: boolean) => void,
     private setProgress: (progress: { current: number; total: number; currentPageTitle: string } | null) => void,
-    private sendLogToStream?: (message: string) => void
+    private sendLogToStream?: (message: string) => void,
+    private useServerClient: boolean = false
   ) {
     this.authService = new AuthService();
-    this.markdownRepository = new SupabaseMarkdownRepository();
+    this.markdownRepository = new SupabaseMarkdownRepository(this.useServerClient);
     this.embeddingsService = new EmbeddingsService();
   }
 
@@ -62,19 +63,21 @@ export class ConnectionPageRepository {
     this.log('info', `🚀 Iniciando sincronización con Supabase para base de datos: ${this.databaseId}`);
 
     try {
-      // Paso 0: Verificar/Inicializar autenticación
-      this.log('info', '🔐 Verificando autenticación...');
-      const isAuthenticated = await this.authService.isAuthenticated();
+      if (!this.useServerClient) {
+        this.log('info', '🔐 Verificando autenticación...');
+        const isAuthenticated = await this.authService.isAuthenticated();
 
-      if (!isAuthenticated) {
-        this.log('info', '🔑 No autenticado, iniciando sesión anónima...');
-        await this.authService.signInAnonymously();
-        this.log('success', '✅ Autenticación anónima completada');
+        if (!isAuthenticated) {
+          this.log('info', '🔑 No autenticado, iniciando sesión anónima...');
+          await this.authService.signInAnonymously();
+          this.log('success', '✅ Autenticación anónima completada');
+        } else {
+          this.log('success', '✅ Usuario ya autenticado');
+        }
       } else {
-        this.log('success', '✅ Usuario ya autenticado');
+        this.log('success', '✅ Usando cliente del servidor (sin autenticación requerida)');
       }
 
-      // Paso 1: Obtener todas las páginas de la base de datos
       this.log('info', '📊 Obteniendo páginas de la base de datos...');
       this.log('info', `🎯 Database ID: ${this.databaseId}`);
 
@@ -93,7 +96,6 @@ export class ConnectionPageRepository {
         return;
       }
 
-      // Paso 2: Procesar y guardar cada página en paralelo
       this.log('info', `🚀 Procesando y guardando ${pages.length} páginas en Supabase...`);
 
       let completedPages = 0;
@@ -104,7 +106,7 @@ export class ConnectionPageRepository {
         try {
           const pageTitle = this.extractPageTitle(page);
 
-          this.log('info', `📝 Procesando página ${index + 1}/${pages.length}: "${pageTitle}" (ID: ${page.id})`);
+          this.log('info', `📝 Procesando página ${index + 1}/${pages.length}: "${pageTitle}"`);
 
           this.setProgress({
             current: index + 1,
@@ -112,44 +114,29 @@ export class ConnectionPageRepository {
             currentPageTitle: pageTitle
           });
 
-          // Obtener bloques recursivos de la página
-          this.log('info', `🧱 Obteniendo bloques para: "${pageTitle}"`);
           const blockResponse = await container.getBlockChildrenRecursiveUseCase.execute(page.id, {
             maxDepth: 5,
             includeEmptyBlocks: false,
             delayBetweenRequests: 100
           });
 
-          this.log('info', `🧱 Bloques obtenidos: ${blockResponse.blocks.length} bloques, profundidad máxima: ${blockResponse.maxDepthReached}, ${blockResponse.apiCallsCount} llamadas API`);
-
-          // Convertir bloques a markdown
-          this.log('info', `📝 Convirtiendo bloques a markdown para: "${pageTitle}"`);
           const markdownContent = convertBlocksToMarkdown(blockResponse.blocks);
-          const markdownLength = markdownContent.length;
-          this.log('info', `📝 Markdown generado: ${markdownLength} caracteres`);
 
-          // Verificar si la página ya existe
-          this.log('info', `🔍 Verificando si la página ya existe en Supabase: "${pageTitle}"`);
           const existingPage = await this.markdownRepository.findByNotionPageId(page.id);
 
           let savedPage;
           if (existingPage) {
-            // Actualizar página existente
-            this.log('info', `🔄 Página existente encontrada, actualizando: "${pageTitle}" (Supabase ID: ${existingPage.id})`);
             const updateData = {
               title: pageTitle,
               content: markdownContent,
               notion_page_id: page.id,
               updated_at: new Date().toISOString()
             };
-            this.log('info', `💾 Datos de actualización preparados: ${Object.keys(updateData).join(', ')}`);
 
             savedPage = await this.markdownRepository.update(existingPage.id, updateData);
             operationStats.updated++;
-            this.log('success', `✅ Página "${pageTitle}" actualizada exitosamente`);
+            this.log('success', `✅ "${pageTitle}" actualizada (${markdownContent.length} caracteres)`);
           } else {
-            // Crear nueva página
-            this.log('info', `🆕 Página nueva, creando entrada en Supabase: "${pageTitle}"`);
             const saveData = {
               title: pageTitle,
               content: markdownContent,
@@ -157,14 +144,12 @@ export class ConnectionPageRepository {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             };
-            this.log('info', `💾 Datos de creación preparados: ${Object.keys(saveData).join(', ')}`);
 
             savedPage = await this.markdownRepository.save(saveData);
             operationStats.created++;
-            this.log('success', `✅ Página "${pageTitle}" creada exitosamente (Supabase ID: ${savedPage.id})`);
+            this.log('success', `✅ "${pageTitle}" creada (${markdownContent.length} caracteres)`);
           }
 
-          // Generar embedding automáticamente
           await this.generateEmbeddingForPage(savedPage, pageTitle, markdownContent, operationStats);
 
           completedPages++;
@@ -176,14 +161,12 @@ export class ConnectionPageRepository {
           const pageTitle = this.extractPageTitle(page);
           this.log('error', `❌ Error procesando página "${pageTitle}" (${page.id}): ${errorMessage}`, error);
 
-          // Log detalles adicionales del error si está disponible
           if (error instanceof Error && error.stack) {
             this.log('error', `🐛 Stack trace: ${error.stack.split('\n')[0]}`);
           }
         }
       };
 
-      // Procesar páginas en lotes para evitar sobrecargar la API
       const batchSize = 5;
       this.log('info', `⚙️ Procesando páginas en lotes de ${batchSize}`);
 
@@ -199,7 +182,6 @@ export class ConnectionPageRepository {
         this.log('info', `✅ Lote ${batchNumber}/${totalBatches} completado`);
       }
 
-      // Estadísticas finales detalladas
       const successRate = ((completedPages - errorPages) / pages.length * 100).toFixed(1);
       const totalOperations = operationStats.created + operationStats.updated;
       const embeddingSuccessRate = operationStats.embeddingsGenerated > 0
@@ -242,30 +224,21 @@ export class ConnectionPageRepository {
     operationStats: { embeddingsGenerated: number; embeddingErrors: number }
   ): Promise<void> {
     try {
-      this.log('info', `🧠 Generando embedding para: "${pageTitle}"`);
-
-      // Preparar texto para embedding: título + contenido
       const textForEmbedding = `${pageTitle}\n\n${markdownContent}`;
 
-      // Generar embedding
       const embedding = await this.embeddingsService.generateEmbedding(textForEmbedding);
 
-      // Actualizar la página con el embedding
       await this.markdownRepository.update(savedPage.id, {
         embedding: embedding,
         updated_at: new Date().toISOString()
       });
 
       operationStats.embeddingsGenerated++;
-      this.log('success', `✅ Embedding generado para "${pageTitle}" (${embedding.length} dimensiones)`);
 
     } catch (embeddingError) {
       operationStats.embeddingErrors++;
       const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Error desconocido';
       this.log('error', `❌ Error generando embedding para "${pageTitle}": ${errorMessage}`, embeddingError);
-
-      // No fallar toda la sincronización por un error de embedding
-      this.log('warn', `⚠️ Continuando sin embedding para "${pageTitle}"`);
     }
   }
 } 

@@ -21,10 +21,12 @@ import {
   WelcomeSubtitle
 } from './page.styles';
 import { Icon } from '@/components';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { userProfile } = useAuth();
 
   // Usar el hook useChat para conectar con nuestra API RAG
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
@@ -123,9 +125,14 @@ export default function Home() {
             <WelcomeMessage>
               <WelcomeTitle>¡Bienvenido a Loreon AI! <Icon name="rocket" size="lg" /></WelcomeTitle>
               <WelcomeSubtitle>
-                Tu asistente inteligente para gestión de contenido markdown,
-                sincronización de datos y búsqueda vectorial. Comienza escribiendo tu primera pregunta.
+                Tu asistente inteligente para gestión de contenido,
+                sincronización de datos y búsqueda semántica. Comienza escribiendo tu primera pregunta.
               </WelcomeSubtitle>
+              {userProfile && (
+                <p style={{ color: 'var(--accent-color)', margin: '1rem 0 0 0', fontSize: '0.9rem', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                  ¡Hola, {userProfile.name}! <Icon name="party-popper" size="sm" />
+                </p>
+              )}
             </WelcomeMessage>
           ) : (
             messages.map((message) => (
@@ -186,6 +193,6 @@ export default function Home() {
           </InputWrapper>
         </InputContainer>
       </ActionsSection>
-    </ChatContainer>
+    </ChatContainer >
   );
 }
