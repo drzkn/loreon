@@ -65,3 +65,4 @@ describe('SearchBar', () => {
     expect(mockOnChange).toHaveBeenCalledWith('');
   });
 });
+

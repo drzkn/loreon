@@ -24,3 +24,4 @@ export const SearchInput = styled.input`
     background: rgba(255, 255, 255, 0.08);
   }
 `;
+
