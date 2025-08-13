@@ -107,3 +107,4 @@ export const StepList = styled.ul`
   color: var(--text-secondary);
   padding-left: 1.5rem;
 `;
+

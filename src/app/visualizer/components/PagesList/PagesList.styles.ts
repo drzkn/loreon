@@ -100,3 +100,4 @@ export const LoadingSpinner = styled.div`
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
 `;
+

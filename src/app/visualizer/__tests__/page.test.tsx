@@ -51,16 +51,6 @@ describe('VisualizerPage - Cobertura Completa', () => {
     archived: false
   };
 
-  const mockLegacyPage = {
-    id: 'legacy-1',
-    title: 'Legacy Test Page',
-    content: '# Legacy Content',
-    notion_page_id: 'notion-456',
-    notion_url: 'https://notion.so/legacy',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-02T00:00:00Z'
-  };
-
   const setupMockSupabase = (selectData: any[] = [], selectError: any = null, fromData: any[] = [], fromError: any = null) => {
     mockSupabase.from.mockReturnValue({
       select: vi.fn().mockReturnValue({

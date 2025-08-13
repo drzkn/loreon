@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ThemeProvider } from 'styled-components';
+import { TokenProvider } from '@/contexts/TokenContext/TokenContext';
 import { ConnectionContent } from '../ConnectionContent';
 
 // Mock theme para styled components
@@ -143,7 +144,7 @@ vi.mock('@/utils/renderLogger', () => ({
 }));
 
 // Mock TokenContext to prevent the context error
-vi.mock('@/contexts/TokenContext', () => ({
+vi.mock('@/contexts/TokenContext/TokenContext', () => ({
   useTokens: () => ({
     tokens: [],
     isLoadingTokens: false,
@@ -158,9 +159,11 @@ vi.mock('@/contexts/TokenContext', () => ({
 
 const renderWithTheme = (component: React.ReactElement) => {
   return render(
-    <ThemeProvider theme={mockTheme}>
-      {component}
-    </ThemeProvider>
+    <TokenProvider>
+      <ThemeProvider theme={mockTheme}>
+        {component}
+      </ThemeProvider>
+    </TokenProvider>
   );
 };
 
