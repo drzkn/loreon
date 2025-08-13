@@ -34,123 +34,122 @@ export function useSystemDataLoader() {
     setIsClient(true);
   }, []);
 
-  const loadNativePages = async () => {
-    try {
-      console.log('📱 Cargando páginas del sistema nativo...');
+  const checkSystemsAndLoadPages = useCallback(async () => {
+    const loadNativePages = async () => {
+      try {
+        console.log('📱 Cargando páginas del sistema nativo...');
 
-      const { data: loadedPages, error: pagesError } = await supabase
-        .from('notion_pages')
-        .select('*')
-        .eq('archived', false)
-        .order('updated_at', { ascending: false })
-        .limit(100);
+        const { data: loadedPages, error: pagesError } = await supabase
+          .from('notion_pages')
+          .select('*')
+          .eq('archived', false)
+          .order('updated_at', { ascending: false })
+          .limit(100);
 
-      if (pagesError) {
-        throw new Error(`Error obteniendo páginas nativas: ${pagesError.message}`);
-      }
+        if (pagesError) {
+          throw new Error(`Error obteniendo páginas nativas: ${pagesError.message}`);
+        }
 
-      if (!loadedPages || loadedPages.length === 0) {
-        console.log('📭 No hay páginas en el sistema nativo');
-        setPages([]);
-        return;
-      }
+        if (!loadedPages || loadedPages.length === 0) {
+          console.log('📭 No hay páginas en el sistema nativo');
+          setPages([]);
+          return;
+        }
 
-      console.log(`📄 Obtenidas ${loadedPages.length} páginas nativas`);
+        console.log(`📄 Obtenidas ${loadedPages.length} páginas nativas`);
 
-      const transformedPages: UnifiedPageData[] = [];
+        const transformedPages: UnifiedPageData[] = [];
 
-      for (const page of loadedPages.slice(0, 20)) {
-        try {
-          const blocks = await nativeRepository!.getPageBlocks(page.id);
+        for (const page of loadedPages.slice(0, 20)) {
+          try {
+            const blocks = await nativeRepository!.getPageBlocks(page.id);
 
-          let htmlContent;
+            let htmlContent;
 
-          if (blocks.length > 0) {
-            htmlContent = blocks.map(block => block.html_content).join('\n');
-          } else {
+            if (blocks.length > 0) {
+              htmlContent = blocks.map(block => block.html_content).join('\n');
+            } else {
+              const originalContent = page.raw_data?.original_content || '';
+              if (originalContent) {
+                htmlContent = renderMarkdown(originalContent);
+              } else {
+                htmlContent = '<p>Sin contenido disponible</p>';
+              }
+            }
+
+            transformedPages.push({
+              id: page.id,
+              title: page.title,
+              content: htmlContent,
+              source: 'native',
+              notion_id: page.notion_id,
+              url: page.url,
+              created_at: page.created_at,
+              updated_at: page.updated_at
+            });
+
+          } catch (blockError) {
+            console.warn(`⚠️ Error obteniendo bloques para página ${page.title}:`, blockError);
+
             const originalContent = page.raw_data?.original_content || '';
+            let htmlContent;
+
             if (originalContent) {
               htmlContent = renderMarkdown(originalContent);
             } else {
-              htmlContent = '<p>Sin contenido disponible</p>';
+              htmlContent = '<p>Error cargando contenido</p>';
             }
+
+            transformedPages.push({
+              id: page.id,
+              title: page.title,
+              content: htmlContent,
+              source: 'native',
+              notion_id: page.notion_id,
+              url: page.url,
+              created_at: page.created_at,
+              updated_at: page.updated_at
+            });
           }
-
-          transformedPages.push({
-            id: page.id,
-            title: page.title,
-            content: htmlContent,
-            source: 'native',
-            notion_id: page.notion_id,
-            url: page.url,
-            created_at: page.created_at,
-            updated_at: page.updated_at
-          });
-
-        } catch (blockError) {
-          console.warn(`⚠️ Error obteniendo bloques para página ${page.title}:`, blockError);
-
-          const originalContent = page.raw_data?.original_content || '';
-          let htmlContent;
-
-          if (originalContent) {
-            htmlContent = renderMarkdown(originalContent);
-          } else {
-            htmlContent = '<p>Error cargando contenido</p>';
-          }
-
-          transformedPages.push({
-            id: page.id,
-            title: page.title,
-            content: htmlContent,
-            source: 'native',
-            notion_id: page.notion_id,
-            url: page.url,
-            created_at: page.created_at,
-            updated_at: page.updated_at
-          });
         }
+
+        setPages(transformedPages);
+        console.log(`✅ Cargadas ${transformedPages.length} páginas nativas exitosamente`);
+
+      } catch (err) {
+        console.error('❌ Error cargando páginas nativas:', err);
+        throw err;
       }
+    };
 
-      setPages(transformedPages);
-      console.log(`✅ Cargadas ${transformedPages.length} páginas nativas exitosamente`);
+    const loadLegacyPages = async () => {
+      try {
+        console.log('📚 Cargando páginas del sistema legacy...');
 
-    } catch (err) {
-      console.error('❌ Error cargando páginas nativas:', err);
-      throw err;
-    }
-  };
+        const loadedPages = await legacyRepository!.findAll({ limit: 100 });
 
-  const loadLegacyPages = async () => {
-    try {
-      console.log('📚 Cargando páginas del sistema legacy...');
+        const transformedPages: UnifiedPageData[] = loadedPages.map(page => ({
+          id: page.id,
+          title: page.title,
+          content: page.content,
+          source: 'legacy',
+          notion_id: page.notion_page_id || undefined,
+          url: page.notion_url || undefined,
+          created_at: page.created_at,
+          updated_at: page.updated_at
+        }));
 
-      const loadedPages = await legacyRepository!.findAll({ limit: 100 });
+        setPages(transformedPages.sort((a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        ));
 
-      const transformedPages: UnifiedPageData[] = loadedPages.map(page => ({
-        id: page.id,
-        title: page.title,
-        content: page.content,
-        source: 'legacy',
-        notion_id: page.notion_page_id || undefined,
-        url: page.notion_url || undefined,
-        created_at: page.created_at,
-        updated_at: page.updated_at
-      }));
+        console.log(`✅ Cargadas ${transformedPages.length} páginas legacy exitosamente`);
 
-      setPages(transformedPages.sort((a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      ));
-
-      console.log(`✅ Cargadas ${transformedPages.length} páginas legacy exitosamente`);
-
-    } catch (err) {
-      console.error('❌ Error cargando páginas legacy:', err);
-      throw err;
-    }
-  };
-
-  const checkSystemsAndLoadPages = useCallback(async () => {
+      } catch (err) {
+        console.error('❌ Error cargando páginas legacy:', err);
+        throw err;
+      }
+    };
     if (!nativeRepository || !legacyRepository) {
       setError('Repositorios no disponibles en el servidor');
       setLoading(false);

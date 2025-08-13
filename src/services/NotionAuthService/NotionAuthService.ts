@@ -1,29 +1,38 @@
 import { UserTokenService } from '@/services/UserTokenService';
 
-// Interfaz para cliente HTTP simple
 interface HttpClient {
-  get(url: string, headers?: Record<string, string>): Promise<any>;
+  get(url: string, headers?: Record<string, string>): Promise<unknown>;
 }
 
-// Cliente HTTP simple para requests a Notion
-class SimpleHttpClient implements HttpClient {
-  constructor(private baseURL: string = 'https://api.notion.com/v1') { }
+interface NotionUserResponse {
+  user: NotionUser;
+}
 
-  async get(url: string, headers: Record<string, string> = {}): Promise<any> {
-    const response = await fetch(`${this.baseURL}${url}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Notion-Version': '2022-06-28',
-        ...headers
+class ApiHttpClient implements HttpClient {
+  constructor(private baseURL: string = '/api/auth/notion') { }
+
+  async get(url: string, headers: Record<string, string> = {}): Promise<unknown> {
+    if (url === '/users/me') {
+      const token = headers['Authorization']?.replace('Bearer ', '');
+
+      const response = await fetch(`${this.baseURL}/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      const data = await response.json() as NotionUserResponse;
+      return data.user;
     }
 
-    return response.json();
+    throw new Error(`Endpoint ${url} not supported`);
   }
 }
 
@@ -44,38 +53,59 @@ export interface NotionUser {
 
 export class NotionAuthService {
   private httpClient: HttpClient;
+  private userTokenService: UserTokenService;
 
   constructor() {
-    this.httpClient = new SimpleHttpClient();
+    this.httpClient = new ApiHttpClient();
+    this.userTokenService = new UserTokenService();
   }
 
-  // Verificar si el usuario tiene un token guardado
   hasUserToken(): boolean {
-    return UserTokenService.hasUserToken();
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem('notion_user_token');
   }
 
-  // Validar y guardar token del usuario
+  private cleanToken(token: string): string {
+    return token.trim().replace(/^['"]+|['"]+$/g, '');
+  }
+
+  private validateTokenFormat(token: string): boolean {
+    return token.startsWith('secret_') || token.startsWith('ntn_');
+  }
+
+  private saveUserToken(token: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('notion_user_token', token);
+    }
+  }
+
+  private getUserToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('notion_user_token');
+  }
+
+  private clearUserToken(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('notion_user_token');
+      localStorage.removeItem('notion_user_data');
+    }
+  }
+
   async validateAndSaveUserToken(token: string): Promise<boolean> {
     try {
-      console.log('🔍 [NOTION AUTH] Validando token del usuario...');
+      const cleanedToken = this.cleanToken(token);
 
-      // Limpiar token
-      const cleanedToken = UserTokenService.cleanToken(token);
-
-      // Validar formato básico
-      if (!UserTokenService.validateTokenFormat(cleanedToken)) {
+      if (!this.validateTokenFormat(cleanedToken)) {
         throw new Error('Formato de token inválido. Debe empezar con "secret_" o "ntn_"');
       }
 
-      // Probar el token haciendo una llamada a la API
       const user = await this.getCurrentNotionUser(cleanedToken);
 
       if (!user) {
         throw new Error('Token inválido o sin permisos');
       }
 
-      // Si llegamos aquí, el token es válido
-      UserTokenService.saveUserToken(cleanedToken);
+      this.saveUserToken(cleanedToken);
 
       console.log('✅ [NOTION AUTH] Token validado y guardado');
       return true;
@@ -85,43 +115,34 @@ export class NotionAuthService {
     }
   }
 
-  // Obtener usuario actual de Notion usando token del usuario
   async getCurrentNotionUser(token?: string): Promise<NotionUser | null> {
     try {
-      const userToken = token || UserTokenService.getUserToken();
+      const userToken = token || this.getUserToken();
 
       if (!userToken) {
-        console.log('❌ [NOTION AUTH] No hay token de usuario disponible');
         return null;
       }
-
-      console.log('🔍 [NOTION AUTH] Obteniendo usuario de Notion con token personal...');
 
       const user = await this.httpClient.get('/users/me', {
         'Authorization': `Bearer ${userToken}`
       });
 
       if (!user) {
-        console.log('❌ [NOTION AUTH] No se pudo obtener usuario de Notion');
         return null;
       }
 
-      console.log('✅ [NOTION AUTH] Usuario obtenido:', user.name);
-      return user;
+      return user as NotionUser;
     } catch (error) {
       console.error('💥 [NOTION AUTH] Error obteniendo usuario:', error);
 
-      // Si hay error de autenticación, limpiar token inválido
       if (error instanceof Error && error.message.includes('401')) {
-        console.log('🗑️ [NOTION AUTH] Token inválido, limpiando...');
-        UserTokenService.clearUserToken();
+        this.clearUserToken();
       }
 
       return null;
     }
   }
 
-  // Verificar conexión con Notion
   async verifyNotionConnection(): Promise<boolean> {
     try {
       const user = await this.getCurrentNotionUser();
@@ -132,7 +153,18 @@ export class NotionAuthService {
     }
   }
 
-  // Obtener perfil completo del usuario
+  private saveUserData(data: unknown): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('notion_user_data', JSON.stringify(data));
+    }
+  }
+
+  private getUserData(): unknown | null {
+    if (typeof window === 'undefined') return null;
+    const data = localStorage.getItem('notion_user_data');
+    return data ? JSON.parse(data) : null;
+  }
+
   async getNotionUserProfile() {
     try {
       const notionUser = await this.getCurrentNotionUser();
@@ -141,7 +173,6 @@ export class NotionAuthService {
         return null;
       }
 
-      // Extraer información del usuario
       const profile = {
         id: notionUser.id,
         name: notionUser.name,
@@ -149,7 +180,6 @@ export class NotionAuthService {
         avatar: notionUser.avatar_url || null,
         provider: 'notion_personal',
         isBot: !!notionUser.bot,
-        // Si es un bot, intentar obtener info del owner
         ownerInfo: notionUser.bot?.owner?.user ? {
           id: notionUser.bot.owner.user.id,
           name: notionUser.bot.owner.user.name,
@@ -157,15 +187,13 @@ export class NotionAuthService {
         } : null
       };
 
-      // Guardar datos del usuario para uso offline
-      UserTokenService.saveUserData(profile);
+      this.saveUserData(profile);
 
       return profile;
     } catch (error) {
       console.error('💥 [NOTION AUTH] Error obteniendo perfil:', error);
 
-      // Si hay error, intentar usar datos guardados
-      const cachedData = UserTokenService.getUserData();
+      const cachedData = this.getUserData();
       if (cachedData) {
         console.log('📱 [NOTION AUTH] Usando datos guardados localmente');
         return cachedData;
@@ -175,11 +203,8 @@ export class NotionAuthService {
     }
   }
 
-  // Autenticar con token personal
   async authenticateWithUserToken() {
     try {
-      console.log('🔐 [NOTION AUTH] Autenticando con token personal...');
-
       if (!this.hasUserToken()) {
         throw new Error('No hay token personal configurado');
       }
@@ -190,7 +215,6 @@ export class NotionAuthService {
         throw new Error('No se pudo obtener el perfil del usuario de Notion');
       }
 
-      console.log('✅ [NOTION AUTH] Autenticación exitosa:', profile.name);
       return profile;
     } catch (error) {
       console.error('❌ [NOTION AUTH] Error en autenticación:', error);
@@ -198,9 +222,8 @@ export class NotionAuthService {
     }
   }
 
-  // Limpiar datos del usuario (logout)
   clearUserData(): void {
-    UserTokenService.clearUserToken();
+    this.clearUserToken();
     console.log('🗑️ [NOTION AUTH] Datos de usuario eliminados');
   }
 }
