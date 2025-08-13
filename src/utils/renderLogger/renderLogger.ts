@@ -1,6 +1,6 @@
 let renderCount = 0;
 
-export const logRender = (componentName: string, props?: Record<string, number | string | boolean>) => {
+export const logRender = (componentName: string, props?: Record<string, number | string | boolean | null>) => {
   if (process.env.NODE_ENV !== 'development') return;
 
   renderCount++;
