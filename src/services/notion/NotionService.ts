@@ -36,13 +36,8 @@ export class NotionService implements NotionServiceInterface {
     this.embeddingsService = new EmbeddingsService();
   }
 
-  /**
-   * Procesa una página de Notion y sus bloques y los guarda en formato JSON nativo
-   */
   async processAndSavePage(page: Page, blocks: Block[]): Promise<NotionPageRow> {
     try {
-      console.log(`🔄 Procesando página: ${page.id}`);
-
       // Convertir bloques al formato esperado por NotionContentExtractor
       const notionBlocks: NotionBlock[] = blocks.map(block => this.convertToNotionBlock(block));
 
@@ -69,9 +64,6 @@ export class NotionService implements NotionServiceInterface {
     }
   }
 
-  /**
-   * Procesa múltiples páginas con sus bloques
-   */
   async processAndSavePages(pages: Array<{ page: Page; blocks: Block[] }>): Promise<NotionPageRow[]> {
     const results: NotionPageRow[] = [];
     const errors: string[] = [];
