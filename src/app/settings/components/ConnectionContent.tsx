@@ -172,8 +172,8 @@ export const ConnectionContent = memo(() => {
 
   // Debug: Log para ver re-renderizados (solo en desarrollo)
   logRender('ConnectionContent', {
-    userId: userProfile?.id,
-    userName: userProfile?.name,
+    userId: userProfile?.id ?? '',
+    userName: userProfile?.name ?? '',
     tokensCount: tokens.length,
     hasLoadedTokens,
     selectedTokenId

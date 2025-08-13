@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UserTokenService } from '../UserTokenService';
 import type { CreateUserTokenInput, UpdateUserTokenInput } from '@/types/UserToken';
