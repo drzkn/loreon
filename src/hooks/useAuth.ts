@@ -24,34 +24,19 @@ export const useAuth = () => {
   const authService = new AuthService();
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const currentUser = await authService.getCurrentUser();
-        const profile = await authService.getUserProfile();
-
-        setUser(currentUser);
-        setUserProfile(profile);
-        setIsAuthenticated(!!currentUser);
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        setUser(null);
-        setUserProfile(null);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Verificar usuario inicial
-    checkUser();
-
-    // Escuchar cambios de autenticación
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state changed:', event);
-
         if (session?.user) {
-          const profile = await authService.getUserProfile();
+          const profile = {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+            avatar: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+            provider: session.user.app_metadata?.provider || 'google',
+            lastSignIn: session.user.last_sign_in_at,
+            createdAt: session.user.created_at
+          };
+
           setUser(session.user);
           setUserProfile(profile);
           setIsAuthenticated(true);
@@ -65,37 +50,42 @@ export const useAuth = () => {
       }
     );
 
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
     return () => {
       authListener?.subscription.unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, []);
 
-  const signInWithNotion = async (token?: string) => {
+  const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
-
-      if (token) {
-        // Si se proporciona token, configurarlo y autenticar
-        return await authService.signInWithNotionToken(token);
-      } else {
-        // Si ya hay token configurado, solo autenticar
-        return await authService.signInWithPersonalToken();
-      }
+      return await authService.signInWithGoogle();
     } catch (error) {
       setIsLoading(false);
       throw error;
     }
   };
 
-  const hasNotionToken = () => {
-    return authService.hasNotionToken();
+  const hasTokensForProvider = async (provider: 'notion' | 'slack' | 'github' | 'drive' | 'calendar') => {
+    const userId = user?.id;
+    if (!userId) return false;
+    return await authService.hasTokensForProvider(provider, userId);
+  };
+
+  const getIntegrationToken = async (provider: 'notion' | 'slack' | 'github' | 'drive' | 'calendar', tokenName?: string) => {
+    const userId = user?.id;
+    if (!userId) return null;
+    return await authService.getIntegrationToken(provider, tokenName, userId);
   };
 
   const signOut = async () => {
     try {
       setIsLoading(true);
       await authService.signOut();
-      // El listener se encargará de actualizar el estado
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -111,8 +101,9 @@ export const useAuth = () => {
     userProfile,
     isLoading,
     isAuthenticated,
-    signInWithNotion,
-    hasNotionToken,
+    signInWithGoogle,
+    hasTokensForProvider,
+    getIntegrationToken,
     signOut,
     isAuthenticatedWithProvider
   };
