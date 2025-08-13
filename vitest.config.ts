@@ -51,6 +51,7 @@ export default defineConfig({
         'src/app/visualizer/hooks/useSystemDataLoader.ts',
         'src/app/settings/hooks/useSyncToSupabase.ts',
         'middleware.ts',
+        'src/utils/renderLogger/renderLogger.ts',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
         'src/app/settings/connect/page.tsx',
