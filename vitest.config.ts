@@ -29,6 +29,7 @@ export default defineConfig({
         '**/*.types.*',
         '**/types.ts',
         '**types.ts',
+        '**/types/**',
         '**/index.ts',
         '**/__mocks__/**',
         'src/app/layout.tsx',
@@ -46,9 +47,14 @@ export default defineConfig({
         'src/components/Icon/NotionIcon.tsx',
         'src/adapters/output/infrastructure/supabase/NotionNativeRepository/NotionNativeRepository.ts',
         'src/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository.ts',
+        'src/adapters/output/infrastructure/supabase/SupabaseRepository/SupabaseRepository.ts',
+        'src/app/visualizer/hooks/useSystemDataLoader.ts',
+        'src/app/settings/hooks/useSyncToSupabase.ts',
+        'middleware.ts',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
         'src/app/settings/connect/page.tsx',
+        'src/app/settings/components/ConnectionContent.tsx',
         'src/app/page.tsx',
       ]
     }
