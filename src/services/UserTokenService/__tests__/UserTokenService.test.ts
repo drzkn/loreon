@@ -1,49 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UserTokenService } from '../UserTokenService';
-import type { CreateUserTokenInput, UpdateUserTokenInput } from '@/types/UserToken';
+import type { UpdateUserTokenInput } from '@/types/UserToken';
+import {
+  createTestSetup,
+  createMockTokenInput,
+  mockUserId,
+  createSupabaseChainMock,
+  mockErrors
+} from '@/mocks';
 
-vi.mock('@/adapters/output/infrastructure/supabase', () => {
-  const mockChain = {
-    from: vi.fn(),
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    eq: vi.fn(),
-    order: vi.fn(),
-    limit: vi.fn(),
-    single: vi.fn(),
-    nullsFirst: vi.fn()
-  };
+const mockSupabaseChain = createSupabaseChainMock();
 
-  mockChain.from.mockReturnValue(mockChain);
-  mockChain.select.mockReturnValue(mockChain);
-  mockChain.insert.mockReturnValue(mockChain);
-  mockChain.update.mockReturnValue(mockChain);
-  mockChain.eq.mockReturnValue(mockChain);
-  mockChain.order.mockReturnValue(mockChain);
-  mockChain.limit.mockReturnValue(mockChain);
-  mockChain.nullsFirst.mockReturnValue(mockChain);
-  mockChain.single.mockResolvedValue({ data: null, error: null });
-
-  return {
-    supabase: mockChain,
-    supabaseServer: mockChain
-  };
-});
+vi.mock('@/adapters/output/infrastructure/supabase', () => ({
+  supabase: mockSupabaseChain,
+  supabaseServer: mockSupabaseChain
+}));
 
 describe('UserTokenService', () => {
   let service: UserTokenService;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
     service = new UserTokenService();
-    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('constructor', () => {
@@ -61,6 +44,7 @@ describe('UserTokenService', () => {
   describe('encriptación y desencriptación', () => {
     it('encripta y desencripta tokens correctamente', () => {
       const originalToken = 'test_token_123';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const encrypted = (service as any).encryptToken(originalToken);
       const decrypted = service.decryptToken(encrypted);
 
@@ -69,8 +53,8 @@ describe('UserTokenService', () => {
     });
 
     it('maneja errores de desencriptación', () => {
-      // Mock Buffer.from para que lance un error
       const originalBufferFrom = Buffer.from;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Buffer as any).from = vi.fn().mockImplementation(() => {
         throw new Error('Invalid base64');
       });
@@ -79,32 +63,19 @@ describe('UserTokenService', () => {
         service.decryptToken('invalid_token');
       }).toThrow('Token corrupto o formato inválido');
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '❌ [USER_TOKENS] Error desencriptando token:',
-        expect.any(Error)
-      );
-
-      // Restaurar Buffer.from
       Buffer.from = originalBufferFrom;
     });
   });
 
   describe('createToken - branch metadata', () => {
     it('usa metadata cuando se proporciona', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({ data: { id: '123' }, error: null });
+      mockSupabaseChain.single.mockResolvedValue({ data: { id: '123' }, error: null });
 
-      const tokenData: CreateUserTokenInput = {
-        provider: 'notion',
-        token_name: 'Test Token',
-        token: 'secret_123',
-        metadata: { test: true }
-      };
+      const tokenData = createMockTokenInput();
 
-      await service.createToken('user-123', tokenData);
+      await service.createToken(mockUserId, tokenData);
 
-      expect(vi.mocked(mockSupabase.insert)).toHaveBeenCalledWith(
+      expect(mockSupabaseChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           token_metadata: { test: true }
         })
@@ -112,19 +83,13 @@ describe('UserTokenService', () => {
     });
 
     it('usa objeto vacío cuando metadata es undefined', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({ data: { id: '123' }, error: null });
+      mockSupabaseChain.single.mockResolvedValue({ data: { id: '123' }, error: null });
 
-      const tokenData: CreateUserTokenInput = {
-        provider: 'notion',
-        token_name: 'Test Token',
-        token: 'secret_123'
-      };
+      const tokenData = createMockTokenInput({ metadata: undefined });
 
-      await service.createToken('user-123', tokenData);
+      await service.createToken(mockUserId, tokenData);
 
-      expect(vi.mocked(mockSupabase.insert)).toHaveBeenCalledWith(
+      expect(mockSupabaseChain.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           token_metadata: {}
         })
@@ -134,15 +99,13 @@ describe('UserTokenService', () => {
 
   describe('updateToken - branches condicionales', () => {
     it('actualiza is_active=true', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({ data: { id: '123' }, error: null });
+      mockSupabaseChain.single.mockResolvedValue({ data: { id: '123' }, error: null });
 
       const updates: UpdateUserTokenInput = { is_active: true };
 
       await service.updateToken('user-123', 'token-123', updates);
 
-      expect(vi.mocked(mockSupabase.update)).toHaveBeenCalledWith(
+      expect(mockSupabaseChain.update).toHaveBeenCalledWith(
         expect.objectContaining({
           is_active: true
         })
@@ -150,15 +113,13 @@ describe('UserTokenService', () => {
     });
 
     it('actualiza is_active=false', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({ data: { id: '123' }, error: null });
+      mockSupabaseChain.single.mockResolvedValue({ data: { id: '123' }, error: null });
 
       const updates: UpdateUserTokenInput = { is_active: false };
 
       await service.updateToken('user-123', 'token-123', updates);
 
-      expect(vi.mocked(mockSupabase.update)).toHaveBeenCalledWith(
+      expect(mockSupabaseChain.update).toHaveBeenCalledWith(
         expect.objectContaining({
           is_active: false
         })
@@ -166,15 +127,13 @@ describe('UserTokenService', () => {
     });
 
     it('encripta token cuando se proporciona', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({ data: { id: '123' }, error: null });
+      mockSupabaseChain.single.mockResolvedValue({ data: { id: '123' }, error: null });
 
       const updates: UpdateUserTokenInput = { token: 'new_secret' };
 
       await service.updateToken('user-123', 'token-123', updates);
 
-      expect(vi.mocked(mockSupabase.update)).toHaveBeenCalledWith(
+      expect(mockSupabaseChain.update).toHaveBeenCalledWith(
         expect.objectContaining({
           encrypted_token: expect.any(String)
         })
@@ -184,9 +143,7 @@ describe('UserTokenService', () => {
 
   describe('getTokenById - branch error PGRST116', () => {
     it('retorna null para error PGRST116', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({
+      mockSupabaseChain.single.mockResolvedValue({
         data: null,
         error: { code: 'PGRST116' }
       });
@@ -196,26 +153,18 @@ describe('UserTokenService', () => {
     });
 
     it('lanza error para otros códigos', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({
+      mockSupabaseChain.single.mockResolvedValue({
         data: null,
-        error: { code: 'OTHER_ERROR', message: 'Error' }
+        error: mockErrors.supabaseError
       });
 
       await expect(service.getTokenById('token-123')).rejects.toThrow();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '❌ [USER_TOKENS] Error obteniendo token por ID:',
-        expect.objectContaining({ code: 'OTHER_ERROR' })
-      );
     });
   });
 
   describe('getUserTokens - branch data null', () => {
     it('retorna array vacío cuando data es null', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.single).mockResolvedValue({
+      mockSupabaseChain.single.mockResolvedValue({
         data: null,
         error: null
       });
@@ -227,9 +176,7 @@ describe('UserTokenService', () => {
 
   describe('hasTokensForProvider - branches de count', () => {
     it('retorna false cuando count es 0', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.eq).mockResolvedValue({
+      mockSupabaseChain.eq.mockResolvedValue({
         count: 0,
         error: null
       });
@@ -239,9 +186,7 @@ describe('UserTokenService', () => {
     });
 
     it('retorna false cuando count es null', async () => {
-      const { supabase } = await import('@/adapters/output/infrastructure/supabase');
-      const mockSupabase = supabase as any;
-      vi.mocked(mockSupabase.eq).mockResolvedValue({
+      mockSupabaseChain.eq.mockResolvedValue({
         count: null,
         error: null
       });

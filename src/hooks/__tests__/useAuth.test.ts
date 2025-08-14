@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuth } from '../useAuth';
 
-// Mock global de AuthService  
-const mockAuthService = {
-  signInWithGoogle: vi.fn(),
-  hasTokensForProvider: vi.fn(),
-  getIntegrationToken: vi.fn(),
-  signOut: vi.fn(),
-  isAuthenticatedWithProvider: vi.fn()
-};
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup,
+  createAuthServiceMock
+} from '@/mocks';
+
+// Mock de AuthService usando la función centralizada
+const mockAuthService = createAuthServiceMock();
 
 vi.mock('@/services/supabase/AuthService', () => ({
   AuthService: vi.fn(() => mockAuthService)
@@ -36,6 +36,7 @@ import { supabase } from '@/adapters/output/infrastructure/supabase';
 describe('useAuth', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let authStateCallback: (event: string, session: any) => Promise<void>;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,6 +52,7 @@ describe('useAuth', () => {
   afterEach(() => {
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
+    teardown(); // ✅ Limpieza automática
   });
 
   it('debería inicializar estados correctamente y manejar timeout de loading', async () => {
