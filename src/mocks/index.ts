@@ -1,29 +1,32 @@
-// Exportar todos los mocks globales
-export * from './mocks/global-mocks';
+// Exportar todos los mocks de servicios
+export * from './services';
+
+// Exportar todos los mocks de Supabase
+export * from './supabase';
 
 // Exportar todos los datos de prueba
-export * from './fixtures/test-data';
+export * from './data';
 
 // Exportar todas las utilidades de test
-export * from './utils/test-utils';
+export * from './utils';
 
-// Exportaciones convenientes agrupadas
+// Re-exportaciones convenientes agrupadas
 export {
-  setupConsoleMocks,
-  restoreConsoleMocks,
-  createSupabaseChainMock,
-  createSupabaseMock,
   createUserTokenServiceMock,
   createAuthServiceMock,
   createNotionMigrationServiceMock,
   createNotionNativeRepositoryMock,
   createEmbeddingsServiceMock,
   createNotionContentExtractorMock,
-  createContainerMock,
-  setupWindowMocks,
-  restoreWindowMocks,
-  createAiSdkMocks
-} from './mocks/global-mocks';
+  createContainerMock
+} from './services';
+
+export {
+  createSupabaseChainMock,
+  createSupabaseMock,
+  createMockSupabaseResponse,
+  createMockSupabaseErrorResponse
+} from './supabase';
 
 export {
   mockUserId,
@@ -34,20 +37,22 @@ export {
   createMockNotionPage,
   createMockNotionBlock,
   mockNotionBlocks,
-  createMockSupabaseResponse,
-  createMockSupabaseErrorResponse,
   createMockNextRequest,
   createMockRequestWithAuth,
   createMockChatMessage,
   mockChatMessages,
   createMockEmbedding,
   mockEmbeddings,
-  mockErrors,
-  mockEnvVars
-} from './fixtures/test-data';
+  mockErrors
+} from './data';
 
 export {
+  setupConsoleMocks,
+  restoreConsoleMocks,
   createTestSetup,
+  setupWindowMocks,
+  restoreWindowMocks,
+  createAiSdkMocks,
   waitFor,
   expectToResolve,
   expectToReject,
@@ -60,10 +65,6 @@ export {
   expectNthCalledWith,
   expectThrowsError,
   expectAsyncThrowsError,
-  logMockCalls,
-  inspectMockResults,
-  createMockReactNode,
-  mockReactHook,
   createMockResponse,
   createMockErrorResponse
-} from './utils/test-utils';
+} from './utils';
