@@ -32,6 +32,7 @@ export default defineConfig({
         '**/types/**',
         '**/index.ts',
         '**/__mocks__/**',
+        'src/mocks/**',
         'src/app/layout.tsx',
         '**/di/**',
         'src/services/config.ts',
