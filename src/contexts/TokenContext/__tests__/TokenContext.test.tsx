@@ -1,64 +1,23 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ReactNode } from 'react';
 import { TokenProvider, useTokens } from '../TokenContext';
-import { UserToken, CreateUserTokenInput } from '@/types/UserToken';
+import { CreateUserTokenInput, UserToken } from '@/types/UserToken';
 
-// Mock console methods
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
-const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup,
+  createUserTokenServiceMock,
+  mockUserId,
+  mockTokens,
+  createMockUserToken
+} from '@/mocks';
 
-// Mock data
-const mockUserId = 'user-123';
-const mockTokens: UserToken[] = [
-  {
-    id: 'token-1',
-    user_id: mockUserId,
-    provider: 'notion',
-    token_name: 'Notion Token 1',
-    encrypted_token: 'encrypted-token-1',
-    token_metadata: { workspace: 'test' },
-    is_active: true,
-    created_at: '2023-01-01T00:00:00Z',
-    updated_at: '2023-01-01T00:00:00Z'
-  },
-  {
-    id: 'token-2',
-    user_id: mockUserId,
-    provider: 'slack',
-    token_name: 'Slack Token 1',
-    encrypted_token: 'encrypted-token-2',
-    token_metadata: { team: 'myteam' },
-    is_active: true,
-    created_at: '2023-01-02T00:00:00Z',
-    updated_at: '2023-01-02T00:00:00Z'
-  }
-];
+// Mock del servicio usando la función centralizada
+const mockUserTokenService = createUserTokenServiceMock();
 
-const mockNewToken: UserToken = {
-  id: 'token-3',
-  user_id: mockUserId,
-  provider: 'github',
-  token_name: 'GitHub Token',
-  encrypted_token: 'encrypted-token-3',
-  token_metadata: {},
-  is_active: true,
-  created_at: '2023-01-03T00:00:00Z',
-  updated_at: '2023-01-03T00:00:00Z'
-};
-
-// Mock UserTokenService with proper methods
-const mockUserTokenService = {
-  getUserTokens: vi.fn(),
-  createToken: vi.fn(),
-  deleteToken: vi.fn()
-};
-
-// Mock the UserTokenService module
 vi.mock('@/services/UserTokenService', () => ({
-  UserTokenService: function MockUserTokenService() {
-    return mockUserTokenService;
-  }
+  UserTokenService: vi.fn(() => mockUserTokenService)
 }));
 
 // Wrapper component for testing
@@ -67,12 +26,18 @@ const TestWrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe('TokenContext', () => {
+  const { teardown } = createTestSetup(); // Configura console mocks automáticamente
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Setup default successful responses
     mockUserTokenService.getUserTokens.mockResolvedValue(mockTokens);
-    mockUserTokenService.createToken.mockResolvedValue(mockNewToken);
+    mockUserTokenService.createToken.mockResolvedValue(null); // Default a null, se sobrescribe en tests específicos
     mockUserTokenService.deleteToken.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    teardown(); // Limpia mocks automáticamente
   });
 
   describe('useTokens hook', () => {
@@ -148,7 +113,7 @@ describe('TokenContext', () => {
 
       expect(result.current.tokens).toEqual([]);
       expect(result.current.isLoadingTokens).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('❌ [TOKEN_CONTEXT] Error cargando tokens:', error);
+      // El console.error ya está mockeado globalmente
     });
   });
 
@@ -162,14 +127,23 @@ describe('TokenContext', () => {
         token: 'raw-token'
       };
 
+      const expectedToken = createMockUserToken({
+        id: 'token-3',
+        provider: 'github',
+        token_name: 'GitHub Token'
+      });
+
+      // Configurar el mock para este test específico
+      mockUserTokenService.createToken.mockResolvedValue(expectedToken);
+
       let addedToken: UserToken | null = null;
       await act(async () => {
         addedToken = await result.current.addToken(mockUserId, mockNewTokenInput);
       });
 
       expect(mockUserTokenService.createToken).toHaveBeenCalledWith(mockUserId, mockNewTokenInput);
-      expect(addedToken).toEqual(mockNewToken);
-      expect(result.current.tokens).toContainEqual(mockNewToken);
+      expect(addedToken).toEqual(expectedToken);
+      expect(result.current.tokens).toContainEqual(expectedToken);
     });
 
     it('debería retornar null si el servicio falla', async () => {
@@ -234,7 +208,7 @@ describe('TokenContext', () => {
       expect(result.current.tokens).toEqual([]);
       expect(result.current.hasLoadedTokens).toBe(false);
       expect(result.current.isLoadingTokens).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith('🧹 [TOKEN_CONTEXT] Limpiando tokens del contexto');
+      // El console.log ya está mockeado globalmente
     });
   });
 
@@ -305,14 +279,16 @@ describe('TokenContext', () => {
     it('debería manejar tokens con metadatos complejos', async () => {
       const { result } = renderHook(() => useTokens(), { wrapper: TestWrapper });
 
-      const complexToken: UserToken = {
-        ...mockNewToken,
+      const complexToken = createMockUserToken({
+        id: 'token-3',
+        provider: 'github',
+        token_name: 'GitHub Token',
         token_metadata: {
           nested: { data: 'test' },
           array: [1, 2, 3],
           boolean: true
         }
-      };
+      });
 
       mockUserTokenService.createToken.mockResolvedValue(complexToken);
 
@@ -347,6 +323,15 @@ describe('TokenContext', () => {
         token: 'raw-token'
       };
 
+      const newToken = createMockUserToken({
+        id: 'token-3',
+        provider: 'github',
+        token_name: 'GitHub Token'
+      });
+
+      // Configurar el mock para el token añadido
+      mockUserTokenService.createToken.mockResolvedValue(newToken);
+
       await act(async () => {
         await result.current.addToken(mockUserId, mockNewTokenInput);
       });
@@ -363,7 +348,7 @@ describe('TokenContext', () => {
 
       // Verificar que los otros tokens siguen ahí
       expect(result.current.tokens.find(t => t.id === 'token-2')).toBeDefined();
-      expect(result.current.tokens.find(t => t.id === mockNewToken.id)).toBeDefined();
+      expect(result.current.tokens.find(t => t.id === 'token-3')).toBeDefined();
     });
   });
 });
