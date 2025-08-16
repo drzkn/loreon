@@ -1,5 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup,
+  createMockUserToken,
+  mockUserId
+} from '@/mocks';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn()
@@ -9,8 +16,6 @@ vi.mock('@/contexts/TokenContext/TokenContext', () => ({
   useTokens: vi.fn()
 }));
 
-vi.spyOn(console, 'log').mockImplementation(() => { });
-
 import { useSettingsTokens } from '../useSettingsTokens';
 import { useAuth } from '@/hooks/useAuth';
 import { useTokens } from '@/contexts/TokenContext/TokenContext';
@@ -19,11 +24,20 @@ const mockUseAuth = vi.mocked(useAuth);
 const mockUseTokens = vi.mocked(useTokens);
 
 describe('useSettingsTokens', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   const defaultAuthMock = {
-    user: null,
+    user: {
+      id: mockUserId,
+      email: 'test@test.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z'
+    },
     userProfile: null,
     isLoading: false,
-    isAuthenticated: false,
+    isAuthenticated: true,
     signInWithGoogle: vi.fn(),
     hasTokensForProvider: vi.fn(),
     getIntegrationToken: vi.fn(),
@@ -47,18 +61,17 @@ describe('useSettingsTokens', () => {
     mockUseTokens.mockReturnValue(defaultTokensMock);
   });
 
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   it('debería inicializar correctamente y pasar propiedades del contexto', async () => {
-    const mockTokens = [{
+    const mockTokens = [createMockUserToken({ // ✅ Usar datos centralizados
       id: '1',
-      user_id: 'user-1',
-      provider: 'notion' as const,
-      token_name: 'Token 1',
-      encrypted_token: 'encrypted',
-      token_metadata: {},
-      created_at: '2023-01-01',
-      updated_at: '2023-01-01',
-      is_active: true
-    }];
+      user_id: mockUserId,
+      provider: 'notion',
+      token_name: 'Token 1'
+    })];
 
     mockUseTokens.mockReturnValue({
       ...defaultTokensMock,

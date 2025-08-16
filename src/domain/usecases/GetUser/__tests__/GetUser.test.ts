@@ -1,11 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GetUser } from '../index';
 import { User } from '../../../entities/User';
 import { INotionRepository } from '../../../../ports/output/repositories/INotionRepository';
+import { createTestSetup, mockErrors } from '@/mocks';
 
 describe('GetUser UseCase', () => {
   let getUser: GetUser;
   let mockRepository: INotionRepository;
+  const { teardown } = createTestSetup();
 
   beforeEach(() => {
     mockRepository = {
@@ -17,6 +19,10 @@ describe('GetUser UseCase', () => {
     };
 
     getUser = new GetUser(mockRepository);
+  });
+
+  afterEach(() => {
+    teardown();
   });
 
   describe('Constructor', () => {
@@ -38,17 +44,16 @@ describe('GetUser UseCase', () => {
     });
 
     it('debería propagar errores del repositorio', async () => {
-      const error = new Error('Repository error');
-      vi.mocked(mockRepository.getUser).mockRejectedValue(error);
+      vi.mocked(mockRepository.getUser).mockRejectedValue(mockErrors.notFoundError);
 
-      await expect(getUser.execute()).rejects.toThrow('Repository error');
+      await expect(getUser.execute()).rejects.toThrow('Resource not found');
       expect(mockRepository.getUser).toHaveBeenCalledTimes(1);
     });
 
-    it('debería manejar errores desconocidos', async () => {
-      vi.mocked(mockRepository.getUser).mockRejectedValue('Unknown error');
+    it('debería manejar errores de red', async () => {
+      vi.mocked(mockRepository.getUser).mockRejectedValue(mockErrors.networkError);
 
-      await expect(getUser.execute()).rejects.toBe('Unknown error');
+      await expect(getUser.execute()).rejects.toThrow('Network error');
     });
   });
 });

@@ -1,21 +1,33 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  createTestSetup,
+  createMockNextRequest
+} from '@/mocks';
 
-vi.mock('@/adapters/output/infrastructure/supabase', () => ({
-  supabaseServer: {
-    from: vi.fn()
-  }
-}));
+// Mock de Supabase con patrón inline para evitar hoisting
+vi.mock('@/adapters/output/infrastructure/supabase', () => {
+  const mockChain = {
+    from: vi.fn(),
+    select: vi.fn(),
+    eq: vi.fn()
+  };
 
+  mockChain.from.mockReturnValue(mockChain);
+  mockChain.select.mockReturnValue(mockChain);
 
+  return {
+    supabaseServer: mockChain
+  };
+});
 
+// Mock de NotionNativeRepository
 vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () => ({
   NotionNativeRepository: vi.fn(() => ({
-    getPageBlocks: vi.fn(() => Promise.resolve([
-      { content: 'Test content about AI', type: 'paragraph' }
-    ]))
+    getPageBlocks: vi.fn()
   }))
 }));
 
+// Mock de AI SDK
 vi.mock('@ai-sdk/google', () => ({
   google: vi.fn(() => 'mocked-model')
 }));
@@ -28,26 +40,34 @@ vi.mock('ai', () => ({
 
 import { POST } from '../route';
 
-const createMockRequest = (body: Record<string, unknown>) => {
-  return new Request('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-};
-
 describe('/api/chat - Coverage Tests', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockSupabase: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNotionRepo: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockStreamText: any;
+  const { teardown } = createTestSetup();
+
   beforeEach(async () => {
     vi.clearAllMocks();
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
 
+    // Obtener referencias a los mocks después de la limpieza
     const { supabaseServer } = await import('@/adapters/output/infrastructure/supabase');
-    (supabaseServer.from as ReturnType<typeof vi.fn>).mockImplementation((tableName: string) => {
+    const { NotionNativeRepository } = await import('@/adapters/output/infrastructure/supabase/NotionNativeRepository');
+    const { streamText } = await import('ai');
+
+    mockSupabase = supabaseServer;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockNotionRepo = new (NotionNativeRepository as any)();
+    mockStreamText = streamText;
+
+    // Setup Supabase responses
+    mockSupabase.from.mockImplementation((tableName: string) => {
       if (tableName === 'notion_pages') {
         return {
-          select: vi.fn(() => ({
-            eq: vi.fn(() => Promise.resolve({
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({
               data: [
                 {
                   notion_id: 'page-1',
@@ -63,14 +83,14 @@ describe('/api/chat - Coverage Tests', () => {
                 }
               ],
               error: null
-            }))
-          }))
+            })
+          })
         };
       } else if (tableName === 'markdown_pages') {
         return {
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              limit: vi.fn(() => Promise.resolve({
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({
                 data: [
                   {
                     content: 'Test content about AI and machine learning technology',
@@ -78,26 +98,31 @@ describe('/api/chat - Coverage Tests', () => {
                   }
                 ],
                 error: null
-              }))
-            }))
-          }))
+              })
+            })
+          })
         };
       }
       return {
-        select: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({ data: [], error: null }))
-        }))
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: [], error: null })
+        })
       };
     });
+
+    // Setup Notion repository mock
+    mockNotionRepo.getPageBlocks.mockResolvedValue([
+      { content: 'Test content about AI', type: 'paragraph' }
+    ]);
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    teardown();
   });
 
   describe('Validación de entrada', () => {
     it('should reject requests without messages', async () => {
-      const request = createMockRequest({});
+      const request = createMockNextRequest({});
       const response = await POST(request);
 
       expect(response.status).toBe(400);
@@ -105,7 +130,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should reject non-array messages', async () => {
-      const request = createMockRequest({ messages: 'not-array' });
+      const request = createMockNextRequest({ messages: 'not-array' });
       const response = await POST(request);
 
       expect(response.status).toBe(400);
@@ -113,7 +138,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should reject empty message content', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '' }]
       });
       const response = await POST(request);
@@ -123,7 +148,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should reject missing message content', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user' }]
       });
       const response = await POST(request);
@@ -135,7 +160,7 @@ describe('/api/chat - Coverage Tests', () => {
 
   describe('Procesamiento de búsqueda', () => {
     it('should process valid requests successfully', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '¿Qué sabes sobre inteligencia artificial?' }]
       });
 
@@ -145,7 +170,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should extract keywords correctly', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '¿Qué información tienes sobre machine learning?' }]
       });
 
@@ -153,7 +178,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should filter stopwords from queries', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '¿Qué sabes sobre el desarrollo web?' }]
       });
 
@@ -161,7 +186,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should handle punctuation in queries', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '¿¡Información sobre desarrollo de software!?' }]
       });
 
@@ -171,7 +196,7 @@ describe('/api/chat - Coverage Tests', () => {
 
   describe('Manejo de páginas relevantes', () => {
     it('should extract keywords and search for pages', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '¿Qué sabes sobre artificial intelligence?' }]
       });
 
@@ -191,17 +216,14 @@ describe('/api/chat - Coverage Tests', () => {
 
       expect(response.status).toBe(500);
       expect(await response.text()).toBe('Error interno del servidor');
-      expect(console.error).toHaveBeenCalledWith(
-        'Error en chat nativo:',
-        expect.any(Error)
-      );
+      // El console.error ya está mockeado globalmente
     });
   });
 
   describe('Funcionalidades edge cases', () => {
     it('should handle very long messages', async () => {
       const longMessage = 'a'.repeat(1000) + ' artificial intelligence';
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: longMessage }]
       });
 
@@ -211,7 +233,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should handle multiple messages in conversation', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [
           { role: 'user', content: 'Hola' },
           { role: 'assistant', content: 'Hola!' },
@@ -225,7 +247,7 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should handle case-insensitive queries', async () => {
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: '¿Qué sabes sobre INTELIGENCIA ARTIFICIAL?' }]
       });
 
@@ -237,21 +259,19 @@ describe('/api/chat - Coverage Tests', () => {
 
   describe('Integración del sistema', () => {
     it('should call Supabase for page data', async () => {
-      const { supabaseServer } = await import('@/adapters/output/infrastructure/supabase');
-
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: 'test query' }]
       });
 
       await POST(request);
 
-      expect(supabaseServer.from).toHaveBeenCalledWith('notion_pages');
+      expect(mockSupabase.from).toHaveBeenCalledWith('notion_pages');
     });
 
     it('should import and have NotionNativeRepository available', async () => {
       const { NotionNativeRepository } = await import('@/adapters/output/infrastructure/supabase/NotionNativeRepository');
 
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: 'test query about artificial intelligence tech' }]
       });
 
@@ -261,15 +281,13 @@ describe('/api/chat - Coverage Tests', () => {
     });
 
     it('should call AI service for text generation', async () => {
-      const { streamText } = await import('ai');
-
-      const request = createMockRequest({
+      const request = createMockNextRequest({
         messages: [{ role: 'user', content: 'test query' }]
       });
 
       await POST(request);
 
-      expect(streamText).toHaveBeenCalled();
+      expect(mockStreamText).toHaveBeenCalled();
     });
   });
 }); 

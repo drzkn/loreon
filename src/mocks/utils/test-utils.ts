@@ -1,5 +1,5 @@
 import { vi, expect } from 'vitest';
-import { setupConsoleMocks, restoreConsoleMocks } from '../mocks/global-mocks';
+import { setupConsoleMocks, restoreConsoleMocks } from './global-mocks';
 
 // ===============================
 // TEST SETUP UTILITIES

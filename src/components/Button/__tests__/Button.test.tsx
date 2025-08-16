@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from 'styled-components';
 import { Button } from '../Button';
 import { theme } from '../../../lib/theme';
+import { createTestSetup } from '@/mocks';
 
 const renderWithTheme = (component: React.ReactElement) => {
   return render(
@@ -13,6 +14,12 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 describe('Button', () => {
+  const { teardown } = createTestSetup();
+
+  afterEach(() => {
+    teardown();
+  });
+
   describe('🎨 Rendering & Content', () => {
     it('should render with children content', () => {
       renderWithTheme(<Button>Click me</Button>);
