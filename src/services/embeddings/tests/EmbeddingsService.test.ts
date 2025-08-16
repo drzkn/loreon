@@ -20,8 +20,8 @@ vi.mock('@ai-sdk/google', () => ({
 
 describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
-  let mockEmbed: any;
-  let mockEmbedMany: any;
+  let mockEmbed: ReturnType<typeof vi.fn>;
+  let mockEmbedMany: ReturnType<typeof vi.fn>;
   const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(async () => {

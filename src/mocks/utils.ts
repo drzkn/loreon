@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 
 // ===============================
 // CONSOLE MOCKS
@@ -133,7 +133,7 @@ export const withMockedModules = async <T>(
   callback: () => Promise<T>
 ): Promise<T> => {
   const mockPromises = Object.entries(mocks).map(([module, mock]) =>
-    vi.doMock(module, () => mock)
+    vi.doMock(module, () => mock as Record<string, unknown>)
   );
 
   await Promise.all(mockPromises);
@@ -141,7 +141,7 @@ export const withMockedModules = async <T>(
   try {
     return await callback();
   } finally {
-    vi.doUnmock(...Object.keys(mocks));
+    Object.keys(mocks).forEach(module => vi.doUnmock(module));
   }
 };
 

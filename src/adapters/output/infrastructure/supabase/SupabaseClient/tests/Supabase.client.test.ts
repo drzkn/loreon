@@ -11,7 +11,6 @@ vi.mock('@supabase/ssr', () => ({
   createBrowserClient: vi.fn()
 }));
 
-const mockConsoleError = vi.fn();
 const originalConsole = { ...console };
 
 describe('Supabase client', () => {

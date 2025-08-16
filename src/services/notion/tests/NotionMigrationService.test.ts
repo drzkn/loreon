@@ -64,9 +64,9 @@ vi.mock('@/infrastructure/di/container', () => ({
 
 describe('NotionMigrationService', () => {
   let service: NotionMigrationService;
-  let mockRepository: any;
-  let mockEmbeddingsService: any;
-  let mockContainer: any;
+  let mockRepository: unknown;
+  let mockEmbeddingsService: unknown;
+  let mockContainer: unknown;
   const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(async () => {
@@ -74,8 +74,8 @@ describe('NotionMigrationService', () => {
     service = new NotionMigrationService();
 
     // Obtener referencias a los mocks después de la instanciación
-    mockRepository = (service as any).repository;
-    mockEmbeddingsService = (service as any).embeddingsService;
+    mockRepository = (service as unknown as { repository: unknown }).repository;
+    mockEmbeddingsService = (service as unknown as { embeddingsService: unknown }).embeddingsService;
 
     // Obtener referencia al mock container
     const { container } = await import('@/infrastructure/di/container');

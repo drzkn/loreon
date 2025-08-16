@@ -31,7 +31,7 @@ import { supabase } from '@/adapters/output/infrastructure/supabase';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let mockUserTokenService: any;
+  let mockUserTokenService: unknown;
   const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe('AuthService', () => {
     service = new AuthService();
 
     // Obtener referencia al mock después de la instanciación
-    mockUserTokenService = (service as any).userTokenService;
+    mockUserTokenService = (service as unknown as { userTokenService: unknown }).userTokenService;
 
     // Mock de window.location para tests que lo necesiten
     Object.defineProperty(window, 'location', {
