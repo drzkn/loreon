@@ -1,9 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { Block } from '../Block';
 import { NotionBlockResponse } from '../../../../shared/types/notion.types';
 import { mockNotionBlockResponse, mockNotionBlockWithChildren } from '@/shared/types/__mocks__/NotionBlockResponse';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 describe('Block', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   describe('Constructor', () => {
     it('should create a Block instance with all properties', () => {
       const block = new Block(

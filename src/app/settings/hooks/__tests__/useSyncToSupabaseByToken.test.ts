@@ -1,17 +1,24 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.spyOn(console, 'log').mockImplementation(() => { });
-vi.spyOn(console, 'error').mockImplementation(() => { });
-
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useSyncToSupabaseByToken } from '../useSyncToSupabaseByToken';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 describe('useSyncToSupabaseByToken', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   it('debería manejar error HTTP y response sin body', async () => {

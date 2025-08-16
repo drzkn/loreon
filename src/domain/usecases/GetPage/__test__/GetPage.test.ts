@@ -3,6 +3,11 @@ import { GetPage } from '../GetPage';
 import { INotionRepository } from '../../../../ports/output/repositories/INotionRepository';
 import { Page } from '../../../entities/Page';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 // Mock del repositorio
 const createMockNotionRepository = (): INotionRepository => ({
   getDatabase: vi.fn(),
@@ -15,6 +20,7 @@ const createMockNotionRepository = (): INotionRepository => ({
 describe('GetPageUseCase', () => {
   let getPageUseCase: GetPage;
   let mockNotionRepository: INotionRepository;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     mockNotionRepository = createMockNotionRepository();
@@ -22,6 +28,7 @@ describe('GetPageUseCase', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     vi.clearAllMocks();
   });
 

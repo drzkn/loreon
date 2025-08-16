@@ -1,7 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ContentViewer } from '../ContentViewer';
 import type { UnifiedPageData } from '../../PagesList';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock del Icon component
 vi.mock('@/components', () => ({
@@ -14,6 +19,12 @@ vi.mock('../../../page.constants', () => ({
 }));
 
 describe('ContentViewer', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   const mockNativePage: UnifiedPageData = {
     id: '1',
     title: 'Página Nativa',

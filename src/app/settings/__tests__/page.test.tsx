@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useRouter, usePathname } from 'next/navigation';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock de Next.js navigation
 vi.mock('next/navigation', () => ({
@@ -19,6 +24,7 @@ import SettingsPage from '../page';
 
 describe('SettingsPage', () => {
   const mockPush = vi.fn();
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     (vi.mocked(useRouter)).mockReturnValue({
@@ -33,6 +39,10 @@ describe('SettingsPage', () => {
     (vi.mocked(usePathname)).mockReturnValue('/settings');
 
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   it('should render Conexión tab', () => {

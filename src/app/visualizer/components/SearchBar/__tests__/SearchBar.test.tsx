@@ -1,8 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SearchBar } from '../SearchBar';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 describe('SearchBar', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   it('debería renderizar correctamente con props básicas', () => {
     const mockOnChange = vi.fn();
 

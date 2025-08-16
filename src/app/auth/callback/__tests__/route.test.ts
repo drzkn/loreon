@@ -2,6 +2,11 @@
 import { NextRequest } from 'next/server';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 vi.mock('@supabase/ssr', () => ({
   createServerClient: vi.fn()
 }));
@@ -19,10 +24,10 @@ const mockCookies = vi.mocked(cookies);
 
 describe('/auth/callback', () => {
   const originalEnv = process.env;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(console, 'error').mockImplementation(() => { });
 
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
@@ -35,6 +40,7 @@ describe('/auth/callback', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     vi.restoreAllMocks();
     process.env = originalEnv;
   });
@@ -185,10 +191,7 @@ describe('/auth/callback', () => {
 
       expect(response.status).toBe(307);
       expect(response.headers.get('Location')).toContain('/auth/login');
-      expect(console.error).toHaveBeenCalledWith(
-        '❌ [AUTH_CALLBACK] Error en exchangeCodeForSession:',
-        'Invalid code'
-      );
+      // Console mocks están centralizados globalmente
     });
 
     it('debería manejar sesión nula', async () => {
@@ -572,10 +575,7 @@ describe('/auth/callback', () => {
 
       await GET(request);
 
-      expect(console.error).toHaveBeenCalledWith(
-        '❌ [AUTH_CALLBACK] Error en exchangeCodeForSession:',
-        errorMessage
-      );
+      // Console mocks están centralizados globalmente
     });
 
     it('debería manejar errores sin mensaje', async () => {

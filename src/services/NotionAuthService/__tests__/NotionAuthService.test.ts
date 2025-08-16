@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionAuthService, type NotionUser } from '../NotionAuthService';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 // Mock UserTokenService
 vi.mock('@/services/UserTokenService', () => ({
   UserTokenService: vi.fn(() => ({}))
@@ -25,17 +30,15 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('NotionAuthService', () => {
   let service: NotionAuthService;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
     service = new NotionAuthService();
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    teardown(); // ✅ Limpieza automática
   });
 
   it('debería verificar tokens: existencia, validación de formato y limpieza', () => {

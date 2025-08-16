@@ -1,8 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { Database } from '../Database';
 import { NotionDatabaseResponse } from '../../../../shared/types/notion.types';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 describe('Database', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   const mockNotionDatabaseResponse: NotionDatabaseResponse = {
     id: 'db-123',
     title: [

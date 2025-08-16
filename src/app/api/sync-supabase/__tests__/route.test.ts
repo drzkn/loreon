@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { POST } from '../route'
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks'
+
 // Mock del repository
 const mockHandleSyncToSupabase = vi.fn()
 
@@ -17,6 +22,7 @@ const mockConnectionPageRepository = vi.mocked(ConnectionPageRepository)
 
 describe('sync-supabase', () => {
   let originalEnv: NodeJS.ProcessEnv
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     originalEnv = process.env
@@ -38,6 +44,7 @@ describe('sync-supabase', () => {
   })
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     process.env = originalEnv
   })
 

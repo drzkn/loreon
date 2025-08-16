@@ -1,8 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ThemeProvider } from 'styled-components';
 import { TokenProvider } from '@/contexts/TokenContext/TokenContext';
 import { ConnectionContent } from '../ConnectionContent';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock theme para styled components
 const mockTheme = {
@@ -168,8 +173,14 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 describe('ConnectionContent', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   it('should render main info card with correct content', () => {

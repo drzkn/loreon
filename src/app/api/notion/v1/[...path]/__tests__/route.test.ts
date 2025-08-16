@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 // Mock global fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -80,6 +85,7 @@ const createParams = (path: string[]) => Promise.resolve({ path });
 
 describe('Notion API Proxy', () => {
   let originalEnv: NodeJS.ProcessEnv;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     originalEnv = process.env;
@@ -90,6 +96,7 @@ describe('Notion API Proxy', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     process.env = originalEnv;
   });
 

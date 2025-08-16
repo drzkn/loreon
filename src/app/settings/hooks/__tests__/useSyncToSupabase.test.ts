@@ -1,6 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useSyncToSupabase } from '../useSyncToSupabase';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -12,8 +17,14 @@ vi.mock('../../../../utils/getEnvVar', () => ({
 }));
 
 describe('useSyncToSupabase', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   it('should initialize with default values', () => {

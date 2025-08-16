@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@/lib/theme';
 import InstructionsPage from '../page';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 const renderWithTheme = (component: React.ReactElement) => {
   return render(
@@ -13,6 +18,12 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 describe('InstructionsPage', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   it('debería renderizar estructura completa de pasos e instrucciones', () => {
     renderWithTheme(<InstructionsPage />);
 

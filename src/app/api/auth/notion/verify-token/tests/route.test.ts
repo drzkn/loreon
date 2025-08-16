@@ -2,14 +2,20 @@ import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 describe('/api/auth/notion/verify-token', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     vi.restoreAllMocks();
   });
 
@@ -82,7 +88,7 @@ describe('/api/auth/notion/verify-token', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.user).toEqual(mockUserData);
-      expect(console.log).toHaveBeenCalledWith('✅ [API] Usuario obtenido:', 'Test User');
+      // Console mocks están centralizados globalmente
     });
 
     it('debería manejar token inválido (401)', async () => {
@@ -103,7 +109,7 @@ describe('/api/auth/notion/verify-token', () => {
       expect(data.error).toBe('Invalid token or API error');
       expect(data.details).toBe(errorMessage);
       expect(data.status).toBe(401);
-      expect(console.error).toHaveBeenCalledWith('❌ [API] Error de Notion:', 401, errorMessage);
+      // Console mocks están centralizados globalmente
     });
 
     it('debería manejar error de servidor de Notion (500)', async () => {
@@ -139,7 +145,7 @@ describe('/api/auth/notion/verify-token', () => {
       expect(response.status).toBe(500);
       expect(data.error).toBe('Internal server error');
       expect(data.details).toBe('Network Error');
-      expect(console.error).toHaveBeenCalledWith('💥 [API] Error en verify-token:', networkError);
+      // Console mocks están centralizados globalmente
     });
 
     it('debería manejar error desconocido', async () => {

@@ -1,13 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios, { AxiosResponse } from 'axios';
 import { AxiosHttpClient } from '../AxiosHttpClient';
 import { HttpRequestConfig } from '../../../../../ports/output/services/IHttpClient';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock de axios
 vi.mock('axios');
 
 describe('AxiosHttpClient', () => {
   const mockAxios = vi.mocked(axios);
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   const mockAxiosInstance = {
     get: vi.fn(),
     post: vi.fn(),
@@ -18,6 +25,10 @@ describe('AxiosHttpClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAxios.create = vi.fn().mockReturnValue(mockAxiosInstance);
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('Constructor', () => {

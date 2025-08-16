@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SupabaseMarkdownService } from '../MarkdownService';
 import { SupabaseMarkdownRepository } from '../../../../adapters/output/infrastructure/supabase';
 import { MarkdownConverterService } from '../../../markdownConverter';
 import { Page } from '../../../../domain/entities';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mocks
 vi.mock('../../../../adapters/output/infrastructure/supabase', () => ({
@@ -16,6 +21,8 @@ vi.mock('../../../markdownConverter', () => ({
 
 describe('SupabaseMarkdownService', () => {
   let service: SupabaseMarkdownService;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   let mockSupabaseRepository: {
     upsert: ReturnType<typeof vi.fn>;
     findByNotionPageId: ReturnType<typeof vi.fn>;
@@ -117,6 +124,10 @@ describe('SupabaseMarkdownService', () => {
     mockMarkdownConverter.convertPageWithBlocksToMarkdown.mockReturnValue('# Test Page Title\n\nContent here');
     mockMarkdownConverter.convertPageToMarkdown.mockReturnValue('# Test Page Title\n\nContent here');
     mockSupabaseRepository.upsert.mockResolvedValue(mockMarkdownPage);
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('Constructor', () => {

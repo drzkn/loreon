@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock functions - declared first to avoid hoisting issues
 const mockSupabase = { from: vi.fn() };
@@ -71,13 +76,13 @@ describe('VisualizerPage - Cobertura Completa', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
-    vi.spyOn(console, 'warn').mockImplementation(() => { });
-
     mockNativeRepository.getPageBlocks.mockResolvedValue([]);
     mockMarkdownRepository.findAll.mockResolvedValue([]);
     vi.mocked(renderMarkdown).mockImplementation((content: string) => `<div>${content}</div>`);
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   it('debería renderizar UI básica correctamente', async () => {

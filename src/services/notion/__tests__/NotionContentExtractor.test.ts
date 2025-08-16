@@ -1,5 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionContentExtractor, NotionBlock, NotionRichText } from '../NotionContentExtractor';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock del módulo crypto
 vi.mock('crypto', async (importOriginal) => {
@@ -14,8 +19,14 @@ vi.mock('crypto', async (importOriginal) => {
 });
 
 describe('NotionContentExtractor', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('extractContent - Tipos básicos de bloques', () => {

@@ -1,8 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { Page } from '../Page';
 import { NotionPageResponse } from '@/shared/types/notion.types';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 describe('Page', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   const mockProperties = {
     title: { title: [{ plain_text: 'Test Page' }] },
     status: { select: { name: 'Active' } }

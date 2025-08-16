@@ -4,12 +4,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 
-vi.spyOn(console, 'log').mockImplementation(() => { });
-vi.spyOn(console, 'warn').mockImplementation(() => { });
-vi.spyOn(console, 'error').mockImplementation(() => { });
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 describe('useSystemDataLoader', () => {
   const originalWindow = global.window;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -22,6 +24,7 @@ describe('useSystemDataLoader', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     if (originalWindow) {
       global.window = originalWindow;
     } else {

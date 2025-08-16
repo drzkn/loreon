@@ -1,8 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { User } from '../User';
 import { NotionUserResponse } from '../../../../shared/types/notion.types';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 describe('User Entity', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
   describe('Constructor', () => {
     it('debería crear un usuario con todos los parámetros', () => {
       const user = new User(

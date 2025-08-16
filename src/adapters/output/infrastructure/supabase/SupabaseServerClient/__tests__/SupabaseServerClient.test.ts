@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn()
 }));
@@ -13,6 +18,7 @@ type AnySupabaseClient = any;
 describe('SupabaseServerClient', () => {
   const originalEnv = process.env;
   const originalWindow = global.window;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -24,6 +30,7 @@ describe('SupabaseServerClient', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     process.env = originalEnv;
     global.window = originalWindow;
   });

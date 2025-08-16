@@ -1,4 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock del getEnvVar para evitar errores de variables de entorno
 vi.mock('@/utils/getEnvVar', () => ({
@@ -71,6 +76,7 @@ describe('ConnectionPageRepository', () => {
   let mockSetIsProcessing: ReturnType<typeof vi.fn>;
   let mockSetProgress: ReturnType<typeof vi.fn>;
   let mockSendLogToStream: ReturnType<typeof vi.fn>;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   const testDatabaseId = 'test-database-123';
 
@@ -87,6 +93,10 @@ describe('ConnectionPageRepository', () => {
     );
 
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('🏗️ Constructor & Basic Properties', () => {

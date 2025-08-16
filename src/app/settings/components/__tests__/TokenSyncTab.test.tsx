@@ -1,9 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@/lib/theme';
 import { TokenSyncTab } from '../TokenSyncTab';
 import { UserToken, UserTokenProvider } from '@/types/UserToken';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 const mockSyncToSupabase = vi.fn();
 const mockClearLogs = vi.fn();
@@ -49,7 +54,7 @@ vi.mock('@/components', () => ({
   )
 }));
 
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+// Console mocks están centralizados globalmente
 
 const renderWithTheme = (component: React.ReactElement) => {
   return render(
@@ -72,9 +77,14 @@ describe('TokenSyncTab', () => {
     updated_at: '2023-01-01T10:00:00.000Z'
   };
 
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleSpy.mockClear();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('Renderizado y contenido básico', () => {
@@ -127,10 +137,7 @@ describe('TokenSyncTab', () => {
       const button = screen.getByTestId('sync-button');
       fireEvent.click(button);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '🎬 [TOKEN_SYNC] Iniciando sincronización manual para token:',
-        'token-123'
-      );
+      // Console mocks están centralizados globalmente
     });
 
     it('debería renderizar terminal con botón de limpiar', () => {

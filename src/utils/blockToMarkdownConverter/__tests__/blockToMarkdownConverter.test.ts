@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck - Suprimir errores de TypeScript para los mocks de Block en tests
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 import {
   convertBlocksToMarkdown,
   convertBlockToMarkdown,
@@ -21,8 +26,14 @@ const createMockBlock = (partial: Partial<Block>): Block => ({
 } as Block);
 
 describe('blockToMarkdownConverter', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('extractPlainTextFromRichText', () => {

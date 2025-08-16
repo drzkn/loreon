@@ -1,11 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useRouter } from 'next/navigation';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@/lib/theme';
 import { useAuth } from '@/hooks/useAuth';
 import LoginPage from '../page';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 vi.mock('next/navigation');
 vi.mock('@/hooks/useAuth');
@@ -13,20 +18,25 @@ vi.mock('@/hooks/useAuth');
 const mockPush = vi.fn();
 const mockSignInWithGoogle = vi.fn();
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
-  vi.mocked(useAuth).mockReturnValue({
-    isAuthenticated: false,
-    signInWithGoogle: mockSignInWithGoogle
-  } as any);
-});
-
-const renderWithTheme = (component: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{component}</ThemeProvider>);
-};
-
 describe('LoginPage', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useRouter).mockReturnValue({ push: mockPush } as any);
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: false,
+      signInWithGoogle: mockSignInWithGoogle
+    } as any);
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
+
+  const renderWithTheme = (component: React.ReactElement) => {
+    return render(<ThemeProvider theme={theme}>{component}</ThemeProvider>);
+  };
   it('debería renderizar UI completa y manejar estados de autenticación', async () => {
     renderWithTheme(<LoginPage />);
 

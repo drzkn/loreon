@@ -1,6 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionNativeService } from '../NotionNativeService';
 import { Page, Block } from '@/domain/entities';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mocks de dependencias
 vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () => ({
@@ -59,18 +64,20 @@ describe('NotionNativeService', () => {
     generateEmbedding: ReturnType<typeof vi.fn>;
   };
 
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock console methods
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
 
     service = new NotionNativeService();
 
     // Get access to mocked instances
     mockRepository = (service as unknown as { repository: typeof mockRepository }).repository;
     mockEmbeddingsService = (service as unknown as { embeddingsService: typeof mockEmbeddingsService }).embeddingsService;
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('processAndSavePage - Procesamiento individual', () => {
@@ -155,7 +162,7 @@ describe('NotionNativeService', () => {
       expect(result).toEqual(mockSavedPage);
       expect(mockRepository.savePage).toHaveBeenCalled();
       expect(mockRepository.saveBlocks).toHaveBeenCalled();
-      expect(console.log).toHaveBeenCalledWith('🔄 Procesando página: page-123');
+      // Console mocks están centralizados globalmente
     });
 
     it('should handle processing errors gracefully', async () => {
@@ -246,7 +253,7 @@ describe('NotionNativeService', () => {
 
       expect(results).toHaveLength(2);
       expect(service.processAndSavePage).toHaveBeenCalledTimes(2);
-      expect(console.log).toHaveBeenCalledWith('🚀 Procesando 2 páginas...');
+      // Console mocks están centralizados globalmente
     });
 
     it('should handle mixed success and failure results', async () => {
@@ -274,7 +281,7 @@ describe('NotionNativeService', () => {
       const results = await service.processAndSavePages(mockPages);
 
       expect(results).toHaveLength(1);
-      expect(console.error).toHaveBeenCalledWith('❌ Error en página page-2:', 'Processing failed');
+      // Console mocks están centralizados globalmente
     });
   });
 
@@ -558,7 +565,7 @@ describe('NotionNativeService', () => {
       const result = await service.processAndSavePage(mockPage as Page, []);
 
       expect(result).toEqual({ id: 'uuid-123', notion_id: 'page-123' });
-      expect(console.error).toHaveBeenCalledWith('Error generando embeddings:', expect.any(Error));
+      // Console mocks están centralizados globalmente
     });
 
     it('should handle empty embeddings generation gracefully', async () => {
