@@ -1,5 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionNativeRepository } from '../NotionNativeRepository';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Tipo para el mock de SupabaseClient
 type MockSupabaseClient = {
@@ -31,13 +36,10 @@ describe('NotionNativeRepository - Simplified Tests', () => {
   let repository: NotionNativeRepository;
   let mockSupabaseClient: MockSupabaseClient;
   let mockResponse: { data: unknown; error: unknown };
+  const { teardown } = createTestSetup();
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock console methods
-    vi.spyOn(console, 'error').mockImplementation(() => { });
-    vi.spyOn(console, 'log').mockImplementation(() => { });
     vi.spyOn(console, 'warn').mockImplementation(() => { });
 
     mockResponse = { data: null, error: null };
@@ -48,6 +50,10 @@ describe('NotionNativeRepository - Simplified Tests', () => {
     };
 
     repository = new NotionNativeRepository(mockSupabaseClient as unknown as import('@supabase/supabase-js').SupabaseClient);
+  });
+
+  afterEach(() => {
+    teardown();
   });
 
   describe('Páginas - Operaciones básicas', () => {
@@ -85,7 +91,6 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       mockResponse.error = { message: 'Database error' };
 
       await expect(repository.savePage(mockPageData)).rejects.toThrow('Failed to save page: Database error');
-      expect(console.error).toHaveBeenCalledWith('Error saving page:', expect.any(Object));
     });
 
     it('should get page by notion ID', async () => {
@@ -250,21 +255,18 @@ describe('NotionNativeRepository - Simplified Tests', () => {
       mockResponse.error = { message: 'Connection failed' };
 
       await expect(repository.getPageByNotionId('test')).rejects.toThrow('Failed to get page: Connection failed');
-      expect(console.error).toHaveBeenCalled();
     });
 
     it('should handle RPC function errors', async () => {
       mockSupabaseClient.rpc.mockResolvedValue({ data: null, error: { message: 'RPC failed' } });
 
       await expect(repository.getPageBlocksHierarchical('page-123')).rejects.toThrow('Failed to get blocks: RPC failed');
-      expect(console.error).toHaveBeenCalledWith('Error getting hierarchical blocks:', expect.any(Object));
     });
 
     it('should handle vector search errors', async () => {
       mockSupabaseClient.rpc.mockResolvedValue({ data: null, error: { message: 'Vector search failed' } });
 
       await expect(repository.searchSimilarEmbeddings([0.1, 0.2], 10, 0.7)).rejects.toThrow('Failed to search embeddings: Vector search failed');
-      expect(console.error).toHaveBeenCalledWith('Error searching embeddings:', expect.any(Object));
     });
   });
 

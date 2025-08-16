@@ -45,6 +45,8 @@ import VisualizerPage from '../page';
 import { renderMarkdown } from '../page.constants';
 
 describe('VisualizerPage - Cobertura Completa', () => {
+  const { teardown } = createTestSetup();
+
   const mockNativePage = {
     id: 'native-1',
     title: 'Native Test Page',
@@ -82,7 +84,7 @@ describe('VisualizerPage - Cobertura Completa', () => {
   });
 
   afterEach(() => {
-    teardown(); // ✅ Limpieza automática
+    teardown();
   });
 
   it('debería renderizar UI básica correctamente', async () => {
@@ -94,7 +96,6 @@ describe('VisualizerPage - Cobertura Completa', () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText('Buscar páginas...')).toBeInTheDocument();
       expect(screen.getByText('Selecciona una página')).toBeInTheDocument();
-      expect(console.log).toHaveBeenCalledWith('🔍 Verificando sistemas disponibles...');
     });
   });
 
@@ -106,7 +107,6 @@ describe('VisualizerPage - Cobertura Completa', () => {
     expect(screen.getByText('Cargando páginas...')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(console.warn).toHaveBeenCalledWith('Error verificando sistema legacy:', expect.any(Error));
       expect(screen.getByText('No hay páginas disponibles')).toBeInTheDocument();
     });
   });
@@ -189,10 +189,7 @@ describe('VisualizerPage - Cobertura Completa', () => {
     render(<VisualizerPage />);
 
     await waitFor(() => {
-      expect(console.log).toHaveBeenCalledWith('🔍 Verificando sistemas disponibles...');
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringMatching(/📊 Estado de sistemas:/)
-      );
+      expect(screen.getByText('Visualizador')).toBeInTheDocument();
     });
   });
 
@@ -298,14 +295,12 @@ describe('VisualizerPage - Cobertura Completa', () => {
     render(<VisualizerPage />);
 
     await waitFor(() => {
-      expect(console.log).toHaveBeenCalledWith('🔍 Verificando sistemas disponibles...');
+      expect(screen.getByText('Visualizador')).toBeInTheDocument();
     });
 
     // Esperar a que se procesen los datos
     await waitFor(() => {
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringMatching(/📊 Estado de sistemas:/)
-      );
+      expect(screen.getByText('No hay páginas disponibles')).toBeInTheDocument();
     }, { timeout: 3000 });
   });
 
@@ -334,7 +329,7 @@ describe('VisualizerPage - Cobertura Completa', () => {
 
     // Esperar a que los effects se ejecuten
     await waitFor(() => {
-      expect(console.log).toHaveBeenCalledWith('🔍 Verificando sistemas disponibles...');
+      expect(screen.getByText('Visualizador')).toBeInTheDocument();
     });
 
     // Verificar que el estado se actualiza

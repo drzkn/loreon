@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { MarkdownPageInsert, MarkdownPageUpdate } from '../../types';
 
-vi.spyOn(console, 'log').mockImplementation(() => { });
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key';
@@ -26,6 +29,11 @@ import { SupabaseRepository } from '../SupabaseRepository';
 
 describe('SupabaseRepository', () => {
   let repository: SupabaseRepository;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
 
   const mockMarkdownPage = {
     id: 'test-id',

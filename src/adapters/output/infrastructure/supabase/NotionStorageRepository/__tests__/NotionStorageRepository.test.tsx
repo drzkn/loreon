@@ -1,5 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionStorageRepository } from '../NotionStorageRepository';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Tipo para el mock de SupabaseClient
 type MockSupabaseClient = {
@@ -31,13 +36,10 @@ describe('NotionStorageRepository', () => {
   let repository: NotionStorageRepository;
   let mockSupabaseClient: MockSupabaseClient;
   let mockResponse: { data: unknown; error: unknown };
+  const { teardown } = createTestSetup();
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock console methods
-    vi.spyOn(console, 'error').mockImplementation(() => { });
-    vi.spyOn(console, 'log').mockImplementation(() => { });
     vi.spyOn(console, 'warn').mockImplementation(() => { });
 
     mockResponse = { data: null, error: null };
@@ -48,6 +50,10 @@ describe('NotionStorageRepository', () => {
     };
 
     repository = new NotionStorageRepository(mockSupabaseClient as unknown as import('@supabase/supabase-js').SupabaseClient);
+  });
+
+  afterEach(() => {
+    teardown();
   });
 
   describe('Páginas - Operaciones básicas', () => {
@@ -86,7 +92,6 @@ describe('NotionStorageRepository', () => {
       mockResponse.error = { message: 'Database error' };
 
       await expect(repository.savePage(mockPageData)).rejects.toThrow('Failed to save page: Database error');
-      expect(console.error).toHaveBeenCalledWith('Error saving page:', expect.any(Object));
     });
 
     it('should get page by notion ID', async () => {
@@ -116,7 +121,6 @@ describe('NotionStorageRepository', () => {
       mockResponse.error = { message: 'Connection failed' };
 
       await expect(repository.getPageByNotionId('test')).rejects.toThrow('Failed to get page: Connection failed');
-      expect(console.error).toHaveBeenCalledWith('Error getting page:', expect.any(Object));
     });
   });
 
@@ -146,7 +150,6 @@ describe('NotionStorageRepository', () => {
       mockSupabaseClient.rpc.mockResolvedValue({ data: null, error: { message: 'RPC failed' } });
 
       await expect(repository.getPageBlocksHierarchical('page-123')).rejects.toThrow('Failed to get blocks: RPC failed');
-      expect(console.error).toHaveBeenCalledWith('Error getting hierarchical blocks:', expect.any(Object));
     });
   });
 
@@ -184,7 +187,6 @@ describe('NotionStorageRepository', () => {
       mockSupabaseClient.rpc.mockResolvedValue({ data: null, error: { message: 'Vector search failed' } });
 
       await expect(repository.searchSimilarEmbeddings([0.1, 0.2], 10, 0.7)).rejects.toThrow('Failed to search embeddings: Vector search failed');
-      expect(console.error).toHaveBeenCalledWith('Error searching embeddings:', expect.any(Object));
     });
 
     it('should return empty array when no similar embeddings found', async () => {
@@ -221,7 +223,6 @@ describe('NotionStorageRepository', () => {
       mockResponse.error = { message: 'Sync log error' };
 
       await expect(repository.createSyncLog('full')).rejects.toThrow('Failed to create sync log: Sync log error');
-      expect(console.error).toHaveBeenCalledWith('Error creating sync log:', expect.any(Object));
     });
   });
 

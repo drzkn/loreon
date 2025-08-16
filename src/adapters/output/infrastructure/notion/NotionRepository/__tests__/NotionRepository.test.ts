@@ -6,6 +6,11 @@ import { Page } from '@/domain/entities/Page';
 import { User } from '@/domain/entities/User';
 import { NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from '@/shared/types/notion.types';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 // Mock del IHttpClient
 const createMockHttpClient = (): IHttpClient => ({
   get: vi.fn(),
@@ -17,6 +22,7 @@ const createMockHttpClient = (): IHttpClient => ({
 describe('NotionRepository', () => {
   let notionRepository: NotionRepository;
   let mockHttpClient: IHttpClient;
+  const { teardown } = createTestSetup();
 
   beforeEach(() => {
     mockHttpClient = createMockHttpClient();
@@ -24,6 +30,7 @@ describe('NotionRepository', () => {
   });
 
   afterEach(() => {
+    teardown();
     vi.clearAllMocks();
   });
 
