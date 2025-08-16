@@ -1,2 +1,2 @@
 export * from './Database';
-export * from './DatabaseBuilder';
+export * from './builders';

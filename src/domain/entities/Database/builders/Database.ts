@@ -1,6 +1,6 @@
-import { Database } from './Database';
+import { Database as DatabaseEntity } from '../Database';
 
-export class DatabaseBuilder {
+export class Database {
   private id: string = 'test-database-id';
   private title: string = 'Test Database';
   private properties: Record<string, unknown> = {};
@@ -8,37 +8,37 @@ export class DatabaseBuilder {
   private lastEditedTime?: string;
   private url?: string;
 
-  withId(id: string): DatabaseBuilder {
+  withId(id: string): Database {
     this.id = id;
     return this;
   }
 
-  withTitle(title: string): DatabaseBuilder {
+  withTitle(title: string): Database {
     this.title = title;
     return this;
   }
 
-  withProperties(properties: Record<string, unknown>): DatabaseBuilder {
+  withProperties(properties: Record<string, unknown>): Database {
     this.properties = properties;
     return this;
   }
 
-  withCreatedTime(createdTime: string): DatabaseBuilder {
+  withCreatedTime(createdTime: string): Database {
     this.createdTime = createdTime;
     return this;
   }
 
-  withLastEditedTime(lastEditedTime: string): DatabaseBuilder {
+  withLastEditedTime(lastEditedTime: string): Database {
     this.lastEditedTime = lastEditedTime;
     return this;
   }
 
-  withUrl(url: string): DatabaseBuilder {
+  withUrl(url: string): Database {
     this.url = url;
     return this;
   }
 
-  withTitleProperty(): DatabaseBuilder {
+  withTitleProperty(): Database {
     this.properties = {
       ...this.properties,
       Name: {
@@ -51,7 +51,7 @@ export class DatabaseBuilder {
     return this;
   }
 
-  withStatusProperty(): DatabaseBuilder {
+  withStatusProperty(): Database {
     this.properties = {
       ...this.properties,
       Status: {
@@ -69,7 +69,7 @@ export class DatabaseBuilder {
     return this;
   }
 
-  withDateProperty(): DatabaseBuilder {
+  withDateProperty(): Database {
     this.properties = {
       ...this.properties,
       'Created Date': {
@@ -82,7 +82,7 @@ export class DatabaseBuilder {
     return this;
   }
 
-  withTextProperty(name: string): DatabaseBuilder {
+  withTextProperty(name: string): Database {
     this.properties = {
       ...this.properties,
       [name]: {
@@ -95,7 +95,7 @@ export class DatabaseBuilder {
     return this;
   }
 
-  withNumberProperty(name: string): DatabaseBuilder {
+  withNumberProperty(name: string): Database {
     this.properties = {
       ...this.properties,
       [name]: {
@@ -108,26 +108,26 @@ export class DatabaseBuilder {
     return this;
   }
 
-  withTimestamps(): DatabaseBuilder {
+  withTimestamps(): Database {
     this.createdTime = '2023-01-01T00:00:00.000Z';
     this.lastEditedTime = '2023-01-02T00:00:00.000Z';
     return this;
   }
 
-  withNotionUrl(): DatabaseBuilder {
+  withNotionUrl(): Database {
     this.url = `https://notion.so/${this.id}`;
     return this;
   }
 
-  withBasicProperties(): DatabaseBuilder {
+  withBasicProperties(): Database {
     return this
       .withTitleProperty()
       .withStatusProperty()
       .withDateProperty();
   }
 
-  build(): Database {
-    return new Database(
+  build(): DatabaseEntity {
+    return new DatabaseEntity(
       this.id,
       this.title,
       this.properties,

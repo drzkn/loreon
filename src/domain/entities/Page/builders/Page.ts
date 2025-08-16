@@ -1,58 +1,58 @@
-import { Page } from './Page';
+import { Page as PageEntity } from '../Page';
 
-export class PageBuilder {
+export class Page {
   private id: string = 'test-page-id';
   private properties: Record<string, unknown> = {};
   private createdTime?: string;
   private lastEditedTime?: string;
   private url?: string;
 
-  withId(id: string): PageBuilder {
+  withId(id: string): Page {
     this.id = id;
     return this;
   }
 
-  withProperties(properties: Record<string, unknown>): PageBuilder {
+  withProperties(properties: Record<string, unknown>): Page {
     this.properties = properties;
     return this;
   }
 
-  withCreatedTime(createdTime: string): PageBuilder {
+  withCreatedTime(createdTime: string): Page {
     this.createdTime = createdTime;
     return this;
   }
 
-  withLastEditedTime(lastEditedTime: string): PageBuilder {
+  withLastEditedTime(lastEditedTime: string): Page {
     this.lastEditedTime = lastEditedTime;
     return this;
   }
 
-  withUrl(url: string): PageBuilder {
+  withUrl(url: string): Page {
     this.url = url;
     return this;
   }
 
-  withTitle(title: string): PageBuilder {
+  withTitle(title: string): Page {
     this.properties = {
       ...this.properties,
-      title: { 
-        title: [{ plain_text: title }] 
+      title: {
+        title: [{ plain_text: title }]
       }
     };
     return this;
   }
 
-  withStatus(status: string): PageBuilder {
+  withStatus(status: string): Page {
     this.properties = {
       ...this.properties,
-      status: { 
-        select: { name: status } 
+      status: {
+        select: { name: status }
       }
     };
     return this;
   }
 
-  withRelation(relationIds: string[]): PageBuilder {
+  withRelation(relationIds: string[]): Page {
     this.properties = {
       ...this.properties,
       relation: {
@@ -62,7 +62,7 @@ export class PageBuilder {
     return this;
   }
 
-  withFormula(formulaValue: string): PageBuilder {
+  withFormula(formulaValue: string): Page {
     this.properties = {
       ...this.properties,
       formula: {
@@ -72,19 +72,19 @@ export class PageBuilder {
     return this;
   }
 
-  withTimestamps(): PageBuilder {
+  withTimestamps(): Page {
     this.createdTime = '2023-01-01T00:00:00.000Z';
     this.lastEditedTime = '2023-01-02T00:00:00.000Z';
     return this;
   }
 
-  withNotionUrl(): PageBuilder {
+  withNotionUrl(): Page {
     this.url = `https://notion.so/${this.id}`;
     return this;
   }
 
-  build(): Page {
-    return new Page(
+  build(): PageEntity {
+    return new PageEntity(
       this.id,
       this.properties,
       this.createdTime,

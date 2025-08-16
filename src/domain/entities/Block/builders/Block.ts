@@ -1,50 +1,50 @@
-import { Block } from './Block';
+import { Block as BlockEntity } from '../Block';
 
-export class BlockBuilder {
+export class Block {
   private id: string = 'test-block-id';
   private type: string = 'paragraph';
   private data: Record<string, unknown> = {};
   private createdTime?: string;
   private lastEditedTime?: string;
   private hasChildren?: boolean;
-  private children?: Block[];
+  private children?: BlockEntity[];
 
-  withId(id: string): BlockBuilder {
+  withId(id: string): Block {
     this.id = id;
     return this;
   }
 
-  withType(type: string): BlockBuilder {
+  withType(type: string): Block {
     this.type = type;
     return this;
   }
 
-  withData(data: Record<string, unknown>): BlockBuilder {
+  withData(data: Record<string, unknown>): Block {
     this.data = data;
     return this;
   }
 
-  withCreatedTime(createdTime: string): BlockBuilder {
+  withCreatedTime(createdTime: string): Block {
     this.createdTime = createdTime;
     return this;
   }
 
-  withLastEditedTime(lastEditedTime: string): BlockBuilder {
+  withLastEditedTime(lastEditedTime: string): Block {
     this.lastEditedTime = lastEditedTime;
     return this;
   }
 
-  withHasChildren(hasChildren: boolean): BlockBuilder {
+  withHasChildren(hasChildren: boolean): Block {
     this.hasChildren = hasChildren;
     return this;
   }
 
-  withChildren(children: Block[]): BlockBuilder {
+  withChildren(children: BlockEntity[]): Block {
     this.children = children;
     return this;
   }
 
-  withParagraphContent(content: string): BlockBuilder {
+  withParagraphContent(content: string): Block {
     this.type = 'paragraph';
     this.data = {
       paragraph: {
@@ -60,7 +60,7 @@ export class BlockBuilder {
     return this;
   }
 
-  withHeading1Content(content: string): BlockBuilder {
+  withHeading1Content(content: string): Block {
     this.type = 'heading_1';
     this.data = {
       heading_1: {
@@ -76,7 +76,7 @@ export class BlockBuilder {
     return this;
   }
 
-  withCodeContent(content: string, language: string = 'javascript'): BlockBuilder {
+  withCodeContent(content: string, language: string = 'javascript'): Block {
     this.type = 'code';
     this.data = {
       code: {
@@ -94,26 +94,26 @@ export class BlockBuilder {
     return this;
   }
 
-  withTimestamps(): BlockBuilder {
+  withTimestamps(): Block {
     this.createdTime = '2023-01-01T00:00:00.000Z';
     this.lastEditedTime = '2023-01-02T00:00:00.000Z';
     return this;
   }
 
-  asParent(): BlockBuilder {
+  asParent(): Block {
     this.hasChildren = true;
     this.children = [];
     return this;
   }
 
-  asDivider(): BlockBuilder {
+  asDivider(): Block {
     this.type = 'divider';
     this.data = {};
     return this;
   }
 
-  build(): Block {
-    return new Block(
+  build(): BlockEntity {
+    return new BlockEntity(
       this.id,
       this.type,
       this.data,

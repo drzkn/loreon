@@ -1,2 +1,2 @@
 export * from './Block';
-export * from './BlockBuilder';
+export * from './builders';
