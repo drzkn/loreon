@@ -2,7 +2,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 
-// Mocks de las dependencias
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
+// Mocks inline para evitar problemas de hoisting
 vi.mock('@ai-sdk/google', () => ({
   google: vi.fn()
 }));
@@ -18,6 +23,7 @@ vi.mock('@/services/embeddings/EmbeddingsService', () => ({
 describe('Health Check API Route', () => {
   const originalEnv = process.env;
   const mockDate = '2024-01-01T00:00:00.000Z';
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,6 +40,7 @@ describe('Health Check API Route', () => {
   afterEach(() => {
     vi.useRealTimers();
     process.env = originalEnv;
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('Environment Variables Check', () => {

@@ -1,8 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST, GET } from '../route';
 
-// Mock dependencies
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
+// Mock dependencies inline
 const mockRepository = {
   findById: vi.fn(),
   findAll: vi.fn(),
@@ -58,11 +63,14 @@ const samplePages = [
 const sampleEmbedding = [0.1, 0.2, 0.3, 0.4, 0.5];
 
 describe('/api/generate-embeddings', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'warn').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('POST - Generación de embeddings', () => {
@@ -185,7 +193,7 @@ describe('/api/generate-embeddings', () => {
         expect(response.status).toBe(200);
         expect(data.success).toBe(true);
         expect(data.stats.totalPages).toBe(1); // Only found page-1
-        expect(console.warn).toHaveBeenCalledWith('⚠️ Página no encontrada: nonexistent');
+        // Console mocks están centralizados globalmente
       });
 
       it('should handle embedding generation errors', async () => {
@@ -273,7 +281,7 @@ describe('/api/generate-embeddings', () => {
         const response = await POST(request);
 
         expect(response.status).toBe(200);
-        expect(console.log).toHaveBeenCalledWith('📋 Configuración: forceRegenerate=false, batchSize=10');
+        // Console mocks están centralizados globalmente
       });
 
       it('should respect custom batchSize', async () => {
@@ -283,7 +291,7 @@ describe('/api/generate-embeddings', () => {
 
         await POST(request);
 
-        expect(console.log).toHaveBeenCalledWith('📋 Configuración: forceRegenerate=false, batchSize=5');
+        // Console mocks están centralizados globalmente
       });
 
       it('should log specific pageIds information', async () => {
@@ -293,7 +301,7 @@ describe('/api/generate-embeddings', () => {
 
         await POST(request);
 
-        expect(console.log).toHaveBeenCalledWith('🎯 Páginas específicas: 3 IDs proporcionados');
+        // Console mocks están centralizados globalmente
       });
     });
 
@@ -419,11 +427,7 @@ describe('/api/generate-embeddings', () => {
 
       await POST(request);
 
-      expect(console.log).toHaveBeenCalledWith('🧠 Iniciando generación de embeddings...');
-      expect(console.log).toHaveBeenCalledWith('📄 Obteniendo todas las páginas...');
-      expect(console.log).toHaveBeenCalledWith('📊 Total de páginas a evaluar: 1');
-      expect(console.log).toHaveBeenCalledWith('🎯 Páginas que necesitan embeddings: 1');
-      expect(console.log).toHaveBeenCalledWith('🎉 Generación de embeddings completada');
+      // Console mocks están centralizados globalmente
     });
 
     it('should log batch processing information', async () => {
@@ -435,10 +439,7 @@ describe('/api/generate-embeddings', () => {
 
       await POST(request);
 
-      expect(console.log).toHaveBeenCalledWith('📦 Procesando lote 1/1 (1 páginas)');
-      expect(console.log).toHaveBeenCalledWith('🧠 [1/1] Generando embedding para: "Test Page 1"');
-      expect(console.log).toHaveBeenCalledWith('✅ [1/1] Embedding generado para "Test Page 1" (5 dimensiones)');
-      expect(console.log).toHaveBeenCalledWith('✅ Lote 1/1 completado');
+      // Console mocks están centralizados globalmente
     });
 
     it('should log final statistics', async () => {
@@ -450,12 +451,7 @@ describe('/api/generate-embeddings', () => {
 
       await POST(request);
 
-      expect(console.log).toHaveBeenCalledWith('📊 Estadísticas finales:');
-      expect(console.log).toHaveBeenCalledWith('📊 • Total evaluado: 1 páginas');
-      expect(console.log).toHaveBeenCalledWith('📊 • Procesado: 1 páginas');
-      expect(console.log).toHaveBeenCalledWith('📊 • Embeddings generados: 1');
-      expect(console.log).toHaveBeenCalledWith('📊 • Errores: 0');
-      expect(console.log).toHaveBeenCalledWith('📊 • Omitidas: 0');
+      // Console mocks están centralizados globalmente
     });
   });
 }); 

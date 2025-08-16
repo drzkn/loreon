@@ -1,7 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { ThemeProvider } from 'styled-components';
 import { Card } from '../Card';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Mock theme para styled components
 const mockTheme = {
@@ -93,10 +98,16 @@ const renderWithTheme = (component: React.ReactElement) => {
 };
 
 describe('Card', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   const defaultProps = {
     title: '📋 Manual',
     description: 'Control total sobre cuándo sincronizar',
   };
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
+  });
 
   it('should render title and description', () => {
     renderWithTheme(<Card {...defaultProps} />);

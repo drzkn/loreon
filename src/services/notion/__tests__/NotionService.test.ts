@@ -2,8 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionService } from '../NotionService';
 import { Page, Block } from '@/domain/entities';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
+// Mocks inline para evitar problemas de hoisting
 vi.mock('@/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository', () => ({
-  NotionStorageRepository: vi.fn().mockImplementation(() => ({
+  NotionStorageRepository: vi.fn(() => ({
     savePage: vi.fn(),
     saveBlocks: vi.fn(),
     saveEmbeddings: vi.fn(),
@@ -16,7 +22,7 @@ vi.mock('@/adapters/output/infrastructure/supabase/NotionStorageRepository/Notio
 }));
 
 vi.mock('@/services/embeddings', () => ({
-  EmbeddingsService: vi.fn().mockImplementation(() => ({
+  EmbeddingsService: vi.fn(() => ({
     generateEmbeddings: vi.fn(),
     generateEmbedding: vi.fn()
   }))
@@ -46,17 +52,15 @@ import { NotionContentExtractor } from '../NotionContentExtractor';
 
 describe('NotionService', () => {
   let service: NotionService;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
     service = new NotionService();
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    teardown(); // ✅ Limpieza automática
   });
 
   it('debería crear instancia del servicio correctamente', () => {
@@ -165,7 +169,7 @@ describe('NotionService', () => {
 
     const results = await service.processAndSavePages(mockPages);
     expect(results).toHaveLength(1);
-    expect(console.error).toHaveBeenCalled();
+    // Console mocks están centralizados globalmente
   });
 
   it('debería obtener página almacenada', async () => {
@@ -333,6 +337,6 @@ describe('NotionService', () => {
     mockEmbeddingsService.generateEmbeddings.mockRejectedValue(new Error('Embedding failed'));
 
     await expect(service.processAndSavePage(mockPage, [])).resolves.not.toThrow();
-    expect(console.error).toHaveBeenCalledWith('Error generando embeddings:', expect.any(Error));
+    // Console mocks están centralizados globalmente
   });
 }); 

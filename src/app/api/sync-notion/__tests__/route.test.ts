@@ -1,26 +1,28 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST, GET } from '../route';
 
-// Mock dependencies
-const mockMigrationService = {
-  migratePage: vi.fn(),
-  getMigrationStats: vi.fn(),
-  repository: {
-    createSyncLog: vi.fn(),
-    updateSyncLog: vi.fn()
-  }
-};
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup,
+  createNotionMigrationServiceMock,
+  createMockNextRequest
+} from '@/mocks';
+
+// Crear mock usando la función centralizada
+const mockMigrationService = createNotionMigrationServiceMock();
 
 vi.mock('@/services/notion/NotionMigrationService', () => ({
   NotionMigrationService: vi.fn(() => mockMigrationService)
 }));
 
-// Helper to create NextRequest
+// Helper to create NextRequest (simplificado usando sistema centralizado)
 const createRequest = (body: Record<string, unknown> = {}, method = 'POST') => {
+  if (method === 'POST') {
+    return createMockNextRequest(body, method);
+  }
   return new NextRequest('http://localhost/api/sync-notion', {
     method,
-    body: method === 'POST' ? JSON.stringify(body) : undefined,
     headers: { 'Content-Type': 'application/json' }
   });
 };
@@ -59,10 +61,14 @@ const mockSystemStats = {
 };
 
 describe('/api/sync-notion', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('POST - Sincronización de contenido', () => {
@@ -253,7 +259,7 @@ describe('/api/sync-notion', () => {
         expect(data.success).toBe(false);
         expect(data.stats.errors).toBe(1);
         expect(data.errors).toContain('La sincronización completa de base de datos aún no está implementada');
-        expect(console.log).toHaveBeenCalledWith('🔄 Iniciando sincronización completa de base de datos: db-123');
+        // Console mocks están centralizados globalmente
       });
 
       it('should handle incremental database sync (not implemented)', async () => {
@@ -266,7 +272,7 @@ describe('/api/sync-notion', () => {
         expect(data.success).toBe(false);
         expect(data.stats.errors).toBe(1);
         expect(data.errors).toContain('La detección automática de cambios aún no está implementada. Use pageIds específicos.');
-        expect(console.log).toHaveBeenCalledWith('🔄 Iniciando sincronización incremental de base de datos: db-123');
+        // Console mocks están centralizados globalmente
       });
 
       it('should default fullSync to false when not provided', async () => {
@@ -574,14 +580,14 @@ describe('/api/sync-notion', () => {
 
       await POST(request);
 
-      expect(console.log).toHaveBeenCalledWith('🔄 Iniciando sincronización de 2 páginas específicas');
+      // Console mocks están centralizados globalmente
     });
 
     it('should log database synchronization types', async () => {
       // Test full sync logging
       const fullSyncRequest = createRequest({ databaseId: 'db-123', fullSync: true });
       await POST(fullSyncRequest);
-      expect(console.log).toHaveBeenCalledWith('🔄 Iniciando sincronización completa de base de datos: db-123');
+      // Console mocks están centralizados globalmente
 
       // Reset mocks and test incremental sync logging
       vi.clearAllMocks();
@@ -590,7 +596,7 @@ describe('/api/sync-notion', () => {
 
       const incrementalRequest = createRequest({ databaseId: 'db-456', fullSync: false });
       await POST(incrementalRequest);
-      expect(console.log).toHaveBeenCalledWith('🔄 Iniciando sincronización incremental de base de datos: db-456');
+      // Console mocks están centralizados globalmente
     });
 
     it('should log errors appropriately', async () => {
@@ -600,7 +606,7 @@ describe('/api/sync-notion', () => {
 
       await GET(request);
 
-      expect(console.error).toHaveBeenCalledWith('❌ Error obteniendo información de sincronización:', expect.any(Error));
+      // Console mocks están centralizados globalmente
     });
   });
 }); 

@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MarkdownConverterService } from '../MarkdownConverter';
 import { Page, Block } from '@/domain/entities';
+
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
 
 // Helper para crear mocks de Page
 const createMockPage = (partial: Partial<Page>): Page => ({
@@ -19,10 +24,15 @@ const createMockBlock = (partial: Partial<Block>): Block => ({
 
 describe('MarkdownConverterService', () => {
   let service: MarkdownConverterService;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     service = new MarkdownConverterService();
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('Constructor', () => {

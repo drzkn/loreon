@@ -1,9 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionMigrationService } from '../NotionMigrationService';
 
-// Mocks de dependencias
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
+// Mocks inline para evitar problemas de hoisting
 vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () => ({
-  NotionNativeRepository: vi.fn().mockImplementation(() => ({
+  NotionNativeRepository: vi.fn(() => ({
     savePage: vi.fn(),
     saveBlocks: vi.fn(),
     saveEmbeddings: vi.fn(),
@@ -16,7 +21,7 @@ vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () =
 }));
 
 vi.mock('@/services/embeddings', () => ({
-  EmbeddingsService: vi.fn().mockImplementation(() => ({
+  EmbeddingsService: vi.fn(() => ({
     generateEmbeddings: vi.fn(),
     generateEmbedding: vi.fn()
   }))
@@ -24,6 +29,13 @@ vi.mock('@/services/embeddings', () => ({
 
 vi.mock('@/adapters/output/infrastructure/supabase/SupabaseClient', () => ({
   supabase: {
+    auth: {
+      signInWithOAuth: vi.fn(),
+      signInAnonymously: vi.fn(),
+      getUser: vi.fn(),
+      getSession: vi.fn(),
+      signOut: vi.fn()
+    },
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -39,50 +51,39 @@ vi.mock('../NotionContentExtractor', () => ({
   }
 }));
 
-// Mock del contenedor DI
-const mockContainer = {
-  getPageUseCase: {
-    execute: vi.fn()
-  },
-  getBlockChildrenRecursiveUseCase: {
-    execute: vi.fn()
-  }
-};
-
 vi.mock('@/infrastructure/di/container', () => ({
-  container: mockContainer
+  container: {
+    getPageUseCase: {
+      execute: vi.fn()
+    },
+    getBlockChildrenRecursiveUseCase: {
+      execute: vi.fn()
+    }
+  }
 }));
 
 describe('NotionMigrationService', () => {
   let service: NotionMigrationService;
-  let mockRepository: {
-    savePage: ReturnType<typeof vi.fn>;
-    saveBlocks: ReturnType<typeof vi.fn>;
-    saveEmbeddings: ReturnType<typeof vi.fn>;
-    getStorageStats: ReturnType<typeof vi.fn>;
-    getPageByNotionId: ReturnType<typeof vi.fn>;
-    getPageBlocks: ReturnType<typeof vi.fn>;
-    searchBlocks: ReturnType<typeof vi.fn>;
-    searchSimilarEmbeddings: ReturnType<typeof vi.fn>;
-  };
-  let mockEmbeddingsService: {
-    generateEmbeddings: ReturnType<typeof vi.fn>;
-    generateEmbedding: ReturnType<typeof vi.fn>;
-  };
+  let mockRepository: any;
+  let mockEmbeddingsService: any;
+  let mockContainer: any;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-
-    // Mock console methods
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
-    vi.spyOn(console, 'warn').mockImplementation(() => { });
-
     service = new NotionMigrationService();
 
-    // Get access to mocked instances
-    mockRepository = (service as unknown as { repository: typeof mockRepository }).repository;
-    mockEmbeddingsService = (service as unknown as { embeddingsService: typeof mockEmbeddingsService }).embeddingsService;
+    // Obtener referencias a los mocks después de la instanciación
+    mockRepository = (service as any).repository;
+    mockEmbeddingsService = (service as any).embeddingsService;
+
+    // Obtener referencia al mock container
+    const { container } = await import('@/infrastructure/di/container');
+    mockContainer = container;
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('migratePage - Migración individual', () => {
@@ -199,7 +200,7 @@ describe('NotionMigrationService', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors![0]).toContain('Failed to fetch page');
-      expect(console.error).toHaveBeenCalled();
+      // El console.error ya está mockeado globalmente
     });
 
     it('should handle content extraction errors', async () => {

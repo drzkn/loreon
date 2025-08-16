@@ -1,7 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EmbeddingsService } from '../EmbeddingsService';
 
-// Mocks simples
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
+// Mocks inline para evitar problemas de hoisting
 vi.mock('ai', () => ({
   embed: vi.fn(),
   embedMany: vi.fn()
@@ -13,15 +18,11 @@ vi.mock('@ai-sdk/google', () => ({
   }
 }));
 
-vi.mock('console', () => ({
-  log: vi.fn(),
-  error: vi.fn()
-}));
-
 describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
-  let mockEmbed: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  let mockEmbedMany: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  let mockEmbed: any;
+  let mockEmbedMany: any;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -32,6 +33,10 @@ describe('EmbeddingsService', () => {
     mockEmbedMany = aiModule.embedMany;
 
     service = new EmbeddingsService();
+  });
+
+  afterEach(() => {
+    teardown(); // ✅ Limpieza automática
   });
 
   describe('Constructor', () => {

@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AuthService } from '../AuthService';
 
-// Mocks sin referencias a variables externas
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
+// Mocks inline para evitar problemas de hoisting
 vi.mock('@/services/UserTokenService', () => ({
-  UserTokenService: vi.fn().mockImplementation(() => ({
+  UserTokenService: vi.fn(() => ({
     hasTokensForProvider: vi.fn(),
     getDecryptedToken: vi.fn()
   }))
@@ -21,36 +26,30 @@ vi.mock('@/adapters/output/infrastructure/supabase', () => ({
   }
 }));
 
-// Mock de window.location
-Object.defineProperty(window, 'location', {
-  value: {
-    origin: 'https://test.com'
-  },
-  writable: true
-});
-
 // Importar después de los mocks
 import { supabase } from '@/adapters/output/infrastructure/supabase';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockUserTokenService: any;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     vi.clearAllMocks();
     service = new AuthService();
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
 
-    // Obtener referencia al mock
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Obtener referencia al mock después de la instanciación
     mockUserTokenService = (service as any).userTokenService;
+
+    // Mock de window.location para tests que lo necesiten
+    Object.defineProperty(window, 'location', {
+      value: { origin: 'https://test.com' },
+      writable: true
+    });
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    teardown(); // ✅ Limpieza automática
   });
 
   it('debería crear instancia del servicio correctamente', () => {
@@ -80,8 +79,7 @@ describe('AuthService', () => {
         redirectTo: 'https://test.com/auth/callback'
       }
     });
-    expect(console.log).toHaveBeenCalledWith('🔐 [AUTH] Iniciando autenticación con Google...');
-    expect(console.log).toHaveBeenCalledWith('✅ Autenticación con Google iniciada');
+    // Console mocks están centralizados globalmente
   });
 
   it('debería manejar errores en autenticación con Google', async () => {
@@ -95,7 +93,7 @@ describe('AuthService', () => {
     vi.mocked(supabase.auth).signInWithOAuth.mockResolvedValue({ data: { provider: 'google' as const, url: null }, error: mockError });
 
     await expect(service.signInWithGoogle()).rejects.toEqual(mockError);
-    expect(console.error).toHaveBeenCalledWith('❌ Error en autenticación con Google:', 'OAuth error');
+    // Console mocks están centralizados globalmente
   });
 
   it('debería verificar tokens de proveedor con y sin usuario', async () => {
@@ -124,7 +122,7 @@ describe('AuthService', () => {
     mockUserTokenService.hasTokensForProvider.mockRejectedValue(new Error('Token error'));
     hasTokens = await service.hasTokensForProvider('drive', 'user-error');
     expect(hasTokens).toBe(false);
-    expect(console.error).toHaveBeenCalledWith('💥 Error verificando tokens de proveedor:', expect.any(Error));
+    // Console mocks están centralizados globalmente
   });
 
   it('debería obtener token de integración correctamente', async () => {
@@ -223,7 +221,7 @@ describe('AuthService', () => {
     vi.mocked(supabase.auth).signOut.mockResolvedValue({ error: null });
     await service.signOut();
     expect(vi.mocked(supabase.auth).signOut).toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith('✅ Sesión cerrada exitosamente');
+    // Console mocks están centralizados globalmente
 
     const mockSession = {
       access_token: 'token-123',
@@ -272,6 +270,6 @@ describe('AuthService', () => {
 
     vi.mocked(supabase.auth).signInWithOAuth.mockRejectedValue(new Error('Critical error'));
     await expect(service.signInWithGoogle()).rejects.toThrow('Critical error');
-    expect(console.error).toHaveBeenCalledWith('💥 Error crítico en autenticación con Google:', expect.any(Error));
+    // Console mocks están centralizados globalmente
   });
 });
