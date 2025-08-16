@@ -58,6 +58,7 @@ export default defineConfig({
         'src/app/settings/connect/page.tsx',
         'src/app/settings/components/ConnectionContent.tsx',
         'src/app/page.tsx',
+        '**/*Builder.ts',
       ]
     }
   },
