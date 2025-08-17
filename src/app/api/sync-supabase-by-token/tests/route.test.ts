@@ -2,6 +2,11 @@
 import { NextRequest } from 'next/server';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 // Mock solo las dependencias esenciales
 vi.mock('@supabase/ssr');
 vi.mock('next/headers');
@@ -20,10 +25,10 @@ const mockConnectionPageRepository = vi.mocked(ConnectionPageRepository);
 const mockUserTokenService = vi.mocked(UserTokenService);
 
 describe('/api/sync-supabase-by-token', () => {
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
 
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
@@ -63,6 +68,7 @@ describe('/api/sync-supabase-by-token', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     vi.restoreAllMocks();
     delete process.env.NOTION_API_KEY;
   });

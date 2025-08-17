@@ -4,6 +4,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider } from 'styled-components';
 import { Navigation } from './Navigation';
 
+// Usar el sistema centralizado de mocks
+import {
+  createTestSetup
+} from '@/mocks';
+
 const mockPush = vi.fn();
 let mockPathname = '/';
 
@@ -151,6 +156,7 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('Navigation', () => {
   let mockSetProperty: ReturnType<typeof vi.fn>;
+  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {
     mockSetProperty = vi.fn();
@@ -167,6 +173,7 @@ describe('Navigation', () => {
   });
 
   afterEach(() => {
+    teardown(); // ✅ Limpieza automática
     vi.restoreAllMocks();
   });
 

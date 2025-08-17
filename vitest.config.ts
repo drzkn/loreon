@@ -32,6 +32,7 @@ export default defineConfig({
         '**/types/**',
         '**/index.ts',
         '**/__mocks__/**',
+        'src/mocks/**',
         'src/app/layout.tsx',
         '**/di/**',
         'src/services/config.ts',
@@ -57,6 +58,8 @@ export default defineConfig({
         'src/app/settings/connect/page.tsx',
         'src/app/settings/components/ConnectionContent.tsx',
         'src/app/page.tsx',
+        /** Builders para tests - no necesitan coverage */
+        '**/builders/**',
       ]
     }
   },
