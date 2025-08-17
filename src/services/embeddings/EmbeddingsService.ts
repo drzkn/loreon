@@ -11,6 +11,7 @@ export class EmbeddingsService implements EmbeddingsServiceInterface {
 
   constructor() {
     this.model = google.textEmbeddingModel('text-embedding-004', {
+      // Usar dimensiones nativas de Google (768)
       taskType: 'RETRIEVAL_DOCUMENT'
     });
   }
