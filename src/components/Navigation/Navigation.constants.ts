@@ -2,10 +2,10 @@ import { IconName } from "../Icon/Icon.types";
 
 export const navigationItems = [
   {
-    path: '/',
+    path: '/chat',
     icon: 'bot' as IconName,
-    label: 'Inicio',
-    description: 'Página principal'
+    label: 'Chat',
+    description: 'Conversa con Loreon AI'
   },
   {
     path: '/visualizer',

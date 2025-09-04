@@ -80,6 +80,10 @@ export const Navigation: React.FC = () => {
     return userProfile.name[0].toUpperCase();
   };
 
+  if (!isAuthenticated) {
+    return <></>
+  }
+
   return (
     <GlobalNavigation>
       <NavContainer>
@@ -111,7 +115,7 @@ export const Navigation: React.FC = () => {
         </div>
 
         <NavItems>
-          {isAuthenticated && userProfile && (
+          {userProfile && (
             <UserSection ref={userDropdownRef}>
               <UserAvatar onClick={handleUserClick}>
                 {getUserInitial()}
@@ -122,11 +126,6 @@ export const Navigation: React.FC = () => {
                   <UserName>{userProfile.name || 'Usuario'}</UserName>
                   <UserEmail>{userProfile.email}</UserEmail>
                 </UserInfo>
-
-                <UserDropdownItem onClick={() => router.push('/profile')}>
-                  <Icon name="user" size="sm" />
-                  Mi Perfil
-                </UserDropdownItem>
 
                 <UserDropdownItem onClick={() => router.push('/settings')}>
                   <Icon name="settings" size="sm" />
