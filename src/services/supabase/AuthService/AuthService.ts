@@ -2,11 +2,16 @@ import { supabase } from "@/adapters/output/infrastructure/supabase";
 import type { Provider } from '@supabase/supabase-js';
 import { UserTokenService } from '@/services/UserTokenService';
 
+/**
+ * @deprecated Use @/application/services/AuthService instead
+ * This class will be removed in the next major version
+ */
 export class AuthService {
   private userTokenService = new UserTokenService(false); // Cliente por defecto
 
   async signInWithGoogle(): Promise<unknown> {
     try {
+      console.warn('⚠️ [DEPRECATED] AuthService is deprecated. Please use @/application/services/AuthService');
       console.log('🔐 [AUTH] Iniciando autenticación con Google...');
 
       const { data, error } = await supabase.auth.signInWithOAuth({

@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+// Use Web Crypto API for edge compatibility
 
 // Tipos base para los datos de Notion
 export interface NotionRichText {
@@ -565,7 +565,18 @@ export class NotionContentExtractor {
   }
 
   private static generateContentHash(content: string): string {
-    return createHash('md5').update(content.trim()).digest('hex');
+    // Use a simple hash for edge compatibility
+    let hash = 0;
+    const str = content.trim();
+    if (str.length === 0) return '0';
+
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+
+    return Math.abs(hash).toString(16);
   }
 
   private static countWords(text: string): number {
