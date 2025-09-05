@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import { ChatController } from '../ChatController';
 import type { ILogger } from '@/application/interfaces/ILogger';
 import type { INotionMigrationService } from '@/application/interfaces/INotionMigrationService';
@@ -36,7 +36,8 @@ describe('ChatController', () => {
       info: vi.fn(),
       error: vi.fn(),
       debug: vi.fn(),
-      warn: vi.fn()
+      warn: vi.fn(),
+      success: vi.fn()
     };
 
     chatController = new ChatController(mockNotionMigrationService, mockLogger);
@@ -66,7 +67,7 @@ describe('ChatController', () => {
           { type: 'paragraph', plain_text: 'Información sobre Gydu' }
         ],
         pageResults: [
-          { 
+          {
             title: 'Página de Gydu',
             raw_data: { original_content: 'Contenido completo sobre Gydu' }
           }
@@ -105,7 +106,7 @@ describe('ChatController', () => {
 
       const mockSearchResult = {
         embeddingResults: [
-          { 
+          {
             block: { type: 'paragraph', plain_text: 'Resultado de embedding' },
             similarity: 0.85
           }
@@ -126,7 +127,7 @@ describe('ChatController', () => {
     it('debería usar nombres específicos en consultas', async () => {
       const sikaasRequest = {
         ...validRequest,
-        messages: [{ role: 'user', content: '¿Qué sabes sobre Sikaas?' }]
+        messages: [{ role: 'user' as const, content: '¿Qué sabes sobre Sikaas?' }]
       };
 
       mockNotionMigrationService.searchContent = vi.fn().mockResolvedValue({
@@ -145,7 +146,7 @@ describe('ChatController', () => {
     it('debería manejar consultas sobre capitán', async () => {
       const capitanRequest = {
         ...validRequest,
-        messages: [{ role: 'user', content: '¿Quién es el capitán?' }]
+        messages: [{ role: 'user' as const, content: '¿Quién es el capitán?' }]
       };
 
       mockNotionMigrationService.searchContent = vi.fn().mockResolvedValue({
@@ -204,9 +205,9 @@ describe('ChatController', () => {
     it('debería manejar errores en el procesamiento', async () => {
       const error = new Error('Processing error');
       mockNotionMigrationService.searchContent = vi.fn().mockRejectedValue(error);
-      
+
       // Mock streamText para que también falle
-      (streamText as vi.Mock).mockRejectedValue(error);
+      (streamText as Mock).mockRejectedValue(error);
 
       await expect(chatController.processChat(validRequest)).rejects.toThrow('Processing error');
       expect(mockLogger.error).toHaveBeenCalledWith('Error processing chat request', error);
@@ -293,7 +294,7 @@ describe('ChatController', () => {
           { type: 'paragraph', plain_text: 'Texto de bloque' }
         ],
         pageResults: [
-          { 
+          {
             title: 'Página Test',
             raw_data: { original_content: 'Contenido de la página' }
           }
@@ -303,6 +304,7 @@ describe('ChatController', () => {
       mockNotionMigrationService.searchContent = vi.fn().mockResolvedValue(mockSearchResult);
 
       // Acceder al método privado para testing
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (chatController as any).extractContext('test query', false);
 
       expect(result.context).toContain('**paragraph**\nTexto de bloque');
@@ -313,7 +315,7 @@ describe('ChatController', () => {
     it('debería extraer contexto con embeddings', async () => {
       const mockSearchResult = {
         embeddingResults: [
-          { 
+          {
             block: { type: 'heading', plain_text: 'Título importante' },
             similarity: 0.9
           }
@@ -322,6 +324,7 @@ describe('ChatController', () => {
 
       mockNotionMigrationService.searchContent = vi.fn().mockResolvedValue(mockSearchResult);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (chatController as any).extractContext('test query', true);
 
       expect(result.context).toContain('**heading** (similaridad: 90%)');
@@ -335,6 +338,7 @@ describe('ChatController', () => {
         pageResults: []
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (chatController as any).extractContext('test query', false);
 
       expect(result.context).toBe('');
@@ -345,6 +349,7 @@ describe('ChatController', () => {
       const searchError = new Error('Search failed');
       mockNotionMigrationService.searchContent = vi.fn().mockRejectedValue(searchError);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (chatController as any).extractContext('test query', false);
 
       expect(result.context).toBe('');
@@ -356,9 +361,9 @@ describe('ChatController', () => {
       const mockSearchResult = {
         textResults: [],
         pageResults: [
-          { 
+          {
             title: 'Página con contenido rico',
-            raw_data: { 
+            raw_data: {
               original_content: 'Texto normal ![Imagen](https://example.com/image.jpg) más texto https://example.com/link y más contenido'
             }
           }
@@ -367,6 +372,7 @@ describe('ChatController', () => {
 
       mockNotionMigrationService.searchContent = vi.fn().mockResolvedValue(mockSearchResult);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (chatController as any).extractContext('test', false);
 
       expect(result.context).toContain('[Imagen]');
@@ -378,7 +384,8 @@ describe('ChatController', () => {
   describe('extractKeywords - utilidad interna', () => {
     it('debería extraer palabras clave relevantes', () => {
       const text = '¿Qué sabes sobre Gydu y sus características importantes?';
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const keywords = (chatController as any).extractKeywords(text);
 
       expect(keywords).toContain('gydu');
@@ -391,7 +398,8 @@ describe('ChatController', () => {
 
     it('debería filtrar palabras cortas y stop words', () => {
       const text = 'Dime información que tienes sobre el tema';
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const keywords = (chatController as any).extractKeywords(text);
 
       expect(keywords).not.toContain('el');
@@ -402,7 +410,8 @@ describe('ChatController', () => {
 
     it('debería manejar texto con signos de puntuación', () => {
       const text = '¿Conoces a Sikaas? ¡Explícame todo!';
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const keywords = (chatController as any).extractKeywords(text);
 
       expect(keywords).toContain('sikaas');
@@ -417,6 +426,7 @@ describe('ChatController', () => {
       const context = 'Información sobre Gydu...';
       const searchSummary = 'Se encontraron 3 resultados';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const prompt = (chatController as any).buildSystemPrompt(query, context, searchSummary);
 
       expect(prompt).toContain('Eres un asistente virtual especializado');
@@ -430,6 +440,7 @@ describe('ChatController', () => {
       const context = '';
       const searchSummary = 'No se encontraron resultados';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const prompt = (chatController as any).buildSystemPrompt(query, context, searchSummary);
 
       expect(prompt).toContain('No hay contexto específico disponible para esta consulta.');
