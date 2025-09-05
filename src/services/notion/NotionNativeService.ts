@@ -120,7 +120,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
   } = {}): Promise<NotionPageRow[]> {
     const { limit = 100, offset = 0 } = options;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('notion_pages')
       .select('*')
       .eq('archived', false)
@@ -181,7 +181,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
       const pages: NotionPageRow[] = [];
 
       for (const pageId of pageIds) {
-        const page = await supabase
+        const page = await supabaseServer
           .from('notion_pages')
           .select('*')
           .eq('id', pageId)

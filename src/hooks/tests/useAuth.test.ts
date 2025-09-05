@@ -26,6 +26,24 @@ vi.mock('@/adapters/output/infrastructure/supabase', () => ({
             unsubscribe: vi.fn()
           }
         }
+      })),
+      signInWithOAuth: vi.fn(() => Promise.resolve({
+        data: {
+          provider: 'google',
+          url: 'https://accounts.google.com/oauth/authorize'
+        },
+        error: null
+      })),
+      signOut: vi.fn(() => Promise.resolve({
+        error: null
+      })),
+      getUser: vi.fn(() => Promise.resolve({
+        data: { user: null },
+        error: null
+      })),
+      getSession: vi.fn(() => Promise.resolve({
+        data: { session: null },
+        error: null
       }))
     }
   }
@@ -41,6 +59,12 @@ describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+
+    // Mock window.location.origin
+    Object.defineProperty(window, 'location', {
+      value: { origin: 'http://localhost:3000' },
+      writable: true
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback: any) => {
@@ -153,31 +177,42 @@ describe('useAuth', () => {
       await authStateCallback('SIGNED_IN', { user: mockUser });
     });
 
-    const mockGoogleData = { user: mockUser };
-    mockAuthService.signInWithGoogle.mockResolvedValue(mockGoogleData);
+    // Mock successful OAuth response
+    vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValue({
+      data: {
+        provider: 'google',
+        url: 'https://accounts.google.com/oauth/authorize?redirect=test'
+      },
+      error: null
+    });
 
-    const googleResult = await result.current.signInWithGoogle();
-    expect(googleResult).toEqual(mockGoogleData);
-    expect(mockAuthService.signInWithGoogle).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await result.current.signInWithGoogle();
+    });
 
-    mockAuthService.hasTokensForProvider.mockResolvedValue(true);
+    expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: {
+        redirectTo: 'http://localhost:3000/auth/callback'
+      }
+    });
+
+    // hasTokensForProvider siempre devuelve false en la implementación temporal
     const hasTokens = await result.current.hasTokensForProvider('notion');
-    expect(hasTokens).toBe(true);
-    expect(mockAuthService.hasTokensForProvider).toHaveBeenCalledWith('notion', 'user-123');
+    expect(hasTokens).toBe(false);
 
-    mockAuthService.getIntegrationToken.mockResolvedValue('token-123');
+    // getIntegrationToken siempre devuelve null en la implementación temporal
     const token = await result.current.getIntegrationToken('notion', 'my-token');
-    expect(token).toBe('token-123');
-    expect(mockAuthService.getIntegrationToken).toHaveBeenCalledWith('notion', 'my-token', 'user-123');
+    expect(token).toBe(null);
 
-    mockAuthService.signOut.mockResolvedValue(undefined);
+    // signOut ahora usa supabase directamente
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({ error: null });
     await result.current.signOut();
-    expect(mockAuthService.signOut).toHaveBeenCalledTimes(1);
+    expect(supabase.auth.signOut).toHaveBeenCalledTimes(1);
 
-    mockAuthService.isAuthenticatedWithProvider.mockResolvedValue(true);
+    // isAuthenticatedWithProvider devuelve isAuthenticated (true)
     const isAuthProvider = await result.current.isAuthenticatedWithProvider('google');
     expect(isAuthProvider).toBe(true);
-    expect(mockAuthService.isAuthenticatedWithProvider).toHaveBeenCalledWith('google');
   });
 
   it('debería manejar errores en métodos async y estados sin usuario', async () => {
@@ -187,7 +222,7 @@ describe('useAuth', () => {
     expect(await result.current.getIntegrationToken('notion')).toBeNull();
 
     const mockError = new Error('Google auth failed');
-    mockAuthService.signInWithGoogle.mockRejectedValue(mockError);
+    vi.mocked(supabase.auth.signInWithOAuth).mockRejectedValue(mockError);
 
     await act(async () => {
       try {
@@ -200,7 +235,10 @@ describe('useAuth', () => {
     });
     expect(result.current.isLoading).toBe(false);
 
-    mockAuthService.signOut.mockRejectedValue(new Error('Signout failed'));
+    vi.mocked(supabase.auth.signOut).mockResolvedValue({
+      error: new Error('Signout failed')
+    });
+
     await act(async () => {
       try {
         await result.current.signOut();

@@ -289,4 +289,42 @@ export class ConnectionPageRepository {
       this.logger.error(`❌ Error generando embedding para "${pageTitle}": ${errorMessage}`, embeddingError instanceof Error ? embeddingError : undefined);
     }
   }
+
+  /**
+   * Método de logging que puede enviar mensajes al stream si está disponible
+   */
+  log(level: 'info' | 'error' | 'warn' | 'success', message: string, error?: Error): void {
+    // Si hay callback de stream, enviar el mensaje
+    if (this.sendLogToStream) {
+      this.sendLogToStream(message);
+    }
+
+    // Los errores siempre van también a console.error
+    if (level === 'error' && error) {
+      console.error(message, error);
+    } else if (!this.sendLogToStream) {
+      // Solo usar console.log cuando no hay stream y no es error
+      console.log(message);
+    }
+
+    // Usar el logger interno para registro permanente (solo cuando no hay stream para evitar duplicados)
+    if (!this.sendLogToStream) {
+      switch (level) {
+        case 'info':
+          this.logger.info(message);
+          break;
+        case 'error':
+          this.logger.error(message, error);
+          break;
+        case 'warn':
+          this.logger.warn(message);
+          break;
+        case 'success':
+          this.logger.success(message);
+          break;
+        default:
+          this.logger.info(message);
+      }
+    }
+  }
 } 

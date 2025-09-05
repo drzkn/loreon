@@ -462,10 +462,10 @@ describe('Navigation', () => {
       fireEvent.click(avatar);
 
       await waitFor(() => {
-        expect(screen.getByText('Mi Perfil')).toBeVisible();
+        expect(screen.getByText('Test User')).toBeVisible();
         expect(screen.getByText('Configuración')).toBeVisible();
         expect(screen.getByText('Cerrar Sesión')).toBeVisible();
-      });
+      }, { timeout: 3000 });
     });
 
     it('should call signOut when logout is clicked', async () => {

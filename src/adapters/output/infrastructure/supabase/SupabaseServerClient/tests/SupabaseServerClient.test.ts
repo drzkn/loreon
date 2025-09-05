@@ -109,7 +109,7 @@ describe('SupabaseServerClient', () => {
 
       expect(() => {
         void (supabaseServer as AnySupabaseClient).test;
-      }).toThrow('❌ La variable de entorno NEXT_PUBLIC_SUPABASE_ANON_KEY es requerida');
+      }).toThrow('❌ Se requiere SUPABASE_SERVICE_ROLE_KEY o NEXT_PUBLIC_SUPABASE_ANON_KEY');
     });
 
     it('debe retornar las llaves correctamente cuando ambas variables están definidas', async () => {

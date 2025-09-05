@@ -44,6 +44,30 @@ vi.mock('@/adapters/output/infrastructure/supabase/SupabaseClient', () => ({
   }
 }));
 
+vi.mock('@/adapters/output/infrastructure/supabase/SupabaseServerClient', () => ({
+  supabaseServer: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      or: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnValue(Promise.resolve({ data: null, error: null })),
+      maybeSingle: vi.fn().mockReturnValue(Promise.resolve({ data: null, error: null }))
+    })),
+    auth: {
+      getUser: vi.fn(),
+      signOut: vi.fn()
+    },
+    storage: {
+      from: vi.fn()
+    }
+  }
+}));
+
 vi.mock('../NotionContentExtractor', () => ({
   NotionContentExtractor: {
     extractPageContent: vi.fn(),
@@ -461,9 +485,9 @@ describe('NotionMigrationService', () => {
 
       mockRepository.getStorageStats.mockResolvedValue(mockStorageStats);
 
-      // Mock supabase call
-      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseClient');
-      const mockFrom = vi.mocked(mockSupabase.supabase.from);
+      // Mock supabaseServer call
+      const mockSupabaseServer = await import('@/adapters/output/infrastructure/supabase/SupabaseServerClient');
+      const mockFrom = vi.mocked(mockSupabaseServer.supabaseServer.from);
       mockFrom.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ data: mockContentStats, error: null })
