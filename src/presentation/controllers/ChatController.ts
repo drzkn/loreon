@@ -240,7 +240,7 @@ export class ChatController {
             // Extraer contenido del raw_data si existe
             let content = `**Página: ${page.title}**\n`;
 
-            if (page.raw_data?.original_content) {
+            if (page.raw_data?.original_content && typeof page.raw_data.original_content === 'string') {
               // Limpiar el contenido markdown/HTML básico
               const cleanContent = page.raw_data.original_content
                 .replace(/!\[.*?\]\(.*?\)/g, '[Imagen]') // Reemplazar imágenes

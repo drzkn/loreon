@@ -1,5 +1,5 @@
 import { MigrationResult } from '@/services/notion/NotionMigrationService';
-import { NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
+import { NotionBlockRow, NotionPageRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
 
 export interface INotionMigrationService {
   migratePage(pageId: string): Promise<MigrationResult>;
@@ -42,6 +42,7 @@ export interface INotionMigrationService {
     }
   ): Promise<{
     textResults: NotionBlockRow[];
+    pageResults: NotionPageRow[];
     embeddingResults?: Array<{ block: NotionBlockRow; similarity: number }>;
   }>;
 }
