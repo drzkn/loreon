@@ -60,6 +60,10 @@ export default defineConfig({
         'src/app/page.tsx',
         /** Builders para tests - no necesitan coverage */
         '**/builders/**',
+        /** Interfaces - no necesitan coverage */
+        '**/interfaces/**',
+        /** DTOs - no necesitan coverage */
+        '**/dto/**',
       ]
     }
   },

@@ -21,17 +21,17 @@ export class ChatController {
 
   async processChat(request: ChatRequestDto): Promise<Response> {
     try {
-      this.logger.info('Processing chat request', {
-        messagesCount: request.messages.length,
-        useEmbeddings: request.options?.useEmbeddings || false
-      });
-
-      // Validar request
+      // Validar request primero
       if (!request.messages || !Array.isArray(request.messages)) {
         const error = 'Se requiere un array de mensajes';
         this.logger.error('Invalid chat request: missing messages', new Error(error));
         throw new Error(error);
       }
+
+      this.logger.info('Processing chat request', {
+        messagesCount: request.messages.length,
+        useEmbeddings: request.options?.useEmbeddings || false
+      });
 
       const lastMessage = request.messages[request.messages.length - 1];
       if (!lastMessage?.content) {
@@ -99,17 +99,17 @@ export class ChatController {
 
   async processSimpleChat(request: ChatRequestDto): Promise<ChatResponseDto> {
     try {
-      this.logger.info('Processing simple chat request', {
-        messagesCount: request.messages.length
-      });
-
-      // Validar request
+      // Validar request primero
       if (!request.messages || !Array.isArray(request.messages)) {
         return {
           success: false,
           error: 'Se requiere un array de mensajes'
         };
       }
+
+      this.logger.info('Processing simple chat request', {
+        messagesCount: request.messages.length
+      });
 
       const lastMessage = request.messages[request.messages.length - 1];
       if (!lastMessage?.content) {
@@ -119,10 +119,11 @@ export class ChatController {
         };
       }
 
-      // Extraer contexto
+      // Extraer contexto (para processSimpleChat propagamos errores)
       const contextResult = await this.extractContext(
         lastMessage.content,
-        request.options?.useEmbeddings || false
+        request.options?.useEmbeddings || false,
+        true // throwOnError para processSimpleChat
       );
 
       // Para respuesta simple, podríamos usar generateText en lugar de streamText
@@ -148,7 +149,8 @@ export class ChatController {
 
   private async extractContext(
     query: string,
-    useEmbeddings: boolean = false
+    useEmbeddings: boolean = false,
+    throwOnError: boolean = false
   ): Promise<{
     context: string;
     searchSummary: string;
@@ -269,6 +271,9 @@ export class ChatController {
 
     } catch (searchError) {
       this.logger.error('Error in context extraction', searchError as Error);
+      if (throwOnError) {
+        throw searchError;
+      }
       searchSummary = 'Hubo un error técnico al buscar en la base de conocimientos.';
     }
 
