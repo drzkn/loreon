@@ -2,7 +2,7 @@ import { NotionContentExtractor, NotionBlock, PageContent } from './NotionConten
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
 import { EmbeddingsService } from '@/services/embeddings';
 import { Page, Block } from '@/domain/entities';
-import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { supabaseServer } from '@/adapters/output/infrastructure/supabase/SupabaseServerClient';
 
 export interface NotionNativeServiceInterface {
   processAndSavePage(page: Page, blocks: Block[]): Promise<NotionPageRow>;
@@ -32,7 +32,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
   private embeddingsService: EmbeddingsService;
 
   constructor() {
-    this.repository = new NotionNativeRepository(supabase);
+    this.repository = new NotionNativeRepository(supabaseServer);
     this.embeddingsService = new EmbeddingsService();
   }
 

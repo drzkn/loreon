@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  const next = searchParams.get('next') ?? '/chat'
 
   if (code) {
     const cookieStore = await cookies()
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       cookiesToSet.forEach(({ name, value }) => {
         response.cookies.set(name, value, {
           path: '/',
-          httpOnly: true,
+          httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
           maxAge: 60 * 60 * 24 * 7 // 7 días

@@ -32,7 +32,7 @@ import { ChatController } from '@/presentation/controllers/ChatController';
 
 // Repository dependencies
 import { NotionNativeRepository } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
-import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { supabaseServer } from '@/adapters/output/infrastructure/supabase/SupabaseServerClient';
 
 interface Container {
   // Existing repositories and use cases
@@ -116,7 +116,7 @@ const createContainer = () => {
   const userTokenServiceAdapter = new UserTokenServiceAdapter(false);
 
   // Nuevos repositorios
-  const notionNativeRepository = new NotionNativeRepository(supabase);
+  const notionNativeRepository = new NotionNativeRepository(supabaseServer);
 
   // Nuevos servicios de aplicación
   const authService = new AuthService(

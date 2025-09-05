@@ -4,6 +4,7 @@ import { ChatRequestDto, ChatResponseDto } from '@/presentation/dto/ChatRequestD
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { NotionProperty } from '@/infrastructure/external-apis/interfaces/INotionApiClient';
+import { NotionPageRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository/types';
 
 interface NotionPage {
   notion_id: string;
@@ -58,11 +59,19 @@ export class ChatController {
       });
 
       // Crear el prompt del sistema
+      console.log('🤖 ChatController: Building system prompt with context:', {
+        contextLength: contextResult.context.length,
+        searchSummary: contextResult.searchSummary,
+        contextPreview: contextResult.context.substring(0, 200)
+      });
+
       const systemPrompt = this.buildSystemPrompt(
         lastMessage.content,
         contextResult.context,
         contextResult.searchSummary
       );
+
+      console.log('🤖 ChatController: System prompt length:', systemPrompt.length);
 
       this.logger.debug('Generating chat response with AI model');
 
@@ -151,7 +160,8 @@ export class ChatController {
     let sources: NotionPage[] = [];
 
     try {
-      this.logger.debug('Extracting context', { query: query.substring(0, 50), useEmbeddings });
+      this.logger.info('Starting context extraction', { query: query.substring(0, 50), useEmbeddings });
+      console.log('🔍 ChatController: Starting context extraction for:', query.substring(0, 50));
 
       if (useEmbeddings) {
         // Usar búsqueda por embeddings
@@ -179,19 +189,80 @@ export class ChatController {
         // Usar búsqueda por palabras clave (método legacy)
         this.logger.debug('Using keyword search');
 
-        const searchResult = await this.notionMigrationService.searchContent(query, {
+        // Buscar nombres importantes directamente en la consulta
+        let cleanQuery = query;
+        if (query.toLowerCase().includes('gydu')) {
+          cleanQuery = 'Gydu';
+        } else if (query.toLowerCase().includes('sikaas')) {
+          cleanQuery = 'Sikaas';
+        } else if (query.toLowerCase().includes('capitán')) {
+          cleanQuery = 'capitán';
+        } else {
+          // Extraer palabras clave relevantes
+          const keywords = this.extractKeywords(query);
+          cleanQuery = keywords.length > 0 ? keywords[0] : query;
+        }
+
+        console.log('🔍 ChatController: Query cleaning:', {
+          original: query,
+          clean: cleanQuery,
+          searchTerm: cleanQuery || query
+        });
+
+        const searchResult = await this.notionMigrationService.searchContent(cleanQuery || query, {
           useEmbeddings: false,
           limit: 5
         });
 
+        this.logger.info('Search results received', {
+          textResultsCount: searchResult.textResults?.length || 0,
+          pageResultsCount: searchResult.pageResults?.length || 0,
+          query: query.substring(0, 50)
+        });
+
+        console.log('🔍 ChatController: Search results:', {
+          textResultsCount: searchResult.textResults?.length || 0,
+          pageResultsCount: searchResult.pageResults?.length || 0,
+          pageResults: searchResult.pageResults?.map(p => p.title).slice(0, 3)
+        });
+
+        // Combinar resultados de bloques y páginas
+        const allResults = [];
+
         if (searchResult.textResults && searchResult.textResults.length > 0) {
-          const pageContents = searchResult.textResults.map(block => {
+          const blockContents = searchResult.textResults.map(block => {
             return `**${block.type}**\n${block.plain_text}`;
           });
+          allResults.push(...blockContents);
+        }
 
-          context = pageContents.join('\n\n---\n\n');
-          searchSummary = `Se encontraron ${searchResult.textResults.length} bloques relevantes usando búsqueda por texto.`;
-          sources = []; // Los bloques no tienen páginas directas en este caso
+        if (searchResult.pageResults && searchResult.pageResults.length > 0) {
+          const pageContents = searchResult.pageResults.map(page => {
+            // Extraer contenido del raw_data si existe
+            let content = `**Página: ${page.title}**\n`;
+
+            if (page.raw_data?.original_content) {
+              // Limpiar el contenido markdown/HTML básico
+              const cleanContent = page.raw_data.original_content
+                .replace(/!\[.*?\]\(.*?\)/g, '[Imagen]') // Reemplazar imágenes
+                .replace(/https?:\/\/[^\s]+/g, '[URL]') // Reemplazar URLs largas
+                .substring(0, 500); // Limitar longitud
+              content += cleanContent;
+            } else {
+              content += `[Información disponible sobre: ${page.title}]`;
+            }
+
+            return content;
+          });
+          allResults.push(...pageContents);
+        }
+
+        if (allResults.length > 0) {
+          context = allResults.join('\n\n---\n\n');
+          const blockCount = searchResult.textResults?.length || 0;
+          const pageCount = searchResult.pageResults?.length || 0;
+          searchSummary = `Se encontraron ${blockCount} bloques y ${pageCount} páginas relevantes usando búsqueda por texto.`;
+          sources = [];
         } else {
           searchSummary = 'No se encontraron resultados relevantes con búsqueda por texto.';
         }

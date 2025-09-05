@@ -8,4 +8,5 @@ export interface ILogger {
   warn(message: string, meta?: LogMetadata): void;
   error(message: string, error?: Error, meta?: LogMetadata): void;
   debug(message: string, meta?: LogMetadata): void;
+  success(message: string, meta?: LogMetadata): void;
 }

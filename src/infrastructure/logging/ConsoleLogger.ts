@@ -45,4 +45,13 @@ export class ConsoleLogger implements ILogger {
       console.debug(formattedMessage);
     }
   }
+
+  success(message: string, meta?: LogMetadata): void {
+    const formattedMessage = this.formatMessage('✅ [SUCCESS]', message);
+    if (meta) {
+      console.log(formattedMessage, meta);
+    } else {
+      console.log(formattedMessage);
+    }
+  }
 }

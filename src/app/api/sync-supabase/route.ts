@@ -46,7 +46,6 @@ export async function POST() {
             sendLog(`📊 Procesando database ${i + 1}/${databaseIds.length}: ${databaseId}`);
 
             try {
-              // Crear repository con callback para logs en tiempo real
               const repository = new ConnectionPageRepository(
                 databaseId,
                 (processing: boolean) => {
@@ -57,7 +56,8 @@ export async function POST() {
                     sendLog(`📄 Progreso: ${progress.current}/${progress.total} - ${progress.currentPageTitle}`);
                   }
                 },
-                sendLog // Callback para enviar logs al stream
+                sendLog,
+                true
               );
 
               await repository.handleSyncToSupabase();
