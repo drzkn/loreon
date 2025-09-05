@@ -501,6 +501,7 @@ export class NotionMigrationService implements INotionMigrationService {
       parent_block_id: block.parent.type === 'block_id' ? (block.parent as { block_id: string }).block_id : undefined,
       type: block.type,
       content: (block.content || {}) as Record<string, unknown>,
+      plain_text: (block.plainText as string) || '',
       position: index,
       has_children: block.has_children,
       notion_created_time: block.created_time || undefined,
