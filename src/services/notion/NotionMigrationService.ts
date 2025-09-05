@@ -1,7 +1,7 @@
 import { NotionContentExtractor, NotionBlock, PageContent } from './NotionContentExtractor';
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
 import { EmbeddingsService } from '@/services/embeddings';
-import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { supabaseServer } from '@/adapters/output/infrastructure/supabase/SupabaseServerClient';
 import { Block } from '@/domain/entities';
 
 // Tipos para la migración
@@ -50,12 +50,17 @@ export interface NotionApiResponse {
   blocks: NotionBlock[];
 }
 
+/**
+ * @deprecated Use @/application/services/NotionMigrationService instead
+ * This class will be removed in the next major version
+ */
 export class NotionMigrationService {
   private repository: NotionNativeRepository;
   private embeddingsService: EmbeddingsService;
 
   constructor() {
-    this.repository = new NotionNativeRepository(supabase);
+    console.warn('⚠️ [DEPRECATED] NotionMigrationService is deprecated. Please use @/application/services/NotionMigrationService');
+    this.repository = new NotionNativeRepository(supabaseServer);
     this.embeddingsService = new EmbeddingsService();
   }
 
@@ -300,7 +305,7 @@ export class NotionMigrationService {
     const storage = await this.repository.getStorageStats();
 
     // Obtener estadísticas de contenido
-    const { data: contentStats } = await supabase
+    const { data: contentStats } = await supabaseServer
       .from('notion_blocks')
       .select('type, plain_text')
       .eq('archived', false);
@@ -458,6 +463,7 @@ export class NotionMigrationService {
       parent_block_id: block.parent.type === 'block_id' ? (block.parent as { block_id: string }).block_id : undefined,
       type: block.type,
       content: (block.content || {}) as Record<string, unknown>,
+      plain_text: String(block.plainText || ''),
       position: index,
       has_children: block.has_children,
       notion_created_time: block.created_time || undefined,

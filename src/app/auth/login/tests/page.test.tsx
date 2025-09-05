@@ -71,7 +71,7 @@ describe('LoginPage', () => {
     } as any);
 
     renderWithTheme(<LoginPage />);
-    expect(mockPush).toHaveBeenCalledWith('/');
+    expect(mockPush).toHaveBeenCalledWith('/chat');
   });
 
   it('debería manejar errores que no son instancia de Error', async () => {

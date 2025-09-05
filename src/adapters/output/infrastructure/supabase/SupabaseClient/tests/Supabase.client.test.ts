@@ -75,7 +75,12 @@ describe('Supabase client', () => {
 
       const fromMethod = supabase.from;
 
-      expect(mockCreateBrowserClient).toHaveBeenCalledWith(mockUrl, mockKey);
+      expect(mockCreateBrowserClient).toHaveBeenCalledWith(mockUrl, mockKey, expect.objectContaining({
+        cookies: expect.objectContaining({
+          getAll: expect.any(Function),
+          setAll: expect.any(Function)
+        })
+      }));
       expect(fromMethod).toBeDefined();
     });
 

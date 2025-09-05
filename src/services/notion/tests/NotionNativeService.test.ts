@@ -40,6 +40,21 @@ vi.mock('@/adapters/output/infrastructure/supabase/SupabaseClient', () => ({
   }
 }));
 
+vi.mock('@/adapters/output/infrastructure/supabase/SupabaseServerClient', () => ({
+  supabaseServer: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockReturnThis(),
+      single: vi.fn(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis()
+    }))
+  }
+}));
+
 vi.mock('../NotionContentExtractor', () => ({
   NotionContentExtractor: {
     extractPageContent: vi.fn(),
@@ -317,8 +332,8 @@ describe('NotionNativeService', () => {
         { id: 'uuid-2', notion_id: 'page-2', title: 'Page 2' }
       ];
 
-      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseClient');
-      const mockFrom = vi.mocked(mockSupabase.supabase.from);
+      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseServerClient');
+      const mockFrom = vi.mocked(mockSupabase.supabaseServer.from);
 
       // Mock the complete chain ending with range
       const mockChain = {
@@ -336,8 +351,8 @@ describe('NotionNativeService', () => {
     });
 
     it('should handle database errors in getAllStoredPages', async () => {
-      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseClient');
-      const mockFrom = vi.mocked(mockSupabase.supabase.from);
+      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseServerClient');
+      const mockFrom = vi.mocked(mockSupabase.supabaseServer.from);
 
       // Mock the chain to return an error
       const mockChain = {
@@ -363,8 +378,8 @@ describe('NotionNativeService', () => {
 
       mockRepository.searchBlocks.mockResolvedValue(mockBlocks);
 
-      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseClient');
-      const mockFrom = vi.mocked(mockSupabase.supabase.from);
+      const mockSupabase = await import('@/adapters/output/infrastructure/supabase/SupabaseServerClient');
+      const mockFrom = vi.mocked(mockSupabase.supabaseServer.from);
       mockFrom.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),

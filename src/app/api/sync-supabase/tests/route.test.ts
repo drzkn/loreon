@@ -246,7 +246,7 @@ describe('sync-supabase', () => {
       const response = await POST()
 
       expect(response.status).toBe(200)
-      expect(mockConnectionPageRepository).toHaveBeenCalledWith(veryLongId, expect.any(Function), expect.any(Function), expect.any(Function))
+      expect(mockConnectionPageRepository).toHaveBeenCalledWith(veryLongId, expect.any(Function), expect.any(Function), expect.any(Function), true)
     })
 
     it('should handle concurrent stream reading without race conditions', async () => {

@@ -1,139 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { NotionMigrationService } from '@/services/notion/NotionMigrationService';
+import { container } from '@/infrastructure/di/container';
+import { SyncRequestDto, SyncResponseDto } from '@/presentation/dto/SyncRequestDto';
 
 export const runtime = 'nodejs';
 
-interface SyncRequest {
-  databaseId?: string;
-  pageIds?: string[];
-  fullSync?: boolean;
-}
+// Types moved to DTO files
 
-interface SyncResponse {
-  success: boolean;
-  syncId: string;
-  message: string;
-  stats?: {
-    pagesProcessed: number;
-    blocksProcessed: number;
-    embeddingsGenerated: number;
-    errors: number;
-  };
-  errors?: string[];
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse<SyncResponse>> {
+export async function POST(request: NextRequest): Promise<NextResponse<SyncResponseDto>> {
   try {
-    const body: SyncRequest = await request.json();
-    const { databaseId, pageIds, fullSync = false } = body;
+    container.logger.info('Sync API endpoint called');
 
-    // Validar que se proporcione al menos un identificador
-    if (!databaseId && (!pageIds || pageIds.length === 0)) {
-      return NextResponse.json({
-        success: false,
-        syncId: '',
-        message: 'Se requiere databaseId o pageIds para sincronizar'
-      }, { status: 400 });
-    }
+    const body: SyncRequestDto = await request.json();
 
-    const migrationService = new NotionMigrationService();
-    const stats = {
-      pagesProcessed: 0,
-      blocksProcessed: 0,
-      embeddingsGenerated: 0,
-      errors: 0
-    };
-    const errors: string[] = [];
+    // Delegate to controller
+    const syncController = container.syncController;
+    const response = await syncController.syncPages(body);
 
-    // Crear log de sincronización
-    const syncType = fullSync ? 'full' : pageIds ? 'page' : 'incremental';
-    const syncLog = await migrationService['repository'].createSyncLog(syncType, {
-      databaseId,
-      pageIds,
-      fullSync
-    });
-
-    try {
-      if (pageIds && pageIds.length > 0) {
-        // Sincronizar páginas específicas
-        console.log(`🔄 Iniciando sincronización de ${pageIds.length} páginas específicas`);
-
-        for (const pageId of pageIds) {
-          try {
-            const result = await migrationService.migratePage(pageId);
-            if (result.success) {
-              stats.pagesProcessed++;
-              stats.blocksProcessed += result.blocksProcessed || 0;
-              stats.embeddingsGenerated += result.embeddingsGenerated || 0;
-            } else {
-              stats.errors++;
-              if (result.errors) {
-                errors.push(...result.errors);
-              }
-            }
-          } catch (error) {
-            stats.errors++;
-            errors.push(`Error en página ${pageId}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-          }
-        }
-
-      } else if (databaseId) {
-        if (fullSync) {
-          // Sincronización completa de base de datos - usar método disponible
-          console.log(`🔄 Iniciando sincronización completa de base de datos: ${databaseId}`);
-
-          // TODO: Implementar migrateDatabase en NotionMigrationService
-          // Por ahora, retornamos un error informativo
-          errors.push('La sincronización completa de base de datos aún no está implementada');
-          stats.errors++;
-
-        } else {
-          // Sincronización incremental (solo cambios)
-          console.log(`🔄 Iniciando sincronización incremental de base de datos: ${databaseId}`);
-
-          // TODO: Implementar detectChangedPages en NotionMigrationService
-          // Por ahora, retornamos un error informativo
-          errors.push('La detección automática de cambios aún no está implementada. Use pageIds específicos.');
-          stats.errors++;
-        }
-      }
-
-      // Actualizar log de sincronización
-      await migrationService['repository'].updateSyncLog(syncLog.id, {
-        status: stats.errors > 0 ? 'failed' : 'completed',
-        pages_processed: stats.pagesProcessed,
-        blocks_processed: stats.blocksProcessed,
-        embeddings_generated: stats.embeddingsGenerated,
-        errors: errors.length > 0 ? { errors } : undefined
-      });
-
-      const successMessage = stats.errors === 0
-        ? `✅ Sincronización completada exitosamente`
-        : `⚠️ Sincronización completada con ${stats.errors} errores`;
-
-      return NextResponse.json({
-        success: stats.errors === 0,
-        syncId: syncLog.id,
-        message: successMessage,
-        stats,
-        errors: errors.length > 0 ? errors : undefined
-      });
-
-    } catch (error) {
-      // Actualizar log como fallido
-      await migrationService['repository'].updateSyncLog(syncLog.id, {
-        status: 'failed',
-        errors: {
-          message: error instanceof Error ? error.message : 'Error desconocido',
-          stack: error instanceof Error ? error.stack : undefined
-        }
-      });
-
-      throw error;
-    }
+    const statusCode = response.success ? 200 : 400;
+    return NextResponse.json(response, { status: statusCode });
 
   } catch (error) {
-    console.error('❌ Error en sincronización:', error);
+    container.logger.error('Error in sync API endpoint', error as Error);
 
     return NextResponse.json({
       success: false,
@@ -146,36 +33,35 @@ export async function POST(request: NextRequest): Promise<NextResponse<SyncRespo
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    container.logger.info('Sync API GET endpoint called');
+
     const { searchParams } = new URL(request.url);
     const syncId = searchParams.get('syncId');
     const stats = searchParams.get('stats') === 'true';
 
-    const migrationService = new NotionMigrationService();
+    const syncController = container.syncController;
 
     if (syncId) {
-      // TODO: Implementar getSyncLog en NotionNativeRepository
-      return NextResponse.json({
-        error: 'Consulta de logs de sincronización no implementada aún'
-      }, { status: 501 });
+      const response = await syncController.getSyncStatus(syncId);
+      return NextResponse.json(response);
     }
 
     if (stats) {
-      // Obtener estadísticas generales del sistema
-      const systemStats = await migrationService.getMigrationStats();
-      return NextResponse.json(systemStats);
+      const response = await syncController.getMigrationStats();
+      return NextResponse.json(response.stats);
     }
 
-    // TODO: Implementar getRecentSyncLogs en NotionNativeRepository
     return NextResponse.json({
-      message: 'Endpoint de sincronización creado. Funcionalidad básica disponible.',
+      message: 'Sync API endpoint with new architecture. Funcionalidad básica disponible.',
       availableOperations: [
         'POST con pageIds[] - Sincronizar páginas específicas',
-        'GET con ?stats=true - Obtener estadísticas del sistema'
+        'GET con ?stats=true - Obtener estadísticas del sistema',
+        'GET con ?syncId=<id> - Obtener estado de sincronización'
       ]
     });
 
   } catch (error) {
-    console.error('❌ Error obteniendo información de sincronización:', error);
+    container.logger.error('Error in sync API GET endpoint', error as Error);
 
     return NextResponse.json({
       error: `Error obteniendo información: ${error instanceof Error ? error.message : 'Error desconocido'}`

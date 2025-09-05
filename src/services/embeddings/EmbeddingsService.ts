@@ -6,10 +6,15 @@ export interface EmbeddingsServiceInterface {
   generateEmbeddings(texts: string[]): Promise<number[][]>;
 }
 
+/**
+ * @deprecated Use @/application/services/EmbeddingsService instead
+ * This class will be removed in the next major version
+ */
 export class EmbeddingsService implements EmbeddingsServiceInterface {
   private model;
 
   constructor() {
+    console.warn('⚠️ [DEPRECATED] EmbeddingsService is deprecated. Please use @/application/services/EmbeddingsService');
     this.model = google.textEmbeddingModel('text-embedding-004', {
       // Usar dimensiones nativas de Google (768)
       taskType: 'RETRIEVAL_DOCUMENT'

@@ -2,7 +2,7 @@ import { NotionContentExtractor, NotionBlock, PageContent } from './NotionConten
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
 import { EmbeddingsService } from '@/services/embeddings';
 import { Page, Block } from '@/domain/entities';
-import { supabase } from '@/adapters/output/infrastructure/supabase/SupabaseClient';
+import { supabaseServer } from '@/adapters/output/infrastructure/supabase/SupabaseServerClient';
 
 export interface NotionNativeServiceInterface {
   processAndSavePage(page: Page, blocks: Block[]): Promise<NotionPageRow>;
@@ -32,7 +32,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
   private embeddingsService: EmbeddingsService;
 
   constructor() {
-    this.repository = new NotionNativeRepository(supabase);
+    this.repository = new NotionNativeRepository(supabaseServer);
     this.embeddingsService = new EmbeddingsService();
   }
 
@@ -120,7 +120,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
   } = {}): Promise<NotionPageRow[]> {
     const { limit = 100, offset = 0 } = options;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseServer
       .from('notion_pages')
       .select('*')
       .eq('archived', false)
@@ -181,7 +181,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
       const pages: NotionPageRow[] = [];
 
       for (const pageId of pageIds) {
-        const page = await supabase
+        const page = await supabaseServer
           .from('notion_pages')
           .select('*')
           .eq('id', pageId)
@@ -256,6 +256,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
       parent_block_id: block.parent.type === 'block_id' ? block.parent.block_id : undefined,
       type: block.type,
       content: (block[block.type] as Record<string, unknown>) || {},
+      plain_text: this.extractPlainTextFromBlock(block),
       position: index,
       has_children: block.has_children,
       notion_created_time: block.created_time,
@@ -328,6 +329,28 @@ export class NotionNativeService implements NotionNativeServiceInterface {
 
     // Fallback genérico
     return 'Sin título';
+  }
+
+  private extractPlainTextFromBlock(block: NotionBlock): string {
+    const content = block[block.type] as Record<string, unknown>;
+
+    if (content?.rich_text && Array.isArray(content.rich_text)) {
+      return (content.rich_text as Array<{ plain_text?: string; text?: { content?: string } }>)
+        .map(rt => rt.plain_text || rt.text?.content || '')
+        .join('');
+    }
+
+    if (content?.text && typeof content.text === 'string') {
+      return content.text;
+    }
+
+    if (content?.title && Array.isArray(content.title)) {
+      return (content.title as Array<{ plain_text?: string; text?: { content?: string } }>)
+        .map(t => t.plain_text || t.text?.content || '')
+        .join('');
+    }
+
+    return '';
   }
 
   private convertToNotionBlock(block: Block): NotionBlock {

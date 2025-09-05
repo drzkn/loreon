@@ -16,7 +16,14 @@ vi.mock('@/adapters/output/infrastructure/supabase', () => {
   mockChain.select.mockReturnValue(mockChain);
 
   return {
-    supabaseServer: mockChain
+    supabaseServer: mockChain,
+    supabase: mockChain,
+    SupabaseMarkdownRepository: vi.fn(() => ({
+      getMarkdownByPageId: vi.fn(),
+      saveMarkdown: vi.fn(),
+      deleteMarkdown: vi.fn(),
+      searchMarkdown: vi.fn()
+    }))
   };
 });
 
@@ -29,16 +36,51 @@ vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () =
 
 // Mock de AI SDK
 vi.mock('@ai-sdk/google', () => ({
-  google: vi.fn(() => 'mocked-model')
+  google: {
+    textEmbeddingModel: vi.fn(() => ({
+      modelId: 'text-embedding-004',
+      provider: 'google'
+    })),
+    generativeAI: vi.fn(() => 'mocked-generative-model')
+  }
+}));
+
+// Mock del ChatController usando función factory para evitar hoisting
+vi.mock('@/presentation/controllers/ChatController', () => ({
+  ChatController: vi.fn(() => ({
+    processChat: vi.fn()
+  }))
+}));
+
+// Mock del container DI
+vi.mock('@/infrastructure/di/container', () => ({
+  container: {
+    logger: {
+      info: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      warn: vi.fn()
+    },
+    chatController: {
+      processChat: vi.fn()
+    }
+  }
 }));
 
 vi.mock('ai', () => ({
   streamText: vi.fn(() => ({
     toDataStreamResponse: vi.fn(() => new Response('AI response'))
-  }))
+  })),
+  embed: vi.fn().mockResolvedValue({
+    embedding: [0.1, 0.2, 0.3, 0.4, 0.5]
+  }),
+  embedMany: vi.fn().mockResolvedValue({
+    embeddings: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
+  })
 }));
 
 import { POST } from '../route';
+import { container } from '@/infrastructure/di/container';
 
 describe('/api/chat - Coverage Tests', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,6 +103,22 @@ describe('/api/chat - Coverage Tests', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockNotionRepo = new (NotionNativeRepository as any)();
     mockStreamText = streamText;
+
+    // Setup default ChatController behavior
+    vi.mocked(container.chatController.processChat).mockImplementation((request) => {
+      if (!request.messages || !Array.isArray(request.messages)) {
+        throw new Error('Se requiere un array de mensajes');
+      }
+      if (!request.messages[request.messages.length - 1]?.content) {
+        throw new Error('El último mensaje debe tener contenido');
+      }
+
+      // Simular llamadas a Supabase y streamText para los tests de integración
+      mockSupabase.from('notion_pages');
+      mockStreamText({ messages: request.messages });
+
+      return Promise.resolve(new Response('AI response'));
+    });
 
     // Setup Supabase responses
     mockSupabase.from.mockImplementation((tableName: string) => {

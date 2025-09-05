@@ -6,6 +6,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const publicPaths = [
+    '/',
     '/auth/login',
     '/auth/instructions',
     '/auth/callback',

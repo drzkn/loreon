@@ -192,6 +192,7 @@ export class NotionNativeRepository {
     parent_block_id?: string;
     type: string;
     content: Record<string, unknown>;
+    plain_text: string;
     position: number;
     has_children: boolean;
     notion_created_time?: string;
@@ -209,6 +210,7 @@ export class NotionNativeRepository {
       parent_block_id: block.parent_block_id,
       type: block.type,
       content: block.content,
+      plain_text: block.plain_text,
       position: block.position,
       has_children: block.has_children,
       notion_created_time: block.notion_created_time,
@@ -305,6 +307,26 @@ export class NotionNativeRepository {
     }
 
     return data || [];
+  }
+
+  async searchPagesByTitle(query: string, limit: number = 20): Promise<NotionPageRow[]> {
+    const result = await this.supabase
+      .from('notion_pages')
+      .select('*')
+      .or(`title.ilike.%${query}%,raw_data->>original_content.ilike.%${query}%`)
+      .eq('archived', false)
+      .limit(limit);
+
+    if (result.error) {
+      console.error('Error searching pages:', result.error);
+      throw new Error(`Failed to search pages: ${result.error.message}`);
+    }
+
+    const uniqueResults = (result.data || []).filter((page, index, arr) =>
+      arr.findIndex(p => p.id === page.id) === index
+    );
+
+    return uniqueResults;
   }
 
   // ===== EMBEDDINGS =====
