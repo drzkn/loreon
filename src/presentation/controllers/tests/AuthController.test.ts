@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AuthController } from '../AuthController';
 import { IAuthService } from '@/application/interfaces/IAuthService';
 import { ILogger } from '@/application/interfaces/ILogger';
-import { SignInRequestDto, AuthResponseDto, UserProfileResponseDto } from '@/presentation/dto/AuthRequestDto';
+import { SignInRequestDto } from '@/presentation/dto/AuthRequestDto';
 import { createTestSetup } from '@/mocks';
 
 describe('AuthController', () => {
@@ -18,17 +18,22 @@ describe('AuthController', () => {
       signInWithProvider: vi.fn(),
       signInWithGoogle: vi.fn(),
       signInAnonymously: vi.fn(),
+      getCurrentUser: vi.fn(),
       getUserProfile: vi.fn(),
+      getSession: vi.fn(),
       signOut: vi.fn(),
       isAuthenticated: vi.fn(),
-      hasTokensForProvider: vi.fn()
+      isAuthenticatedWithProvider: vi.fn(),
+      hasTokensForProvider: vi.fn(),
+      getIntegrationToken: vi.fn()
     };
 
     mockLogger = {
       info: vi.fn(),
       error: vi.fn(),
       debug: vi.fn(),
-      warn: vi.fn()
+      warn: vi.fn(),
+      success: vi.fn()
     };
 
     controller = new AuthController(mockAuthService, mockLogger);
@@ -77,7 +82,7 @@ describe('AuthController', () => {
     });
 
     it('should work with different providers', async () => {
-      const providers = ['github', 'slack', 'microsoft'];
+      const providers = ['github' as const, 'slack' as const, 'azure' as const];
       mockAuthService.signInWithProvider = vi.fn().mockResolvedValue(undefined);
 
       for (const provider of providers) {
@@ -90,7 +95,7 @@ describe('AuthController', () => {
     });
 
     it('should handle requests without redirectTo', async () => {
-      const requestWithoutRedirect = { provider: 'github' };
+      const requestWithoutRedirect = { provider: 'github' as const };
       mockAuthService.signInWithProvider = vi.fn().mockResolvedValue(undefined);
 
       const result = await controller.signInWithProvider(requestWithoutRedirect);
@@ -316,7 +321,7 @@ describe('AuthController', () => {
         avatar: 'avatar.jpg',
         provider: 'google'
       };
-      
+
       mockAuthService.isAuthenticated = vi.fn().mockResolvedValue(true);
       mockAuthService.getUserProfile = vi.fn().mockResolvedValue(mockProfile);
 
@@ -415,12 +420,12 @@ describe('AuthController', () => {
       const providers: Array<'notion' | 'slack' | 'github' | 'drive' | 'calendar'> = [
         'notion', 'slack', 'github', 'drive', 'calendar'
       ];
-      
+
       mockAuthService.hasTokensForProvider = vi.fn().mockResolvedValue(true);
 
       for (const provider of providers) {
         const result = await controller.checkProviderTokens(provider);
-        
+
         expect(result.success).toBe(true);
         expect(result.hasTokens).toBe(true);
         expect(mockAuthService.hasTokensForProvider).toHaveBeenCalledWith(provider);
@@ -454,7 +459,7 @@ describe('AuthController', () => {
     it('should handle network timeout errors', async () => {
       const timeoutError = new Error('Request timeout');
       timeoutError.name = 'TimeoutError';
-      
+
       mockAuthService.signInWithGoogle = vi.fn().mockRejectedValue(timeoutError);
 
       const result = await controller.signInWithGoogle();
@@ -475,7 +480,7 @@ describe('AuthController', () => {
     it('should log detailed error information', async () => {
       const detailedError = new Error('Detailed error message');
       detailedError.stack = 'Error stack trace';
-      
+
       mockAuthService.signOut = vi.fn().mockRejectedValue(detailedError);
 
       await controller.signOut();
