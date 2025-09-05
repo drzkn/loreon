@@ -3,7 +3,6 @@ import { IEmbeddingsService } from '@/application/interfaces/IEmbeddingsService'
 import { ILogger } from '@/application/interfaces/ILogger';
 import { NotionContentExtractor, NotionBlock, PageContent } from '@/services/notion/NotionContentExtractor';
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
-import { SupabaseRepository } from '@/adapters/output/infrastructure/supabase/SupabaseRepository';
 import { Block } from '@/domain/entities';
 import { GetPage } from '@/domain/usecases/GetPage';
 import { GetBlockChildrenRecursive } from '@/domain/usecases/GetBlockChildrenRecursive';

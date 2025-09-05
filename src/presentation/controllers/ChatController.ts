@@ -4,7 +4,6 @@ import { ChatRequestDto, ChatResponseDto } from '@/presentation/dto/ChatRequestD
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { NotionProperty } from '@/infrastructure/external-apis/interfaces/INotionApiClient';
-import { NotionPageRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository/types';
 
 interface NotionPage {
   notion_id: string;

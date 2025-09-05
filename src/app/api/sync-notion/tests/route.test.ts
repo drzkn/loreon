@@ -15,18 +15,6 @@ const mockSyncController = {
   getMigrationStats: vi.fn()
 };
 
-const mockLogger = {
-  info: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn()
-};
-
-const mockContainer = {
-  logger: mockLogger,
-  syncController: mockSyncController
-};
-
 vi.mock('@/infrastructure/di/container', () => ({
   container: {
     logger: {
