@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider } from 'styled-components';
-import { useRef } from 'react';
-import { useChat } from '@ai-sdk/react';
 import ChatPage from '../page';
 import { createTestSetup } from '@/mocks';
 
@@ -245,7 +243,7 @@ describe('ChatPage', () => {
     it('debería usar "U" como fallback final', () => {
       // Test de la lógica de getUserInitial directamente
       // Simula el comportamiento del componente cuando userProfile no tiene name ni email
-      const getUserInitial = (userProfile: any) => {
+      const getUserInitial = (userProfile: { id: string; name?: string; email?: string }) => {
         if (!userProfile?.name) return userProfile?.email?.[0]?.toUpperCase() || 'U';
         return userProfile.name[0].toUpperCase();
       };

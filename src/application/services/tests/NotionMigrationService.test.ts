@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { NotionMigrationService, MigrationResult, ValidationResult } from '../NotionMigrationService';
+import { NotionMigrationService } from '../NotionMigrationService';
 import { IEmbeddingsService } from '@/application/interfaces/IEmbeddingsService';
 import { ILogger } from '@/application/interfaces/ILogger';
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
@@ -523,7 +523,7 @@ describe('NotionMigrationService (Application Layer)', () => {
     });
 
     it('should throw error for unsupported format', async () => {
-      await expect(service.getContentInFormat('page-123', 'xml' as any))
+      await expect(service.getContentInFormat('page-123', 'xml' as string))
         .rejects.toThrow('Formato no soportado: xml');
 
       expect(mockLogger.error).toHaveBeenCalledWith(
@@ -725,6 +725,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPlainTextFromBlock(block);
       expect(result).toBe('Hello world');
     });
@@ -741,6 +742,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPlainTextFromBlock(block);
       expect(result).toBe('Main Title');
     });
@@ -754,6 +756,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPlainTextFromBlock(block);
       expect(result).toBe('Simple text');
     });
@@ -767,6 +770,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPlainTextFromBlock(block);
       expect(result).toBe('Plain text content');
     });
@@ -778,6 +782,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         data: {}
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPlainTextFromBlock(block);
       expect(result).toBe('');
     });
@@ -788,6 +793,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         type: 'paragraph'
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPlainTextFromBlock(block);
       expect(result).toBe('');
     });
@@ -809,6 +815,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPageTitle(page);
       expect(result).toBe('Actual Title');
     });
@@ -825,6 +832,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         }
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPageTitle(page);
       expect(result).toBe('Sin título');
     });
@@ -836,6 +844,7 @@ describe('NotionMigrationService (Application Layer)', () => {
         properties: {}
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (service as any).extractPageTitle(page);
       expect(result).toBe('Sin título');
     });

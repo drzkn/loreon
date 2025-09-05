@@ -19,6 +19,7 @@ describe('UserTokenServiceAdapter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     adapter = new UserTokenServiceAdapter();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockUserTokenService = (adapter as any).userTokenService;
   });
 
@@ -29,21 +30,21 @@ describe('UserTokenServiceAdapter', () => {
   describe('Constructor', () => {
     it('should create adapter with default clientSide=false', () => {
       const newAdapter = new UserTokenServiceAdapter();
-      
+
       expect(UserTokenService).toHaveBeenCalledWith(false);
       expect(newAdapter).toBeInstanceOf(UserTokenServiceAdapter);
     });
 
     it('should create adapter with clientSide=true when specified', () => {
       const newAdapter = new UserTokenServiceAdapter(true);
-      
+
       expect(UserTokenService).toHaveBeenCalledWith(true);
       expect(newAdapter).toBeInstanceOf(UserTokenServiceAdapter);
     });
 
     it('should create adapter with clientSide=false when explicitly specified', () => {
       const newAdapter = new UserTokenServiceAdapter(false);
-      
+
       expect(UserTokenService).toHaveBeenCalledWith(false);
       expect(newAdapter).toBeInstanceOf(UserTokenServiceAdapter);
     });
@@ -51,7 +52,7 @@ describe('UserTokenServiceAdapter', () => {
 
   describe('hasTokensForProvider', () => {
     const userId = 'test-user-123';
-    
+
     it('should return true when user has tokens for notion provider', async () => {
       vi.mocked(mockUserTokenService.hasTokensForProvider).mockResolvedValue(true);
 
@@ -79,7 +80,7 @@ describe('UserTokenServiceAdapter', () => {
 
       for (const provider of providers) {
         const result = await adapter.hasTokensForProvider(userId, provider);
-        
+
         expect(result).toBe(true);
         expect(mockUserTokenService.hasTokensForProvider).toHaveBeenCalledWith(userId, provider);
       }
@@ -92,7 +93,7 @@ describe('UserTokenServiceAdapter', () => {
       vi.mocked(mockUserTokenService.hasTokensForProvider).mockRejectedValue(error);
 
       await expect(adapter.hasTokensForProvider(userId, 'notion')).rejects.toThrow('Database connection failed');
-      
+
       expect(mockUserTokenService.hasTokensForProvider).toHaveBeenCalledWith(userId, 'notion');
     });
 
@@ -111,7 +112,7 @@ describe('UserTokenServiceAdapter', () => {
 
   describe('getDecryptedToken', () => {
     const userId = 'test-user-123';
-    
+
     it('should return decrypted token when available', async () => {
       const expectedToken = 'secret_decrypted_token_123';
       vi.mocked(mockUserTokenService.getDecryptedToken).mockResolvedValue(expectedToken);
@@ -152,7 +153,7 @@ describe('UserTokenServiceAdapter', () => {
 
       for (const provider of providers) {
         const result = await adapter.getDecryptedToken(userId, provider);
-        
+
         expect(result).toBe(expectedToken);
         expect(mockUserTokenService.getDecryptedToken).toHaveBeenCalledWith(userId, provider, undefined);
       }
@@ -165,7 +166,7 @@ describe('UserTokenServiceAdapter', () => {
       vi.mocked(mockUserTokenService.getDecryptedToken).mockRejectedValue(error);
 
       await expect(adapter.getDecryptedToken(userId, 'notion')).rejects.toThrow('Decryption failed');
-      
+
       expect(mockUserTokenService.getDecryptedToken).toHaveBeenCalledWith(userId, 'notion', undefined);
     });
 
@@ -193,15 +194,15 @@ describe('UserTokenServiceAdapter', () => {
   describe('Integration tests', () => {
     it('should properly delegate all calls to underlying service', async () => {
       const userId = 'integration-user';
-      
+
       // Test hasTokensForProvider
       vi.mocked(mockUserTokenService.hasTokensForProvider).mockResolvedValue(true);
       await adapter.hasTokensForProvider(userId, 'notion');
-      
+
       // Test getDecryptedToken without tokenName
       vi.mocked(mockUserTokenService.getDecryptedToken).mockResolvedValue('token1');
       await adapter.getDecryptedToken(userId, 'notion');
-      
+
       // Test getDecryptedToken with tokenName
       vi.mocked(mockUserTokenService.getDecryptedToken).mockResolvedValue('token2');
       await adapter.getDecryptedToken(userId, 'notion', 'special_token');
@@ -217,7 +218,7 @@ describe('UserTokenServiceAdapter', () => {
 
       expect(UserTokenService).toHaveBeenCalledWith(true);
       expect(UserTokenService).toHaveBeenCalledWith(false);
-      
+
       // Each adapter should have its own service instance
       expect(adapter1).not.toBe(adapter2);
     });
@@ -227,7 +228,7 @@ describe('UserTokenServiceAdapter', () => {
     it('should propagate specific error types correctly', async () => {
       const authError = new Error('Authentication failed');
       authError.name = 'AuthError';
-      
+
       vi.mocked(mockUserTokenService.hasTokensForProvider).mockRejectedValue(authError);
 
       await expect(adapter.hasTokensForProvider('user', 'notion')).rejects.toThrow('Authentication failed');
@@ -236,7 +237,7 @@ describe('UserTokenServiceAdapter', () => {
     it('should handle network timeout errors', async () => {
       const timeoutError = new Error('Request timeout');
       timeoutError.name = 'TimeoutError';
-      
+
       vi.mocked(mockUserTokenService.getDecryptedToken).mockRejectedValue(timeoutError);
 
       await expect(adapter.getDecryptedToken('user', 'slack')).rejects.toThrow('Request timeout');

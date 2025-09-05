@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SyncController } from '../SyncController';
 import { INotionMigrationService } from '@/application/interfaces/INotionMigrationService';
 import { ILogger } from '@/application/interfaces/ILogger';
-import { SyncRequestDto, SyncResponseDto } from '@/presentation/dto/SyncRequestDto';
+import { SyncRequestDto } from '@/presentation/dto/SyncRequestDto';
 import { createTestSetup } from '@/mocks';
 
 describe('SyncController', () => {
@@ -265,7 +265,7 @@ describe('SyncController', () => {
 
       const syncIds = results.map(r => r.syncId);
       const uniqueSyncIds = new Set(syncIds);
-      
+
       expect(uniqueSyncIds.size).toBe(3);
       syncIds.forEach(id => {
         expect(id).toMatch(/^sync_\d+_[a-z0-9]+$/);
@@ -313,7 +313,7 @@ describe('SyncController', () => {
 
       for (const syncId of syncIds) {
         const result = await controller.getSyncStatus(syncId);
-        
+
         expect(result.success).toBe(true);
         expect(result.syncId).toBe(syncId);
         expect(result.status).toBe('completed');
@@ -330,7 +330,7 @@ describe('SyncController', () => {
 
     it('should log debug information', async () => {
       const syncId = 'test-sync-id';
-      
+
       await controller.getSyncStatus(syncId);
 
       expect(mockLogger.debug).toHaveBeenCalledWith('Getting sync status', { syncId: 'test-sync-id' });
@@ -437,7 +437,7 @@ describe('SyncController', () => {
 
       const timeoutError = new Error('Network timeout');
       timeoutError.name = 'TimeoutError';
-      
+
       mockNotionMigrationService.migratePage = vi.fn().mockRejectedValue(timeoutError);
 
       const result = await controller.syncPages(request);
@@ -511,7 +511,7 @@ describe('SyncController', () => {
 
       const detailedError = new Error('Detailed error message');
       detailedError.stack = 'Error stack trace...';
-      
+
       mockNotionMigrationService.migratePage = vi.fn().mockRejectedValue(detailedError);
 
       await controller.syncPages(request);
