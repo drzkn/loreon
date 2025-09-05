@@ -256,6 +256,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
       parent_block_id: block.parent.type === 'block_id' ? block.parent.block_id : undefined,
       type: block.type,
       content: (block[block.type] as Record<string, unknown>) || {},
+      plain_text: this.extractPlainTextFromBlock(block),
       position: index,
       has_children: block.has_children,
       notion_created_time: block.created_time,
@@ -328,6 +329,28 @@ export class NotionNativeService implements NotionNativeServiceInterface {
 
     // Fallback genérico
     return 'Sin título';
+  }
+
+  private extractPlainTextFromBlock(block: NotionBlock): string {
+    const content = block[block.type] as Record<string, unknown>;
+
+    if (content?.rich_text && Array.isArray(content.rich_text)) {
+      return (content.rich_text as Array<{ plain_text?: string; text?: { content?: string } }>)
+        .map(rt => rt.plain_text || rt.text?.content || '')
+        .join('');
+    }
+
+    if (content?.text && typeof content.text === 'string') {
+      return content.text;
+    }
+
+    if (content?.title && Array.isArray(content.title)) {
+      return (content.title as Array<{ plain_text?: string; text?: { content?: string } }>)
+        .map(t => t.plain_text || t.text?.content || '')
+        .join('');
+    }
+
+    return '';
   }
 
   private convertToNotionBlock(block: Block): NotionBlock {
