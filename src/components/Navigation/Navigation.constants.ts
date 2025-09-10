@@ -12,5 +12,11 @@ export const navigationItems = [
     icon: 'square-library' as IconName,
     label: 'Visualizador',
     description: 'Ver archivos markdown'
+  },
+  {
+    path: '/settings',
+    icon: 'settings' as IconName,
+    label: 'Configuración',
+    description: 'Ajustes de la aplicación'
   }
 ];

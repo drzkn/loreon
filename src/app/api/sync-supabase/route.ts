@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import { ConnectionPageRepository } from '../helpers/ConnectionPageRepository';
 
 export async function POST() {
   // Configurar headers para Server-Sent Events
@@ -24,19 +23,41 @@ export async function POST() {
       // Función principal de sincronización
       const syncProcess = async () => {
         try {
-          sendLog('🚀 Iniciando sincronización con Supabase...');
+          sendLog('🚀 Iniciando proceso completo de sincronización Notion → Supabase');
+          sendLog('');
 
-          // Obtener database IDs de las variables de entorno (intentar ambas versiones)
+          sendLog('📋 Paso 1/4: Leyendo configuración desde variables de entorno...');
+
+          // Obtener database IDs de las variables de entorno
           const databaseIdsStr = process.env.NOTION_DATABASE_ID;
+          const notionApiKey = process.env.NOTION_API_KEY;
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+          sendLog(`🔑 Variables de entorno detectadas:`);
+          sendLog(`   • NOTION_API_KEY: ${notionApiKey ? '✅ Configurada' : '❌ No encontrada'}`);
+          sendLog(`   • SUPABASE_URL: ${supabaseUrl ? '✅ Configurada' : '❌ No encontrada'}`);
+          sendLog(`   • NOTION_DATABASE_ID: ${databaseIdsStr ? '✅ Configurada' : '❌ No encontrada'}`);
 
           if (!databaseIdsStr) {
-            sendLog('❌ Error: NOTION_DATABASE_ID no configurado en variables de entorno');
+            sendLog('❌ Error crítico: NOTION_DATABASE_ID no configurado en variables de entorno');
+            sendLog('   Por favor, configura la variable NOTION_DATABASE_ID en tu archivo .env.local');
             controller.close();
             return;
           }
 
+          if (!notionApiKey) {
+            sendLog('⚠️ Advertencia: NOTION_API_KEY no configurada, puede causar errores');
+          }
+
           const databaseIds = databaseIdsStr.split(',').map(id => id.trim()).filter(id => id.length > 0);
-          sendLog(`📊 Procesando ${databaseIds.length} database(s): ${databaseIds.join(', ')}`);
+
+          sendLog('');
+          sendLog(`📊 Databases configuradas para sincronización:`);
+          databaseIds.forEach((id, index) => {
+            sendLog(`   ${index + 1}. ${id}`);
+          });
+          sendLog(`   Total: ${databaseIds.length} database(s)`);
+          sendLog('');
 
           const results = [];
 
@@ -46,21 +67,114 @@ export async function POST() {
             sendLog(`📊 Procesando database ${i + 1}/${databaseIds.length}: ${databaseId}`);
 
             try {
-              const repository = new ConnectionPageRepository(
-                databaseId,
-                (processing: boolean) => {
-                  sendLog(`🔄 Estado de procesamiento: ${processing ? 'INICIADO' : 'FINALIZADO'}`);
-                },
-                (progress) => {
-                  if (progress) {
-                    sendLog(`📄 Progreso: ${progress.current}/${progress.total} - ${progress.currentPageTitle}`);
-                  }
-                },
-                sendLog,
-                true
-              );
+              sendLog(`🔄 Paso 1/4: Iniciando sincronización de database ${databaseId}...`);
 
-              await repository.handleSyncToSupabase();
+              // Importar servicios necesarios
+              const { container } = await import('@/infrastructure/di/container');
+              const queryDatabaseUseCase = container.queryDatabaseUseCase;
+              const notionMigrationService = container.notionMigrationService;
+
+              sendLog(`📊 Paso 2/4: Obteniendo páginas de la database de manera recursiva...`);
+              sendLog(`   🔍 Consultando Notion API para database: ${databaseId}`);
+
+              // Obtener todas las páginas de la database
+              const pages = await queryDatabaseUseCase.execute(databaseId, {});
+
+              sendLog(`📄 Resultado de la consulta:`);
+              sendLog(`   • Total de páginas encontradas: ${pages.length}`);
+
+              if (pages.length > 0) {
+                sendLog(`   • Primeras páginas encontradas:`);
+                pages.slice(0, 3).forEach((page, index) => {
+                  const title = page.properties?.title || page.properties?.Name || 'Sin título';
+                  sendLog(`     ${index + 1}. ${typeof title === 'string' ? title : JSON.stringify(title).substring(0, 50)}`);
+                });
+                if (pages.length > 3) {
+                  sendLog(`     ... y ${pages.length - 3} páginas más`);
+                }
+              }
+
+              if (pages.length === 0) {
+                sendLog(`⚠️ No se encontraron páginas en la database ${databaseId}`);
+                results.push({
+                  databaseId,
+                  status: 'warning',
+                  message: `No se encontraron páginas en database ${databaseId}`
+                });
+                continue;
+              }
+
+              sendLog(`💾 Paso 3/4: Volcando páginas a Supabase y generando embeddings...`);
+              sendLog(`   🔄 Iniciando procesamiento de ${pages.length} páginas`);
+              sendLog(`   📊 Cada página incluye: extracción de contenido → guardado en Supabase → vectorización`);
+              sendLog('');
+
+              let pagesProcessed = 0;
+              let totalBlocks = 0;
+              let totalEmbeddings = 0;
+              let errors = 0;
+
+              // Procesar cada página individualmente con progreso detallado
+              for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+                const page = pages[pageIndex];
+                const pageProgress = `[${pageIndex + 1}/${pages.length}]`;
+                const pageTitle = page.properties?.title || page.properties?.Name || page.id;
+                const displayTitle = typeof pageTitle === 'string' ? pageTitle : JSON.stringify(pageTitle).substring(0, 30);
+
+                try {
+                  sendLog(`📝 ${pageProgress} Procesando: "${displayTitle}"`);
+                  sendLog(`   🔗 Obteniendo contenido desde Notion API...`);
+
+                  // Migrar la página usando el servicio
+                  const migrationResult = await notionMigrationService.migratePage(page.id);
+
+                  if (migrationResult.success) {
+                    pagesProcessed++;
+                    totalBlocks += migrationResult.blocksProcessed || 0;
+                    totalEmbeddings += migrationResult.embeddingsGenerated || 0;
+
+                    sendLog(`   💾 Guardado en Supabase: ${migrationResult.blocksProcessed || 0} bloques`);
+                    sendLog(`   🧠 Vectorización: ${migrationResult.embeddingsGenerated || 0} embeddings generados`);
+                    sendLog(`✅ ${pageProgress} Completado exitosamente`);
+                  } else {
+                    errors++;
+                    const errorMsg = migrationResult.errors?.join(', ') || 'Error desconocido';
+                    sendLog(`❌ ${pageProgress} Error: ${errorMsg}`);
+                  }
+
+                  // Progreso cada 5 páginas o al final
+                  if ((pageIndex + 1) % 5 === 0 || pageIndex === pages.length - 1) {
+                    const progress = Math.round(((pageIndex + 1) / pages.length) * 100);
+                    sendLog(`📊 Progreso: ${progress}% (${pageIndex + 1}/${pages.length} páginas)`);
+                  }
+
+                  sendLog('');
+
+                  // Pequeña pausa para no sobrecargar la API
+                  if (pageIndex < pages.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                  }
+
+                } catch (pageError) {
+                  errors++;
+                  const errorMsg = pageError instanceof Error ? pageError.message : 'Error desconocido';
+                  sendLog(`❌ ${pageProgress} Error crítico: ${errorMsg}`);
+                  sendLog('');
+                }
+              }
+
+              sendLog(`🧠 Paso 4/4: Proceso de vectorización y almacenamiento completado`);
+              sendLog(`📊 Estadísticas finales para database ${databaseId}:`);
+              sendLog(`   • Páginas procesadas: ${pagesProcessed}/${pages.length}`);
+              sendLog(`   • Bloques totales: ${totalBlocks}`);
+              sendLog(`   • Embeddings generados: ${totalEmbeddings}`);
+              sendLog(`   • Errores: ${errors}`);
+
+              if (errors === 0) {
+                sendLog(`✅ Database ${databaseId} sincronizada exitosamente`);
+              } else {
+                sendLog(`⚠️ Database ${databaseId} sincronizada con ${errors} errores`);
+              }
 
               results.push({
                 databaseId,
@@ -81,10 +195,36 @@ export async function POST() {
             }
           }
 
+          // Calcular estadísticas globales
           const successCount = results.filter(r => r.status === 'success').length;
           const errorCount = results.filter(r => r.status === 'error').length;
+          const warningCount = results.filter(r => r.status === 'warning').length;
 
-          sendLog(`✅ Sincronización completada: ${successCount} exitosas, ${errorCount} errores`);
+          sendLog('');
+          sendLog('🎯 RESUMEN FINAL DE SINCRONIZACIÓN');
+          sendLog('═'.repeat(50));
+          sendLog(`📊 Databases procesadas:`);
+          sendLog(`   • Exitosas: ${successCount}`);
+          sendLog(`   • Con errores: ${errorCount}`);
+          sendLog(`   • Con advertencias: ${warningCount}`);
+          sendLog(`   • Total: ${databaseIds.length}`);
+          sendLog('');
+
+          if (results.length > 0) {
+            sendLog(`📋 Detalle por database:`);
+            results.forEach((result, index) => {
+              const status = result.status === 'success' ? '✅' :
+                result.status === 'warning' ? '⚠️' : '❌';
+              sendLog(`   ${index + 1}. ${status} ${result.databaseId} - ${result.message}`);
+            });
+          }
+
+          sendLog('');
+          if (errorCount === 0) {
+            sendLog(`🎉 ¡Sincronización completada exitosamente!`);
+          } else {
+            sendLog(`⚠️ Sincronización completada con ${errorCount} errores`);
+          }
 
           // Enviar resultado final
           const finalResult = {
