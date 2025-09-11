@@ -13,31 +13,16 @@ import {
   SyncCardDescription,
   SyncCardContent,
   SyncButton,
-  ProgressContainer,
-  ProgressBar,
-  ProgressText,
   StatusBadge,
   InfoAlert,
-  DatabaseInputContainer,
-  DatabaseInput,
-  DatabaseLabel
 } from './SyncTab.styles';
 
-// Eliminamos SyncLog interface ya que ahora usamos strings simples
-
-interface SyncProgress {
-  current: number;
-  total: number;
-  percentage: number;
-}
-
 export const SyncTab: React.FC = () => {
-  const [isNotionSyncing, setIsNotionSyncing] = useState(false);
-  const [isSupabaseSyncing, setIsSupabaseSyncing] = useState(false);
-  const [notionProgress, setNotionProgress] = useState<SyncProgress | null>(null);
-  const [supabaseProgress, setSupabaseProgress] = useState<SyncProgress | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isDiagnosticRunning, setIsDiagnosticRunning] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
-  const [pageIds, setPageIds] = useState('');
+
+  const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -49,60 +34,13 @@ export const SyncTab: React.FC = () => {
     setLogs([]);
   };
 
-  const handleNotionSync = async () => {
-    if (!pageIds.trim()) {
-      addLog('❌ Error: Debes especificar al menos un Page ID para sincronizar');
-      return;
-    }
-
-    setIsNotionSyncing(true);
-    setNotionProgress({ current: 0, total: 0, percentage: 0 });
+  const handleSync = async () => {
+    setIsSyncing(true);
 
     try {
-      addLog('🚀 Iniciando sincronización de páginas específicas de Notion...');
+      addLog('🚀 Iniciando sincronización inteligente (IA Adaptiva)...');
 
-      const pageIdsArray = pageIds.split(',').map(id => id.trim()).filter(id => id.length > 0);
-
-      const response = await fetch('/api/sync-notion', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pageIds: pageIdsArray
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        addLog(`✅ Sincronización completada: ${result.stats?.pagesProcessed || 0} páginas procesadas`);
-        if (result.stats?.embeddingsGenerated) {
-          addLog(`🧠 Embeddings generados: ${result.stats.embeddingsGenerated}`);
-        }
-      } else {
-        addLog(`❌ Error en sincronización: ${result.message}`);
-        if (result.errors) {
-          result.errors.forEach((error: string) => addLog(`  • ${error}`));
-        }
-      }
-
-    } catch (error) {
-      addLog(`❌ Error crítico: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-    } finally {
-      setIsNotionSyncing(false);
-      setNotionProgress(null);
-    }
-  };
-
-  const handleSupabaseSync = async () => {
-    setIsSupabaseSyncing(true);
-    setSupabaseProgress({ current: 0, total: 0, percentage: 0 });
-
-    try {
-      addLog('🚀 Iniciando sincronización completa con Supabase...');
-
-      const response = await fetch('/api/sync-supabase', {
+      const response = await fetch('/api/sync-supabase-adaptive', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,152 +80,145 @@ export const SyncTab: React.FC = () => {
     } catch (error) {
       addLog(`❌ Error crítico: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
-      setIsSupabaseSyncing(false);
-      setSupabaseProgress(null);
+      setIsSyncing(false);
     }
   };
 
-  // getLogIcon eliminado - el componente Terminal maneja esto automáticamente
+  const handleNotionDiagnostic = async () => {
+    setIsDiagnosticRunning(true);
+
+    try {
+      addLog('🔍 Iniciando diagnóstico de conexión con Notion API...');
+
+      const response = await fetch('/api/debug-notion-connection', {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (reader) {
+        let done = false;
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+
+          if (value) {
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.trim()) {
+                addLog(line);
+              }
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      addLog(`❌ Error en diagnóstico: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    } finally {
+      setIsDiagnosticRunning(false);
+    }
+  };
 
   return (
     <SyncContainer>
       <InfoAlert>
         <Icon name="info" size="md" />
         <div>
-          <strong>Sincronización de Datos</strong>
+          <strong>Sincronización Inteligente</strong>
           <br />
-          Aquí puedes sincronizar tu contenido de Notion con Supabase y generar embeddings para búsqueda semántica.
+          Sistema con IA que adapta automáticamente la paralelización según el tamaño de tus databases y genera embeddings para búsqueda semántica.
         </div>
       </InfoAlert>
 
-      {/* <SyncSection> 
-        <SectionTitle>Sincronización de Páginas Específicas</SectionTitle>
-        <SectionDescription>
-          Sincroniza páginas específicas de Notion proporcionando sus Page IDs.
-        </SectionDescription>
+      {isDebugMode && (
+        <SyncSection>
+          <SectionTitle>Diagnóstico y Verificación</SectionTitle>
+          <SectionDescription>
+            Verifica la configuración y conexión con Notion antes de sincronizar.
+          </SectionDescription>
 
-        <SyncCard>
-          <SyncCardHeader>
-            <div>
-              <SyncCardTitle>
-                <Icon name="bot" size="md" />
-                Notion → Supabase (Páginas)
-              </SyncCardTitle>
-              <SyncCardDescription>
-                Sincroniza páginas específicas y genera embeddings
-              </SyncCardDescription>
-            </div>
-            <StatusBadge $isActive={isNotionSyncing}>
-              {isNotionSyncing ? 'Sincronizando...' : 'Listo'}
-            </StatusBadge>
-          </SyncCardHeader>
+          <SyncCard>
+            <SyncCardHeader>
+              <div>
+                <SyncCardTitle>
+                  <Icon name="settings" size="md" />
+                  Diagnóstico de Conexión
+                </SyncCardTitle>
+                <SyncCardDescription>
+                  Verifica la configuración y conexión con Notion API
+                </SyncCardDescription>
+              </div>
+              <StatusBadge $isActive={isDiagnosticRunning}>
+                {isDiagnosticRunning ? 'Analizando...' : 'Listo'}
+              </StatusBadge>
+            </SyncCardHeader>
 
-          <SyncCardContent>
-            <DatabaseInputContainer>
-              <DatabaseLabel>Page IDs (separados por comas):</DatabaseLabel>
-              <DatabaseInput
-                type="text"
-                value={pageIds}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPageIds(e.target.value)}
-                placeholder="ej: page-id-1, page-id-2, page-id-3"
-                disabled={isNotionSyncing}
-              />
-            </DatabaseInputContainer>
-
-            {notionProgress && (
-              <ProgressContainer>
-                <ProgressText>
-                  {notionProgress.current} de {notionProgress.total} páginas ({notionProgress.percentage}%)
-                </ProgressText>
-                <ProgressBar>
-                  <div
-                    style={{
-                      width: `${notionProgress.percentage}%`,
-                      background: 'linear-gradient(90deg, #00cfff, #6b2fff)',
-                      height: '100%',
-                      borderRadius: '4px',
-                      transition: 'width 0.3s ease'
-                    }}
-                  />
-                </ProgressBar>
-              </ProgressContainer>
-            )}
-
-            <SyncButton
-              onClick={handleNotionSync}
-              disabled={isNotionSyncing || !pageIds.trim()}
-            >
-              {isNotionSyncing ? (
-                <>
-                  <Icon name="settings" size="sm" />
-                  Sincronizando...
-                </>
-              ) : (
-                <>
-                  <Icon name="bot" size="sm" />
-                  Sincronizar Páginas
-                </>
-              )}
-            </SyncButton>
-          </SyncCardContent>
-        </SyncCard>
-      </SyncSection> */}
+            <SyncCardContent>
+              <SyncButton
+                onClick={handleNotionDiagnostic}
+                disabled={isDiagnosticRunning || isSyncing}
+              >
+                {isDiagnosticRunning ? (
+                  <>
+                    <Icon name="settings" size="sm" />
+                    Diagnosticando...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="info" size="sm" />
+                    Ejecutar Diagnóstico
+                  </>
+                )}
+              </SyncButton>
+            </SyncCardContent>
+          </SyncCard>
+        </SyncSection>
+      )}
 
       <SyncSection>
-        <SectionTitle>Sincronización Completa de Databases</SectionTitle>
+        <SectionTitle>Sincronización Completa</SectionTitle>
         <SectionDescription>
-          Sincroniza databases completas de Notion configuradas en las variables de entorno.
+          Sincroniza tus databases de Notion con Supabase usando inteligencia artificial adaptiva.
         </SectionDescription>
 
         <SyncCard>
           <SyncCardHeader>
             <div>
               <SyncCardTitle>
-                <Icon name="notebook" size="md" />
-                Notion → Supabase (Completo)
+                <Icon name="brain" size="md" />
+                Sincronización Inteligente
               </SyncCardTitle>
               <SyncCardDescription>
-                Sincroniza todas las databases configuradas
+                IA Adaptiva: paralelización óptima según tamaño + embeddings automáticos
               </SyncCardDescription>
             </div>
-            <StatusBadge $isActive={isSupabaseSyncing}>
-              {isSupabaseSyncing ? 'Sincronizando...' : 'Listo'}
+            <StatusBadge $isActive={isSyncing}>
+              {isSyncing ? 'Sincronizando...' : 'Listo'}
             </StatusBadge>
           </SyncCardHeader>
 
           <SyncCardContent>
-            {supabaseProgress && (
-              <ProgressContainer>
-                <ProgressText>
-                  {supabaseProgress.current} de {supabaseProgress.total} databases ({supabaseProgress.percentage}%)
-                </ProgressText>
-                <ProgressBar>
-                  <div
-                    style={{
-                      width: `${supabaseProgress.percentage}%`,
-                      background: 'linear-gradient(90deg, #10b981, #3b82f6)',
-                      height: '100%',
-                      borderRadius: '4px',
-                      transition: 'width 0.3s ease'
-                    }}
-                  />
-                </ProgressBar>
-              </ProgressContainer>
-            )}
-
             <SyncButton
-              onClick={handleSupabaseSync}
-              disabled={isSupabaseSyncing}
+              onClick={handleSync}
+              disabled={isSyncing}
             >
-              {isSupabaseSyncing ? (
+              {isSyncing ? (
                 <>
                   <Icon name="settings" size="sm" />
-                  Sincronizando...
+                  IA Procesando...
                 </>
               ) : (
                 <>
-                  <Icon name="rocket" size="sm" />
-                  Sincronizar Todo
+                  <Icon name="brain" size="sm" />
+                  Sincronizar con IA 🧠
                 </>
               )}
             </SyncButton>
@@ -299,7 +230,7 @@ export const SyncTab: React.FC = () => {
         <SectionTitle>Terminal de Sincronización</SectionTitle>
         <Terminal
           logs={logs}
-          isProcessing={isNotionSyncing || isSupabaseSyncing}
+          isProcessing={isSyncing || (isDebugMode && isDiagnosticRunning)}
           onClearLogs={clearLogs}
         />
       </SyncSection>

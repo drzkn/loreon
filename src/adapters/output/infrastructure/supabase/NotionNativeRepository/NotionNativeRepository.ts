@@ -73,11 +73,6 @@ export interface SyncLogRow {
 export class NotionNativeRepository {
   constructor(private supabase: SupabaseClient) { }
 
-  // ===== PÁGINAS =====
-
-  /**
-   * Guarda o actualiza una página de Notion
-   */
   async savePage(pageData: {
     notion_id: string;
     title: string;
@@ -123,9 +118,6 @@ export class NotionNativeRepository {
     return data;
   }
 
-  /**
-   * Obtiene una página por su ID de Notion
-   */
   async getPageByNotionId(notionId: string): Promise<NotionPageRow | null> {
     const { data, error } = await this.supabase
       .from('notion_pages')
@@ -144,9 +136,6 @@ export class NotionNativeRepository {
     return data;
   }
 
-  /**
-   * Obtiene páginas por database ID
-   */
   async getPagesByDatabaseId(databaseId: string): Promise<NotionPageRow[]> {
     const { data, error } = await this.supabase
       .from('notion_pages')
@@ -163,9 +152,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  /**
-   * Busca páginas modificadas después de una fecha
-   */
   async getModifiedPagesSince(timestamp: string): Promise<NotionPageRow[]> {
     const { data, error } = await this.supabase
       .from('notion_pages')
@@ -182,11 +168,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  // ===== BLOQUES =====
-
-  /**
-   * Guarda múltiples bloques de una página
-   */
   async saveBlocks(pageId: string, blocks: Array<{
     notion_id: string;
     parent_block_id?: string;
@@ -200,17 +181,14 @@ export class NotionNativeRepository {
     archived?: boolean;
     raw_data: Record<string, unknown>;
   }>): Promise<NotionBlockRow[]> {
-    // Primero eliminar bloques existentes de la página
     await this.deletePageBlocks(pageId);
 
-    // Insertar nuevos bloques
     const blocksToInsert = blocks.map(block => ({
       notion_id: block.notion_id,
       page_id: pageId,
       parent_block_id: block.parent_block_id,
       type: block.type,
       content: block.content,
-      plain_text: block.plain_text,
       position: block.position,
       has_children: block.has_children,
       notion_created_time: block.notion_created_time,
@@ -232,9 +210,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  /**
-   * Obtiene bloques de una página con jerarquía
-   */
   async getPageBlocksHierarchical(pageId: string): Promise<HierarchicalBlock[]> {
     const { data, error } = await this.supabase
       .rpc('get_hierarchical_blocks', { page_uuid: pageId });
@@ -247,9 +222,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  /**
-   * Obtiene bloques de una página ordenados por posición
-   */
   async getPageBlocks(pageId: string): Promise<NotionBlockRow[]> {
     const { data, error } = await this.supabase
       .from('notion_blocks')
@@ -266,9 +238,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  /**
-   * Elimina todos los bloques de una página
-   */
   async deletePageBlocks(pageId: string): Promise<void> {
     const { error } = await this.supabase
       .from('notion_blocks')
@@ -281,9 +250,6 @@ export class NotionNativeRepository {
     }
   }
 
-  /**
-   * Busca en el contenido de texto de los bloques
-   */
   async searchBlocks(query: string, limit: number = 50): Promise<NotionBlockRow[]> {
     const { data, error } = await this.supabase
       .from('notion_blocks')
@@ -329,11 +295,6 @@ export class NotionNativeRepository {
     return uniqueResults;
   }
 
-  // ===== EMBEDDINGS =====
-
-  /**
-   * Guarda embeddings para un bloque
-   */
   async saveEmbeddings(embeddings: Array<{
     block_id: string;
     page_id: string;
@@ -356,9 +317,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  /**
-   * Elimina embeddings por hash de contenido (para actualizaciones)
-   */
   async deleteEmbeddingsByContentHash(contentHash: string): Promise<void> {
     const { error } = await this.supabase
       .from('notion_embeddings')
@@ -371,9 +329,6 @@ export class NotionNativeRepository {
     }
   }
 
-  /**
-   * Elimina embeddings de una página
-   */
   async deletePageEmbeddings(pageId: string): Promise<void> {
     const { error } = await this.supabase
       .from('notion_embeddings')
@@ -386,9 +341,6 @@ export class NotionNativeRepository {
     }
   }
 
-  /**
-   * Busca embeddings similares usando cosine similarity
-   */
   async searchSimilarEmbeddings(
     queryEmbedding: number[],
     limit: number = 20,
@@ -408,9 +360,6 @@ export class NotionNativeRepository {
     return data || [];
   }
 
-  /**
-   * Busca por vector y retorna resultados en formato compatible con Chat API
-   */
   async searchByVector(queryEmbedding: number[], options?: {
     matchThreshold?: number;
     matchCount?: number;
@@ -426,7 +375,6 @@ export class NotionNativeRepository {
     const matchThreshold = options?.matchThreshold || 0.78;
     const matchCount = options?.matchCount || 5;
 
-    // Obtener embeddings similares
     const embeddings = await this.searchSimilarEmbeddings(
       queryEmbedding,
       matchCount,
@@ -437,7 +385,6 @@ export class NotionNativeRepository {
       return [];
     }
 
-    // Obtener páginas únicas agrupadas por similitud máxima
     const pageResults = new Map<string, {
       page: NotionPageRow;
       maxSimilarity: number;
@@ -445,7 +392,6 @@ export class NotionNativeRepository {
     }>();
 
     for (const embedding of embeddings) {
-      // Obtener información de la página (page_id es el UUID interno, no el notion_id)
       const { data: page, error } = await this.supabase
         .from('notion_pages')
         .select('*')
@@ -476,11 +422,9 @@ export class NotionNativeRepository {
       }
     }
 
-    // Transformar a formato compatible con Chat API
     const results = Array.from(pageResults.values())
       .sort((a, b) => b.maxSimilarity - a.maxSimilarity)
       .map(({ page, maxSimilarity, chunks }) => {
-        // Combinar chunks relevantes de la misma página
         const content = chunks
           .filter(chunk => chunk.similarity >= matchThreshold * 0.8) // Solo chunks relevantes
           .sort((a, b) => b.similarity - a.similarity)
@@ -503,11 +447,6 @@ export class NotionNativeRepository {
     return results;
   }
 
-  // ===== SINCRONIZACIÓN =====
-
-  /**
-   * Crea un nuevo log de sincronización
-   */
   async createSyncLog(syncType: SyncLogRow['sync_type'], metadata?: Record<string, unknown>): Promise<SyncLogRow> {
     const { data, error } = await this.supabase
       .from('notion_sync_log')
@@ -530,9 +469,6 @@ export class NotionNativeRepository {
     return data;
   }
 
-  /**
-   * Actualiza el progreso de sincronización
-   */
   async updateSyncLog(
     syncId: string,
     updates: {
@@ -558,9 +494,6 @@ export class NotionNativeRepository {
     }
   }
 
-  /**
-   * Obtiene estadísticas de almacenamiento
-   */
   async getStorageStats(): Promise<{
     totalPages: number;
     totalBlocks: number;
@@ -588,9 +521,6 @@ export class NotionNativeRepository {
     };
   }
 
-  /**
-   * Marca páginas como archivadas (soft delete)
-   */
   async archivePages(notionIds: string[]): Promise<void> {
     const { error } = await this.supabase
       .from('notion_pages')
@@ -603,9 +533,6 @@ export class NotionNativeRepository {
     }
   }
 
-  /**
-   * Obtiene páginas no actualizadas recientemente (posibles eliminadas)
-   */
   async getStalePages(olderThan: string): Promise<NotionPageRow[]> {
     const { data, error } = await this.supabase
       .from('notion_pages')

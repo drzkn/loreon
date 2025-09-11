@@ -3,17 +3,6 @@ import { INotionRepository } from "@/ports/output/repositories/INotionRepository
 import { IHttpClient } from "@/ports/output/services/IHttpClient";
 import { NotionBlockResponse, NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from "@/shared/types/notion.types";
 
-interface NotionError {
-  response?: {
-    status?: number;
-    data?: {
-      message?: string;
-      code?: string;
-      request_id?: string;
-    };
-  };
-}
-
 export class NotionRepository implements INotionRepository {
   constructor(private httpClient: IHttpClient) { }
 
@@ -22,13 +11,7 @@ export class NotionRepository implements INotionRepository {
       const response = await this.httpClient.get<NotionDatabaseResponse>(`/databases/${id}`);
       return Database.fromNotionResponse(response.data);
     } catch (error: unknown) {
-      const notionError = error as NotionError;
-      console.error('Error al obtener la base de datos:', {
-        status: notionError.response?.status,
-        message: notionError.response?.data?.message,
-        code: notionError.response?.data?.code,
-        requestId: notionError.response?.data?.request_id
-      });
+      console.error('Error al obtener la base de datos:', error);
       throw error;
     }
   }
@@ -57,8 +40,13 @@ export class NotionRepository implements INotionRepository {
     try {
       const requestBody: Record<string, unknown> = {};
 
-      if (filter) {
-        requestBody.filter = filter;
+      if (filter && typeof filter === 'object' && filter !== null) {
+        const filterObj = filter as Record<string, unknown>;
+        const hasValidProperties = Object.keys(filterObj).length > 0;
+
+        if (hasValidProperties) {
+          requestBody.filter = filter;
+        }
       }
 
       if (sorts && sorts.length > 0) {
@@ -72,7 +60,18 @@ export class NotionRepository implements INotionRepository {
 
       return response.data.results.map(pageData => Page.fromNotionResponse(pageData));
     } catch (error: unknown) {
-      console.error('Error al consultar la base de datos:', error);
+      console.error(`Error al consultar la base de datos ${databaseId}:`, error);
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { message?: string; code?: string } } };
+        const status = axiosError.response?.status;
+        const responseData = axiosError.response?.data;
+
+        if (status && responseData?.message) {
+          console.error(`HTTP ${status}: ${responseData.message}`);
+        }
+      }
+
       throw error;
     }
   }
