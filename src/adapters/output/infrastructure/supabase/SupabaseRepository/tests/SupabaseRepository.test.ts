@@ -1,52 +1,43 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { MarkdownPageInsert, MarkdownPageUpdate } from '../../types';
 
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key';
-
-// Mock de los clientes de Supabase - debe estar antes de las importaciones
-vi.mock('../../index', () => ({
-  supabase: {
-    from: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    single: vi.fn(),
-    eq: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    upsert: vi.fn().mockReturnThis(),
-    or: vi.fn().mockReturnThis(),
-    rpc: vi.fn()
-  },
-  supabaseServer: {
-    from: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    single: vi.fn(),
-    eq: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    upsert: vi.fn().mockReturnThis(),
-    or: vi.fn().mockReturnThis(),
-    rpc: vi.fn()
-  }
-}));
-
 // Usar el sistema centralizado de mocks
 import {
   createTestSetup
 } from '@/mocks';
 
 import { SupabaseRepository } from '../SupabaseRepository';
-import { supabase } from '../../index';
 
-const mockSupabaseClient = vi.mocked(supabase);
+// Crear el mock del cliente de Supabase directamente
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockSupabaseClient: any = {
+  from: vi.fn(),
+  insert: vi.fn(),
+  select: vi.fn(),
+  single: vi.fn(),
+  eq: vi.fn(),
+  limit: vi.fn(),
+  range: vi.fn(),
+  order: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+  upsert: vi.fn(),
+  or: vi.fn(),
+  rpc: vi.fn()
+};
+
+// Configurar el encadenamiento por defecto
+mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.limit.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.range.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.order.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.update.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.upsert.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.or.mockReturnValue(mockSupabaseClient);
 
 describe('SupabaseRepository', () => {
   let repository: SupabaseRepository;
@@ -69,18 +60,32 @@ describe('SupabaseRepository', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repository = new SupabaseRepository();
+
+    // Reconfigurar el encadenamiento después de limpiar los mocks
+    mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.limit.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.range.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.order.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.update.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.upsert.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.or.mockReturnValue(mockSupabaseClient);
+
+    repository = new SupabaseRepository(false, mockSupabaseClient);
   });
 
   describe('Instanciación', () => {
-    it('debería crear instancia con cliente normal', () => {
-      const repo = new SupabaseRepository();
+    it('debería crear instancia con cliente mockeado', () => {
+      const repo = new SupabaseRepository(false, mockSupabaseClient);
       expect(repo).toBeDefined();
       expect(repo).toBeInstanceOf(SupabaseRepository);
     });
 
-    it('debería crear instancia con cliente servidor', () => {
-      const serverRepo = new SupabaseRepository(true);
+    it('debería crear instancia con cliente servidor mockeado', () => {
+      const serverRepo = new SupabaseRepository(true, mockSupabaseClient);
       expect(serverRepo).toBeDefined();
       expect(serverRepo).toBeInstanceOf(SupabaseRepository);
     });
@@ -96,6 +101,15 @@ describe('SupabaseRepository', () => {
       expect(typeof repository.search).toBe('function');
       expect(typeof repository.searchByVector).toBe('function');
     });
+
+    it('debería tener el cliente mockeado configurado correctamente', () => {
+      expect(mockSupabaseClient).toBeDefined();
+      expect(mockSupabaseClient.from).toBeDefined();
+      expect(typeof mockSupabaseClient.from).toBe('function');
+
+      const result = mockSupabaseClient.from('test');
+      expect(result).toBe(mockSupabaseClient);
+    });
   });
 
   describe('save()', () => {
@@ -106,12 +120,15 @@ describe('SupabaseRepository', () => {
         content: 'New content'
       };
 
+      // Configurar el mock para que single() retorne el resultado
       mockSupabaseClient.single.mockResolvedValue({ data: mockMarkdownPage, error: null });
 
       const result = await repository.save(insertData);
 
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
       expect(mockSupabaseClient.insert).toHaveBeenCalledWith(insertData);
+      expect(mockSupabaseClient.select).toHaveBeenCalled();
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(mockMarkdownPage);
     });
 
@@ -152,7 +169,9 @@ describe('SupabaseRepository', () => {
       const result = await repository.findByNotionPageId('notion-123');
 
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('*');
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('notion_page_id', 'notion-123');
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(mockMarkdownPage);
     });
 
@@ -181,7 +200,9 @@ describe('SupabaseRepository', () => {
       const result = await repository.findById('test-id');
 
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('*');
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'test-id');
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(mockMarkdownPage);
     });
 
@@ -277,6 +298,8 @@ describe('SupabaseRepository', () => {
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
       expect(mockSupabaseClient.update).toHaveBeenCalledWith(updateData);
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'test-id');
+      expect(mockSupabaseClient.select).toHaveBeenCalled();
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(updatedPage);
     });
 
@@ -293,7 +316,8 @@ describe('SupabaseRepository', () => {
 
   describe('delete()', () => {
     it('debería eliminar página exitosamente', async () => {
-      mockSupabaseClient.delete.mockResolvedValue({ error: null });
+      // Configurar el mock para retornar el resultado correcto al final de la cadena
+      mockSupabaseClient.eq.mockResolvedValue({ error: null });
 
       await repository.delete('test-id');
 
@@ -304,7 +328,7 @@ describe('SupabaseRepository', () => {
 
     it('debería propagar errores', async () => {
       const error = { message: 'Delete failed' };
-      mockSupabaseClient.delete.mockResolvedValue({ error });
+      mockSupabaseClient.eq.mockResolvedValue({ error });
 
       await expect(repository.delete('test-id'))
         .rejects.toThrow('Error al eliminar página: Delete failed');
@@ -319,7 +343,7 @@ describe('SupabaseRepository', () => {
         content: 'Upsert content'
       };
 
-      // Mock para findByNotionPageId (no existe)
+      // Mock para findByNotionPageId (no existe) y luego para upsert
       mockSupabaseClient.single
         .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
         .mockResolvedValueOnce({ data: mockMarkdownPage, error: null });
@@ -548,28 +572,39 @@ describe('SupabaseRepository', () => {
 
   describe('Casos edge', () => {
     it('debería manejar datos nulos y undefined apropiadamente', async () => {
-      // Mock responses for different scenarios
+      // Configurar mocks para cada tipo de consulta
+      vi.clearAllMocks();
+
+      // Mock para findById y findByNotionPageId
       mockSupabaseClient.single
         .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
         .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } });
 
-      mockSupabaseClient.from
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue({
+      // Mock para findAll
+      const mockFindAllChain = {
+        select: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnThis(),
+          range: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [], error: null })
+        })
+      };
+
+      // Mock para search
+      const mockSearchChain = {
+        select: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
             limit: vi.fn().mockReturnThis(),
             range: vi.fn().mockReturnThis(),
             order: vi.fn().mockResolvedValue({ data: [], error: null })
           })
         })
-        .mockReturnValueOnce({
-          select: vi.fn().mockReturnValue({
-            or: vi.fn().mockReturnValue({
-              limit: vi.fn().mockReturnThis(),
-              range: vi.fn().mockReturnThis(),
-              order: vi.fn().mockResolvedValue({ data: [], error: null })
-            })
-          })
-        });
+      };
+
+      mockSupabaseClient.from
+        .mockReturnValueOnce(mockSupabaseClient) // findById
+        .mockReturnValueOnce(mockSupabaseClient) // findByNotionPageId
+        .mockReturnValueOnce(mockFindAllChain) // findAll
+        .mockReturnValueOnce(mockSearchChain); // search
 
       mockSupabaseClient.rpc.mockResolvedValue({ data: [], error: null });
 

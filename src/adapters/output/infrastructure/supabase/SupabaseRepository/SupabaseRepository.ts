@@ -35,8 +35,8 @@ export interface SupabaseMarkdownRepositoryInterface {
 export class SupabaseRepository implements SupabaseMarkdownRepositoryInterface {
   private client: SupabaseClient;
 
-  constructor(useServerClient: boolean = false) {
-    this.client = useServerClient ? supabaseServer : supabase;
+  constructor(useServerClient: boolean = false, injectedClient?: SupabaseClient) {
+    this.client = injectedClient || (useServerClient ? supabaseServer : supabase);
   }
 
   async save(markdownData: MarkdownPageInsert): Promise<MarkdownPage> {
