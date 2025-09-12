@@ -22,12 +22,11 @@ describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
   let mockEmbed: ReturnType<typeof vi.fn>;
   let mockEmbedMany: ReturnType<typeof vi.fn>;
-  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+  const { teardown } = createTestSetup();
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Obtener mocks después de que se apliquen
     const aiModule = await import('ai');
     mockEmbed = aiModule.embed;
     mockEmbedMany = aiModule.embedMany;
