@@ -5,7 +5,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 // Usar el sistema centralizado de mocks
 import {
   createTestSetup
-} from '@/mocks';
+} from '../../../../../../mocks';
 
 vi.mock('@supabase/ssr', () => ({
   createBrowserClient: vi.fn()
@@ -75,12 +75,7 @@ describe('Supabase client', () => {
 
       const fromMethod = supabase.from;
 
-      expect(mockCreateBrowserClient).toHaveBeenCalledWith(mockUrl, mockKey, expect.objectContaining({
-        cookies: expect.objectContaining({
-          getAll: expect.any(Function),
-          setAll: expect.any(Function)
-        })
-      }));
+      expect(mockCreateBrowserClient).toHaveBeenCalledWith(mockUrl, mockKey);
       expect(fromMethod).toBeDefined();
     });
 
@@ -94,6 +89,20 @@ describe('Supabase client', () => {
         const fromMethod = supabase.from;
         return fromMethod;
       }).toThrow('❌ La variable de entorno NEXT_PUBLIC_SUPABASE_URL es requerida');
+
+      expect(mockCreateBrowserClient).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing in client', async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+      delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      const { supabase } = await import('../SupabaseClient');
+
+      expect(() => {
+        const fromMethod = supabase.from;
+        return fromMethod;
+      }).toThrow('❌ La variable de entorno NEXT_PUBLIC_SUPABASE_ANON_KEY es requerida');
 
       expect(mockCreateBrowserClient).not.toHaveBeenCalled();
     });
