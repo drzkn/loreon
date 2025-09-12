@@ -4,7 +4,7 @@ import { EmbeddingsService } from '../EmbeddingsService';
 // Usar el sistema centralizado de mocks
 import {
   createTestSetup
-} from '@/mocks';
+} from '../../../mocks';
 
 // Mocks inline para evitar problemas de hoisting
 vi.mock('ai', () => ({
@@ -27,9 +27,8 @@ describe('EmbeddingsService', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    const aiModule = await import('ai');
-    mockEmbed = aiModule.embed;
-    mockEmbedMany = aiModule.embedMany;
+    mockEmbed = vi.mocked(await import('ai')).embed;
+    mockEmbedMany = vi.mocked(await import('ai')).embedMany;
 
     service = new EmbeddingsService();
   });
