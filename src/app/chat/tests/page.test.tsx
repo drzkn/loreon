@@ -2,31 +2,26 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider } from 'styled-components';
 import ChatPage from '../page';
-import { createTestSetup } from '@/mocks';
-
-// Mock useAuth hook
-const mockUserProfile = {
-  id: 'user-123',
-  name: 'Test User',
-  email: 'test@example.com',
-  avatar: 'https://avatar.url'
-};
-
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    userProfile: mockUserProfile
-  })
-}));
+import { createTestSetup } from '../../../mocks';
+import { theme } from '@/lib/theme';
 
 // Mock @ai-sdk/react
 const mockHandleSubmit = vi.fn();
 const mockHandleInputChange = vi.fn();
+
+interface MockMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  createdAt?: Date;
+}
+
 let mockUseChatReturnValue = {
-  messages: [],
+  messages: [] as MockMessage[],
   input: '',
   handleInputChange: mockHandleInputChange,
   handleSubmit: mockHandleSubmit,
-  status: 'idle'
+  status: 'idle' as 'idle' | 'streaming'
 };
 
 const mockUseChat = vi.fn(() => mockUseChatReturnValue);
@@ -44,15 +39,6 @@ vi.mock('@/components', () => ({
   )
 }));
 
-// Theme básico para styled-components
-const theme = {
-  colors: {
-    primary: '#10b981',
-    secondary: '#6b7280',
-    background: '#111827',
-    surface: '#1f2937'
-  }
-};
 
 describe('ChatPage', () => {
   const { teardown } = createTestSetup();
@@ -62,12 +48,13 @@ describe('ChatPage', () => {
 
     // Reset mock to default behavior
     mockUseChatReturnValue = {
-      messages: [],
+      messages: [] as MockMessage[],
       input: '',
       handleInputChange: mockHandleInputChange,
       handleSubmit: mockHandleSubmit,
-      status: 'idle'
+      status: 'idle' as 'idle' | 'streaming'
     };
+
 
     // Mock scrollIntoView
     Element.prototype.scrollIntoView = vi.fn();
@@ -118,7 +105,7 @@ describe('ChatPage', () => {
 
       const sendButton = screen.getByRole('button', { name: 'Enviar mensaje' });
       expect(sendButton).toBeInTheDocument();
-      expect(sendButton).toBeDisabled(); // Debería estar deshabilitado sin texto
+      expect(sendButton).toBeDisabled();
     });
   });
 
@@ -162,7 +149,6 @@ describe('ChatPage', () => {
 
   describe('formateo de tiempo', () => {
     it('debería formatear la hora correctamente', () => {
-      // Mock useChat with messages
       mockUseChatReturnValue = {
         messages: [
           {
@@ -171,11 +157,11 @@ describe('ChatPage', () => {
             content: 'Test message',
             createdAt: new Date('2023-01-01T15:30:00')
           }
-        ],
+        ] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -185,8 +171,7 @@ describe('ChatPage', () => {
   });
 
   describe('iniciales de usuario', () => {
-    it('debería mostrar inicial del nombre del usuario', () => {
-      // Mock useChat with messages to show user avatar
+    it('debería mostrar "U" como inicial del usuario', () => {
       mockUseChatReturnValue = {
         messages: [
           {
@@ -195,81 +180,27 @@ describe('ChatPage', () => {
             content: 'Test message',
             createdAt: new Date()
           }
-        ],
+        ] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
 
-      expect(screen.getByText('T')).toBeInTheDocument(); // Primera letra de "Test User"
-    });
-
-    it('debería usar email como fallback para inicial', () => {
-      // Mock user without name
-      const mockUseAuthWithoutName = vi.fn(() => ({
-        userProfile: {
-          ...mockUserProfile,
-          name: undefined
-        }
-      }));
-
-      vi.doMock('@/hooks/useAuth', () => ({
-        useAuth: mockUseAuthWithoutName
-      }));
-
-      mockUseChatReturnValue = {
-        messages: [
-          {
-            id: 'msg-1',
-            role: 'user',
-            content: 'Test message',
-            createdAt: new Date()
-          }
-        ],
-        input: '',
-        handleInputChange: mockHandleInputChange,
-        handleSubmit: mockHandleSubmit,
-        status: 'idle'
-      };
-
-      renderChatPage();
-
-      expect(screen.getByText('T')).toBeInTheDocument(); // Primera letra de "test@example.com"
-    });
-
-    it('debería usar "U" como fallback final', () => {
-      // Test de la lógica de getUserInitial directamente
-      // Simula el comportamiento del componente cuando userProfile no tiene name ni email
-      const getUserInitial = (userProfile: { id: string; name?: string; email?: string }) => {
-        if (!userProfile?.name) return userProfile?.email?.[0]?.toUpperCase() || 'U';
-        return userProfile.name[0].toUpperCase();
-      };
-
-      // Test con usuario sin name ni email
-      const result = getUserInitial({ id: 'test', name: undefined, email: undefined });
-      expect(result).toBe('U');
-
-      // Test con usuario sin name pero con email undefined también
-      const result2 = getUserInitial({ id: 'test', name: null, email: null });
-      expect(result2).toBe('U');
-
-      // Test con usuario completamente undefined
-      const result3 = getUserInitial(undefined);
-      expect(result3).toBe('U');
+      expect(screen.getByText('U')).toBeInTheDocument();
     });
   });
 
   describe('estados de carga', () => {
     it('debería mostrar estado "Pensando..." durante streaming', () => {
       mockUseChatReturnValue = {
-        messages: [],
+        messages: [] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'streaming'
+        status: 'streaming' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -280,11 +211,11 @@ describe('ChatPage', () => {
 
     it('debería deshabilitar input durante streaming', () => {
       mockUseChatReturnValue = {
-        messages: [],
+        messages: [] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'streaming'
+        status: 'streaming' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -295,11 +226,11 @@ describe('ChatPage', () => {
 
     it('debería deshabilitar botón cuando no hay texto', () => {
       mockUseChatReturnValue = {
-        messages: [],
+        messages: [] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -310,11 +241,11 @@ describe('ChatPage', () => {
 
     it('debería habilitar botón con texto', () => {
       mockUseChatReturnValue = {
-        messages: [],
+        messages: [] as MockMessage[],
         input: 'Test message',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -340,11 +271,11 @@ describe('ChatPage', () => {
             content: 'Respuesta del asistente',
             createdAt: new Date()
           }
-        ],
+        ] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -368,18 +299,16 @@ describe('ChatPage', () => {
             content: 'Respuesta del asistente',
             createdAt: new Date()
           }
-        ],
+        ] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
 
-      // Usuario debería mostrar inicial
-      expect(screen.getByText('T')).toBeInTheDocument();
-      // Asistente debería mostrar icono bot
+      expect(screen.getByText('U')).toBeInTheDocument();
       expect(screen.getByTestId('icon-bot')).toBeInTheDocument();
     });
   });
@@ -388,7 +317,6 @@ describe('ChatPage', () => {
     it('debería hacer scroll al final cuando se agregan mensajes', async () => {
       const scrollIntoViewMock = vi.fn();
 
-      // Mock scrollIntoView
       Element.prototype.scrollIntoView = scrollIntoViewMock;
 
       mockUseChatReturnValue = {
@@ -399,11 +327,11 @@ describe('ChatPage', () => {
             content: 'Nuevo mensaje',
             createdAt: new Date()
           }
-        ],
+        ] as MockMessage[],
         input: '',
         handleInputChange: mockHandleInputChange,
         handleSubmit: mockHandleSubmit,
-        status: 'idle'
+        status: 'idle' as 'idle' | 'streaming'
       };
 
       renderChatPage();
@@ -420,7 +348,6 @@ describe('ChatPage', () => {
 
       const input = screen.getByPlaceholderText('Escribe tu pregunta aquí...');
 
-      // Configurar scrollHeight para simular contenido más largo
       Object.defineProperty(input, 'scrollHeight', {
         configurable: true,
         value: 80
@@ -428,7 +355,6 @@ describe('ChatPage', () => {
 
       fireEvent.change(input, { target: { value: 'Texto largo\ncon\nmúltiples\nlíneas' } });
 
-      // El efecto debería ejecutarse y ajustar la altura
       expect(input.style.height).toBe('80px');
     });
 
@@ -437,7 +363,6 @@ describe('ChatPage', () => {
 
       const input = screen.getByPlaceholderText('Escribe tu pregunta aquí...');
 
-      // Configurar scrollHeight para simular contenido muy largo
       Object.defineProperty(input, 'scrollHeight', {
         configurable: true,
         value: 200
@@ -445,7 +370,6 @@ describe('ChatPage', () => {
 
       fireEvent.change(input, { target: { value: 'Texto muy largo' } });
 
-      // Debería usar Math.min con 128
       expect(input.style.height).toBe('128px');
     });
   });

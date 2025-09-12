@@ -5,27 +5,32 @@ import { Page, Block } from '@/domain/entities';
 // Usar el sistema centralizado de mocks
 import {
   createTestSetup
-} from '@/mocks';
+} from '../../../mocks';
+
+// Crear mocks de las dependencias
+const mockRepositoryInstance = {
+  savePage: vi.fn(),
+  saveBlocks: vi.fn(),
+  saveEmbeddings: vi.fn(),
+  getPageByNotionId: vi.fn(),
+  getPageBlocksHierarchical: vi.fn(),
+  searchSimilarEmbeddings: vi.fn(),
+  searchBlocks: vi.fn(),
+  archivePages: vi.fn()
+};
+
+const mockEmbeddingsServiceInstance = {
+  generateEmbeddings: vi.fn(),
+  generateEmbedding: vi.fn()
+};
 
 // Mocks de dependencias
 vi.mock('@/adapters/output/infrastructure/supabase/NotionNativeRepository', () => ({
-  NotionNativeRepository: vi.fn().mockImplementation(() => ({
-    savePage: vi.fn(),
-    saveBlocks: vi.fn(),
-    saveEmbeddings: vi.fn(),
-    getPageByNotionId: vi.fn(),
-    getPageBlocksHierarchical: vi.fn(),
-    searchSimilarEmbeddings: vi.fn(),
-    searchBlocks: vi.fn(),
-    archivePages: vi.fn()
-  }))
+  NotionNativeRepository: vi.fn().mockImplementation(() => mockRepositoryInstance)
 }));
 
 vi.mock('@/services/embeddings', () => ({
-  EmbeddingsService: vi.fn().mockImplementation(() => ({
-    generateEmbeddings: vi.fn(),
-    generateEmbedding: vi.fn()
-  }))
+  EmbeddingsService: vi.fn().mockImplementation(() => mockEmbeddingsServiceInstance)
 }));
 
 vi.mock('@/adapters/output/infrastructure/supabase/SupabaseClient', () => ({
@@ -64,20 +69,8 @@ vi.mock('../NotionContentExtractor', () => ({
 
 describe('NotionNativeService', () => {
   let service: NotionNativeService;
-  let mockRepository: {
-    savePage: ReturnType<typeof vi.fn>;
-    saveBlocks: ReturnType<typeof vi.fn>;
-    saveEmbeddings: ReturnType<typeof vi.fn>;
-    getPageByNotionId: ReturnType<typeof vi.fn>;
-    getPageBlocksHierarchical: ReturnType<typeof vi.fn>;
-    searchSimilarEmbeddings: ReturnType<typeof vi.fn>;
-    searchBlocks: ReturnType<typeof vi.fn>;
-    archivePages: ReturnType<typeof vi.fn>;
-  };
-  let mockEmbeddingsService: {
-    generateEmbeddings: ReturnType<typeof vi.fn>;
-    generateEmbedding: ReturnType<typeof vi.fn>;
-  };
+  let mockRepository: typeof mockRepositoryInstance;
+  let mockEmbeddingsService: typeof mockEmbeddingsServiceInstance;
 
   const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
@@ -86,9 +79,13 @@ describe('NotionNativeService', () => {
 
     service = new NotionNativeService();
 
-    // Get access to mocked instances
-    mockRepository = (service as unknown as { repository: typeof mockRepository }).repository;
-    mockEmbeddingsService = (service as unknown as { embeddingsService: typeof mockEmbeddingsService }).embeddingsService;
+    // Use the global mock instances directly
+    mockRepository = mockRepositoryInstance;
+    mockEmbeddingsService = mockEmbeddingsServiceInstance;
+
+    // Replace the service's dependencies directly
+    (service as unknown as { repository: typeof mockRepository }).repository = mockRepository;
+    (service as unknown as { embeddingsService: typeof mockEmbeddingsService }).embeddingsService = mockEmbeddingsService;
   });
 
   afterEach(() => {
@@ -194,6 +191,17 @@ describe('NotionNativeService', () => {
       };
 
       const mockBlocks: Partial<Block>[] = [];
+
+      // Mock content extraction to avoid the wordCount error
+      const { NotionContentExtractor } = await import('../NotionContentExtractor');
+      vi.mocked(NotionContentExtractor.extractPageContent).mockReturnValue({
+        fullText: 'Test content',
+        htmlStructure: '<p>Test content</p>',
+        sections: [],
+        contentHash: 'hash-123',
+        wordCount: 2,
+        characterCount: 12
+      });
 
       mockRepository.savePage.mockRejectedValue(new Error('Database error'));
 
