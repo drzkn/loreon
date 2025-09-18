@@ -38,5 +38,5 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-#mcp 
-.cursor/mcp.json
+#mcp and rules
+.cursor/
