@@ -108,12 +108,7 @@ export class NotionNativeService implements NotionNativeServiceInterface {
   /**
    * Obtiene todas las páginas almacenadas con opciones de paginación
    */
-  async getAllStoredPages(options: {
-    limit?: number;
-    offset?: number;
-    orderBy?: string;
-    orderDirection?: 'asc' | 'desc';
-  } = {}): Promise<NotionPageRow[]> {
+  async getAllStoredPages(): Promise<NotionPageRow[]> {
     // Implementación temporal - necesita método getAllPages en el repositorio
     throw new Error('Método getAllPages no implementado en NotionNativeRepository');
   }

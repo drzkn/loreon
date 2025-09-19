@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotionService } from '../NotionService';
 import { Page, Block } from '@/domain/entities';
+import { NotionStorageRepository } from '@/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository';
+import { IEmbeddingsService } from '@/application/interfaces/IEmbeddingsService';
 
 // Usar el sistema centralizado de mocks
 import {
@@ -52,8 +54,8 @@ import { NotionContentExtractor } from '../NotionContentExtractor';
 
 describe('NotionService', () => {
   let service: NotionService;
-  let mockRepository: any;
-  let mockEmbeddingsService: any;
+  let mockRepository: NotionStorageRepository;
+  let mockEmbeddingsService: IEmbeddingsService;
   const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
 
   beforeEach(() => {

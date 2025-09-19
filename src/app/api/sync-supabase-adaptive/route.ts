@@ -214,7 +214,7 @@ export async function POST() {
         } finally {
           try {
             controller.close();
-          } catch (closeError) {
+          } catch {
             // Ignorar errores al cerrar el controlador (puede ya estar cerrado)
           }
         }

@@ -46,7 +46,7 @@ export const createMockEnvironment = (envVars: Record<string, string>) => {
   });
 };
 
-export const createMockFetch = (mockResponse: any, options: { ok?: boolean; status?: number } = {}) => {
+export const createMockFetch = (mockResponse: unknown, options: { ok?: boolean; status?: number } = {}) => {
   const { ok = true, status = 200 } = options;
 
   return vi.fn().mockResolvedValue({
@@ -113,7 +113,7 @@ export const mockNotionClient = {
   },
 };
 
-export const createMockHttpClient = (mockResponse?: any) => ({
+export const createMockHttpClient = (mockResponse?: unknown) => ({
   get: vi.fn().mockResolvedValue(mockResponse),
   post: vi.fn().mockResolvedValue(mockResponse),
   put: vi.fn().mockResolvedValue(mockResponse),
@@ -130,7 +130,7 @@ export const createMockLogger = () => ({
 });
 
 export const createMockNextRequest = (
-  bodyOrUrl: any = {},
+  bodyOrUrl: unknown = {},
   method = 'POST',
   headers: Record<string, string> = { 'Content-Type': 'application/json' },
   url = 'http://localhost:3000/api/chat'
@@ -162,15 +162,15 @@ export const createMockNextRequest = (
     signal: new AbortController().signal,
   };
 
-  return request as any;
+  return request as Request;
 };
 
 export const createMockReadableStream = () => {
-  const chunks: any[] = [];
+  const chunks: unknown[] = [];
   let isClosed = false;
 
   const controller = {
-    enqueue: vi.fn((chunk: any) => {
+    enqueue: vi.fn((chunk: unknown) => {
       if (!isClosed) {
         chunks.push(chunk);
       }

@@ -1,7 +1,6 @@
 import { NotionContentExtractor, NotionBlock, PageContent } from './NotionContentExtractor';
 import { IEmbeddingsService } from '@/application/interfaces/IEmbeddingsService';
 import { Page, Block } from '@/domain/entities';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { NotionBlockRow, NotionPageRow, NotionStorageRepository } from '@/adapters/output/infrastructure/supabase/NotionStorageRepository/NotionStorageRepository';
 
 export interface NotionServiceInterface {
@@ -101,12 +100,7 @@ export class NotionService implements NotionServiceInterface {
   /**
    * Obtiene todas las páginas almacenadas con opciones de paginación
    */
-  async getAllStoredPages(options: {
-    limit?: number;
-    offset?: number;
-    orderBy?: string;
-    orderDirection?: 'asc' | 'desc';
-  } = {}): Promise<NotionPageRow[]> {
+  async getAllStoredPages(): Promise<NotionPageRow[]> {
     // Implementación temporal - necesita método getAllPages en el repositorio
     throw new Error('Método getAllPages no implementado en NotionStorageRepository');
   }
