@@ -1,3 +1,5 @@
+import { NotionBlock } from '@/services/notion/NotionContentExtractor';
+
 export interface MigrationResult {
   success: boolean;
   pageId?: string;
@@ -40,6 +42,6 @@ export interface NotionPageData extends Record<string, unknown> {
 
 export interface NotionApiResponse {
   page: NotionPageData;
-  blocks: unknown[];
+  blocks: NotionBlock[];
 }
 

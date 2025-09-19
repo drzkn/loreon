@@ -162,7 +162,7 @@ export const createMockNextRequest = (
     signal: new AbortController().signal,
   };
 
-  return request as Request;
+  return request as unknown as Request;
 };
 
 export const createMockReadableStream = () => {
