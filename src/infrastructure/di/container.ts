@@ -3,7 +3,6 @@ import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure
 import { MarkdownConverterService } from '../../services/markdownConverter/MarkdownConverter';
 import { getEnvVar } from '@/utils/getEnvVar';
 import { AxiosHttpClient } from '@/adapters/output/infrastructure/http/AxiosHttpClient';
-import { GetUser } from '@/domain/usecases/GetUser';
 import { GetPage } from '@/domain/usecases/GetPage';
 import { GetBlockChildrenRecursive } from '@/domain/usecases/GetBlockChildrenRecursive';
 import { SupabaseMarkdownService } from '@/services/supabase';
@@ -34,7 +33,6 @@ interface Container {
   notionRepository: NotionRepository;
   supabaseMarkdownRepository: SupabaseMarkdownRepository;
   getDatabaseUseCase: GetDatabase;
-  getUserUseCase: GetUser;
   queryDatabaseUseCase: QueryDatabaseUseCase;
   getPageUseCase: GetPage;
   getBlockChildrenUseCase: GetBlockChildren;
@@ -91,7 +89,6 @@ const createContainer = () => {
 
   // Casos de uso
   const getDatabaseUseCase = new GetDatabase(notionRepository);
-  const getUserUseCase = new GetUser(notionRepository);
   const queryDatabaseUseCase = new QueryDatabaseUseCase(notionRepository);
   const getPageUseCase = new GetPage(notionRepository);
   const getBlockChildrenUseCase = new GetBlockChildren(notionRepository);
@@ -131,7 +128,6 @@ const createContainer = () => {
 
     // Casos de uso existentes
     getDatabaseUseCase,
-    getUserUseCase,
     queryDatabaseUseCase,
     getPageUseCase,
     getBlockChildrenUseCase,

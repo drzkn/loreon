@@ -7,9 +7,6 @@ import { Block } from '../../../entities/Block';
 // Mock del container
 vi.mock('../../../../infrastructure/di/container', () => ({
   container: {
-    getUserUseCase: {
-      execute: vi.fn()
-    },
     getDatabaseUseCase: {
       execute: vi.fn()
     },
@@ -150,20 +147,6 @@ describe('NotionTestPageRepository', () => {
     });
   });
 
-  describe('testGetUser', () => {
-    it('debería ejecutar el caso de uso getUserUseCase', async () => {
-      vi.spyOn(repository, 'execute').mockResolvedValue();
-
-      await repository.testGetUser();
-
-      expect(repository.execute).toHaveBeenCalledWith('getUser', expect.any(Function));
-
-      // Verificar que la función pasada llama al use case correcto
-      const testFunction = (repository.execute as ReturnType<typeof vi.fn>).mock.calls[0][1];
-      await testFunction();
-      expect(container.getUserUseCase.execute).toHaveBeenCalled();
-    });
-  });
 
   describe('testGetDatabase', () => {
     it('debería ejecutar el caso de uso con databaseId válido', async () => {

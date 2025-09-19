@@ -1,8 +1,7 @@
 import { NotionContentExtractor, NotionBlock, PageContent } from './NotionContentExtractor';
 import { NotionNativeRepository, NotionPageRow, NotionBlockRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
-import { EmbeddingsService } from '@/services/embeddings';
+import { IEmbeddingsService } from '@/application/interfaces/IEmbeddingsService';
 import { Page, Block } from '@/domain/entities';
-import { supabaseServer } from '@/adapters/output/infrastructure/supabase/SupabaseServerClient';
 
 export interface NotionNativeServiceInterface {
   processAndSavePage(page: Page, blocks: Block[]): Promise<NotionPageRow>;
@@ -28,13 +27,10 @@ export interface NotionNativeServiceInterface {
 }
 
 export class NotionNativeService implements NotionNativeServiceInterface {
-  private repository: NotionNativeRepository;
-  private embeddingsService: EmbeddingsService;
-
-  constructor() {
-    this.repository = new NotionNativeRepository(supabaseServer);
-    this.embeddingsService = new EmbeddingsService();
-  }
+  constructor(
+    private readonly repository: NotionNativeRepository,
+    private readonly embeddingsService: IEmbeddingsService
+  ) { }
 
   /**
    * Procesa una página de Notion y sus bloques y los guarda en formato JSON nativo
@@ -118,20 +114,8 @@ export class NotionNativeService implements NotionNativeServiceInterface {
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
   } = {}): Promise<NotionPageRow[]> {
-    const { limit = 100, offset = 0 } = options;
-
-    const { data, error } = await supabaseServer
-      .from('notion_pages')
-      .select('*')
-      .eq('archived', false)
-      .order('notion_last_edited_time', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      throw new Error(`Error al obtener páginas: ${error.message}`);
-    }
-
-    return data || [];
+    // Implementación temporal - necesita método getAllPages en el repositorio
+    throw new Error('Método getAllPages no implementado en NotionNativeRepository');
   }
 
   /**
@@ -176,19 +160,14 @@ export class NotionNativeService implements NotionNativeServiceInterface {
       // Búsqueda por texto en bloques
       const blockResults = await this.repository.searchBlocks(query, limit);
 
-      // Obtener páginas únicas
-      const pageIds = new Set(blockResults.map(block => block.page_id));
+      // Obtener páginas únicas usando el repositorio
+      const pageIds = Array.from(new Set(blockResults.map(block => block.page_id)));
       const pages: NotionPageRow[] = [];
 
       for (const pageId of pageIds) {
-        const page = await supabaseServer
-          .from('notion_pages')
-          .select('*')
-          .eq('id', pageId)
-          .single();
-
-        if (page.data) {
-          pages.push(page.data);
+        const page = await this.repository.getPageByNotionId(pageId);
+        if (page) {
+          pages.push(page);
         }
       }
 

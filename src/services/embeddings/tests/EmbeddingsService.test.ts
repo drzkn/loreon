@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EmbeddingsService } from '../EmbeddingsService';
+import { EmbeddingsService } from '../../../application/services/EmbeddingsService';
+import { ILogger } from '../../../application/interfaces/ILogger';
 
 // Usar el sistema centralizado de mocks
 import {
@@ -22,6 +23,7 @@ describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
   let mockEmbed: ReturnType<typeof vi.fn>;
   let mockEmbedMany: ReturnType<typeof vi.fn>;
+  let mockLogger: ILogger;
   const { teardown } = createTestSetup();
 
   beforeEach(async () => {
@@ -30,7 +32,15 @@ describe('EmbeddingsService', () => {
     mockEmbed = vi.mocked(await import('ai')).embed;
     mockEmbedMany = vi.mocked(await import('ai')).embedMany;
 
-    service = new EmbeddingsService();
+    mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      success: vi.fn()
+    };
+
+    service = new EmbeddingsService(mockLogger);
   });
 
   afterEach(() => {

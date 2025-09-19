@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 
-const mockGetUserUseCase = {
-  execute: vi.fn()
-};
 
 const mockQueryDatabaseUseCase = {
   execute: vi.fn()
@@ -15,7 +12,6 @@ const mockGetDatabaseUseCase = {
 
 vi.mock('@/infrastructure/di/container', () => ({
   container: {
-    getUserUseCase: mockGetUserUseCase,
     queryDatabaseUseCase: mockQueryDatabaseUseCase,
     getDatabaseUseCase: mockGetDatabaseUseCase
   }
@@ -42,11 +38,6 @@ describe('/api/debug-notion-connection', () => {
     process.env.NOTION_API_KEY = 'secret_test123456789';
     process.env.NOTION_DATABASE_ID = 'db1234567890abcdef,db2345678901bcdefg';
 
-    mockGetUserUseCase.execute.mockResolvedValue({
-      id: 'user-123',
-      name: 'Test User',
-      avatarUrl: 'test@example.com'
-    });
 
     mockGetDatabaseUseCase.execute.mockResolvedValue({
       title: 'Test Database',
@@ -82,7 +73,7 @@ describe('/api/debug-notion-connection', () => {
 
       expect(streamOutput).toContain('DIAGNÓSTICO DE CONEXIÓN CON NOTION API');
       expect(streamOutput).toContain('✅ Configurada (secret_tes...)');
-      expect(streamOutput).toContain('✅ Usuario conectado: Test User');
+      expect(streamOutput).toContain('• Saltando prueba de usuario (funcionalidad removida)');
       expect(streamOutput).toContain('✅ Database encontrada: "Test Database"');
       expect(streamOutput).toContain('✅ Consulta exitosa: 2 páginas encontradas');
     });
@@ -129,14 +120,6 @@ describe('/api/debug-notion-connection', () => {
   });
 
   describe('Errores de conexión', () => {
-    it('should handle user fetch error', async () => {
-      mockGetUserUseCase.execute.mockRejectedValue(new Error('Unauthorized'));
-
-      const response = await GET();
-      const streamOutput = await readStreamToString(response.body!);
-
-      expect(streamOutput).toContain('❌ Error al conectar con Notion API: Unauthorized');
-    });
 
     it('should handle database access error with 400 status', async () => {
       const error = new Error('Bad Request');

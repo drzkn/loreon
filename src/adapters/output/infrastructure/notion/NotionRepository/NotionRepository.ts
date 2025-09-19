@@ -1,7 +1,7 @@
-import { Page, User, Database, Block } from "@/domain/entities";
+import { Page, Database, Block } from "@/domain/entities";
 import { INotionRepository } from "@/ports/output/repositories/INotionRepository";
 import { IHttpClient } from "@/ports/output/services/IHttpClient";
-import { NotionBlockResponse, NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from "@/shared/types/notion.types";
+import { NotionBlockResponse, NotionDatabaseResponse, NotionPageResponse } from "@/shared/types/notion.types";
 
 export class NotionRepository implements INotionRepository {
   constructor(private httpClient: IHttpClient) { }
@@ -26,15 +26,6 @@ export class NotionRepository implements INotionRepository {
     }
   }
 
-  async getUser(): Promise<User> {
-    try {
-      const response = await this.httpClient.get<NotionUserResponse>('/users/me');
-      return User.fromNotionResponse(response.data);
-    } catch (error: unknown) {
-      console.error('Error al obtener el usuario:', error);
-      throw error;
-    }
-  }
 
   async queryDatabase(databaseId: string, filter?: unknown, sorts?: unknown[]): Promise<Page[]> {
     try {

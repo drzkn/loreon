@@ -12,7 +12,6 @@ import {
 const createMockNotionRepository = (): INotionRepository => ({
   getDatabase: vi.fn(),
   getPage: vi.fn(),
-  getUser: vi.fn(),
   queryDatabase: vi.fn(),
   getBlockChildren: vi.fn(),
 });

@@ -29,9 +29,6 @@ vi.mock('../page.constants', () => ({
   renderMarkdown: vi.fn((content: string) => `<div>${content}</div>`)
 }));
 
-vi.mock('../TempDebug', () => ({
-  TempDebug: () => <div data-testid="temp-debug">TempDebug Component</div>
-}));
 
 vi.mock('@/components', () => ({
   Icon: ({ name, size, color }: { name: string; size?: string; color?: string }) => (

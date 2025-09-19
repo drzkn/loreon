@@ -3,8 +3,7 @@ import { NotionRepository } from '..';
 import { IHttpClient, HttpResponse } from '@/ports/output/services/IHttpClient';
 import { Database } from '@/domain/entities/Database';
 import { Page } from '@/domain/entities/Page';
-import { User } from '@/domain/entities/User';
-import { NotionDatabaseResponse, NotionPageResponse, NotionUserResponse } from '@/shared/types/notion.types';
+import { NotionDatabaseResponse, NotionPageResponse } from '@/shared/types/notion.types';
 
 // Usar el sistema centralizado de mocks
 import {
@@ -138,47 +137,6 @@ describe('NotionRepository', () => {
     });
   });
 
-  describe('getUser', () => {
-    const mockUserResponse: NotionUserResponse = {
-      id: 'test-user-id',
-      name: 'Test User',
-      avatar_url: 'https://example.com/avatar.jpg',
-      type: 'person',
-      person: {
-        email: 'test@example.com'
-      }
-    };
-
-    it('should successfully get user information', async () => {
-      // Arrange
-      const mockHttpResponse: HttpResponse<NotionUserResponse> = {
-        data: mockUserResponse,
-        status: 200,
-        statusText: 'OK',
-        headers: {}
-      };
-      vi.mocked(mockHttpClient.get).mockResolvedValue(mockHttpResponse);
-
-      // Act
-      const result = await notionRepository.getUser();
-
-      // Assert
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/users/me');
-      expect(result).toBeInstanceOf(User);
-      expect(result.id).toBe('test-user-id');
-      expect(result.name).toBe('Test User');
-      expect(result.email).toBe('test@example.com');
-    });
-
-    it('should handle errors when getting user', async () => {
-      // Arrange
-      const mockError = new Error('Authentication failed');
-      vi.mocked(mockHttpClient.get).mockRejectedValue(mockError);
-
-      // Act & Assert
-      await expect(notionRepository.getUser()).rejects.toEqual(mockError);
-    });
-  });
 
   describe('queryDatabase', () => {
     const mockPagesResponse = {

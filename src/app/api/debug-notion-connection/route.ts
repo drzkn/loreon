@@ -44,18 +44,7 @@ export async function GET() {
           sendLog(`• Total databases configuradas: ${databaseIds.length}`);
 
           sendLog('🌐 2. PROBANDO CONEXIÓN BÁSICA CON NOTION:');
-          try {
-            const { container } = await import('@/infrastructure/di/container');
-            const getUserUseCase = container.getUserUseCase;
-
-            sendLog('• Obteniendo información del usuario...');
-            const user = await getUserUseCase.execute();
-            sendLog(`✅ Usuario conectado: ${user.name || 'Sin nombre'} (${user.id})`);
-            sendLog(`• Email: ${user.avatarUrl || 'No disponible'}`);
-          } catch (error) {
-            sendLog(`❌ Error al conectar con Notion API: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-            sendLog('Esto indica un problema con la API key o conexión');
-          }
+          sendLog('• Saltando prueba de usuario (funcionalidad removida)');
 
           sendLog('📊 3. PROBANDO ACCESO A DATABASES CONFIGURADAS:');
           const { container } = await import('@/infrastructure/di/container');
@@ -186,7 +175,7 @@ export async function GET() {
         } finally {
           try {
             controller.close();
-          } catch (closeError) {
+          } catch {
             // Ignorar errores al cerrar el controlador (puede ya estar cerrado)
           }
         }
