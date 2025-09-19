@@ -40,9 +40,8 @@ async function testNotionConnection() {
     const databaseIds = databaseIdsStr.split(',').map(id => id.trim()).filter(id => id.length > 0);
     console.log(`📊 Se encontraron ${databaseIds.length} base(s) de datos para procesar`);
 
-    // Obtener información del usuario usando el caso de uso (solo una vez)
-    const userInfo = await container.getUserUseCase.execute();
-    console.log('✅GetUserUseCase');
+    // Información del usuario removida (funcionalidad eliminada)
+    console.log('✅ Conexión establecida (prueba de usuario saltada)');
 
     // Arrays para consolidar todos los resultados
     const allDatabasesInfo = [];
@@ -90,7 +89,6 @@ async function testNotionConnection() {
     const outputPath = path.join(outputDir, `notion-query.json`);
 
     const outputData = {
-      'userInfo': userInfo.toJSON(),
       'databasesInfo': allDatabasesInfo.map(db => db.toJSON()),
       'allDatabaseQueries': allDatabaseQueries.map(page => page.toJSON()),
       'samplePagesInfo': allPagesInfo.map(page => page.toJSON()),
@@ -107,7 +105,6 @@ async function testNotionConnection() {
     console.log(`\n💾 Resultados guardados en: ${outputPath}`);
 
     console.log('\n📊 Resumen de la conexión:');
-    console.log(`- Usuario: ${userInfo.name || 'Sin nombre'} (${userInfo.id})`);
     console.log(`- Bases de datos procesadas: ${allDatabasesInfo.length}`);
     allDatabasesInfo.forEach((db, index) => {
       console.log(`  ${index + 1}. ${db.title || 'Sin título'} (${db.id})`);

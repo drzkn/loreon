@@ -53,8 +53,8 @@ cd loreon
 yarn install
 
 # Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your credentials
+cp .env.example .env
+# Edit .env with your credentials
 ```
 
 ### Environment Variables

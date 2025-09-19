@@ -34,7 +34,6 @@ describe('GetBlockChildrenRecursiveUseCase', () => {
     mockRepository = {
       getDatabase: vi.fn(),
       getPage: vi.fn(),
-      getUser: vi.fn(),
       queryDatabase: vi.fn(),
       getBlockChildren: vi.fn()
     };

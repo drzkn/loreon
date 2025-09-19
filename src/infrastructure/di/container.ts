@@ -3,7 +3,6 @@ import { SupabaseMarkdownRepository } from '../../adapters/output/infrastructure
 import { MarkdownConverterService } from '../../services/markdownConverter/MarkdownConverter';
 import { getEnvVar } from '@/utils/getEnvVar';
 import { AxiosHttpClient } from '@/adapters/output/infrastructure/http/AxiosHttpClient';
-import { GetUser } from '@/domain/usecases/GetUser';
 import { GetPage } from '@/domain/usecases/GetPage';
 import { GetBlockChildrenRecursive } from '@/domain/usecases/GetBlockChildrenRecursive';
 import { SupabaseMarkdownService } from '@/services/supabase';
@@ -11,23 +10,18 @@ import { GetBlockChildren, GetDatabase, QueryDatabaseUseCase } from '@/domain/us
 
 // New application layer imports
 import { ILogger } from '@/application/interfaces/ILogger';
-import { IAuthService } from '@/application/interfaces/IAuthService';
 import { IEmbeddingsService } from '@/application/interfaces/IEmbeddingsService';
 import { INotionMigrationService } from '@/application/interfaces/INotionMigrationService';
 import { ISupabaseClient } from '@/infrastructure/database/interfaces/ISupabaseClient';
-import { IUserTokenService } from '@/infrastructure/config/interfaces/IUserTokenService';
 
 // New implementations
 import { ConsoleLogger } from '@/infrastructure/logging/ConsoleLogger';
-import { AuthService } from '@/application/services/AuthService';
 import { EmbeddingsService } from '@/application/services/EmbeddingsService';
 import { NotionMigrationService } from '@/application/services/NotionMigrationService';
 import { SupabaseClientAdapter } from '@/infrastructure/database/SupabaseClientAdapter';
-import { UserTokenServiceAdapter } from '@/infrastructure/config/UserTokenServiceAdapter';
 
 // Controllers
 import { SyncController } from '@/presentation/controllers/SyncController';
-import { AuthController } from '@/presentation/controllers/AuthController';
 import { ChatController } from '@/presentation/controllers/ChatController';
 
 // Repository dependencies
@@ -39,7 +33,6 @@ interface Container {
   notionRepository: NotionRepository;
   supabaseMarkdownRepository: SupabaseMarkdownRepository;
   getDatabaseUseCase: GetDatabase;
-  getUserUseCase: GetUser;
   queryDatabaseUseCase: QueryDatabaseUseCase;
   getPageUseCase: GetPage;
   getBlockChildrenUseCase: GetBlockChildren;
@@ -50,10 +43,8 @@ interface Container {
   // New infrastructure services
   logger: ILogger;
   supabaseClient: ISupabaseClient;
-  userTokenService: IUserTokenService;
 
   // New application services
-  authService: IAuthService;
   embeddingsService: IEmbeddingsService;
   notionMigrationService: INotionMigrationService;
 
@@ -62,7 +53,6 @@ interface Container {
 
   // New controllers
   syncController: SyncController;
-  authController: AuthController;
   chatController: ChatController;
 }
 
@@ -99,7 +89,6 @@ const createContainer = () => {
 
   // Casos de uso
   const getDatabaseUseCase = new GetDatabase(notionRepository);
-  const getUserUseCase = new GetUser(notionRepository);
   const queryDatabaseUseCase = new QueryDatabaseUseCase(notionRepository);
   const getPageUseCase = new GetPage(notionRepository);
   const getBlockChildrenUseCase = new GetBlockChildren(notionRepository);
@@ -113,18 +102,11 @@ const createContainer = () => {
   // Nuevos servicios de infraestructura
   const logger = new ConsoleLogger();
   const supabaseClientAdapter = new SupabaseClientAdapter();
-  const userTokenServiceAdapter = new UserTokenServiceAdapter(false);
 
   // Nuevos repositorios
   const notionNativeRepository = new NotionNativeRepository(supabaseServer);
 
   // Nuevos servicios de aplicación
-  const authService = new AuthService(
-    supabaseClientAdapter,
-    userTokenServiceAdapter,
-    logger
-  );
-
   const embeddingsService = new EmbeddingsService(logger);
 
   const notionMigrationService = new NotionMigrationService(
@@ -137,7 +119,6 @@ const createContainer = () => {
 
   // Nuevos controllers
   const syncController = new SyncController(notionMigrationService, logger);
-  const authController = new AuthController(authService, logger);
   const chatController = new ChatController(notionMigrationService, logger);
 
   _container = {
@@ -147,7 +128,6 @@ const createContainer = () => {
 
     // Casos de uso existentes
     getDatabaseUseCase,
-    getUserUseCase,
     queryDatabaseUseCase,
     getPageUseCase,
     getBlockChildrenUseCase,
@@ -160,10 +140,8 @@ const createContainer = () => {
     // Nuevos servicios de infraestructura
     logger,
     supabaseClient: supabaseClientAdapter,
-    userTokenService: userTokenServiceAdapter,
 
     // Nuevos servicios de aplicación
-    authService,
     embeddingsService,
     notionMigrationService,
 
@@ -172,7 +150,6 @@ const createContainer = () => {
 
     // Nuevos controllers
     syncController,
-    authController,
     chatController,
   };
 

@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EmbeddingsService } from '../EmbeddingsService';
+import { EmbeddingsService } from '../../../application/services/EmbeddingsService';
+import { ILogger } from '../../../application/interfaces/ILogger';
 
 // Usar el sistema centralizado de mocks
 import {
   createTestSetup
-} from '@/mocks';
+} from '../../../mocks';
 
 // Mocks inline para evitar problemas de hoisting
 vi.mock('ai', () => ({
@@ -22,17 +23,24 @@ describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
   let mockEmbed: ReturnType<typeof vi.fn>;
   let mockEmbedMany: ReturnType<typeof vi.fn>;
-  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+  let mockLogger: ILogger;
+  const { teardown } = createTestSetup();
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Obtener mocks después de que se apliquen
-    const aiModule = await import('ai');
-    mockEmbed = aiModule.embed;
-    mockEmbedMany = aiModule.embedMany;
+    mockEmbed = vi.mocked(await import('ai')).embed;
+    mockEmbedMany = vi.mocked(await import('ai')).embedMany;
 
-    service = new EmbeddingsService();
+    mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+      success: vi.fn()
+    };
+
+    service = new EmbeddingsService(mockLogger);
   });
 
   afterEach(() => {

@@ -7,7 +7,7 @@ import { Navigation } from './Navigation';
 // Usar el sistema centralizado de mocks
 import {
   createTestSetup
-} from '@/mocks';
+} from '../../mocks';
 
 const mockPush = vi.fn();
 let mockPathname = '/';
@@ -99,21 +99,6 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname
 }));
 
-const mockSignOut = vi.fn();
-const mockUserProfile = {
-  id: 'test-user-id',
-  email: 'test@example.com',
-  name: 'Test User',
-  avatar: null
-};
-
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    userProfile: mockUserProfile,
-    isAuthenticated: true,
-    signOut: mockSignOut
-  })
-}));
 
 vi.mock('../Icon', () => ({
   Icon: ({ name, size }: { name: string; size: string }) => (
@@ -126,9 +111,9 @@ vi.mock('../Icon', () => ({
 vi.mock('./Navigation.constants', () => ({
   navigationItems: [
     {
-      path: '/',
-      label: 'Inicio',
-      description: 'Página principal',
+      path: '/chat',
+      label: 'Chat',
+      description: 'Conversa con Loreon AI',
       icon: 'bot'
     },
     {
@@ -138,10 +123,10 @@ vi.mock('./Navigation.constants', () => ({
       icon: 'square-library'
     },
     {
-      path: '/test',
-      label: 'Tester',
-      description: 'Probar repositorio',
-      icon: 'test-tubes'
+      path: '/settings',
+      label: 'Configuración',
+      description: 'Ajustes de la aplicación',
+      icon: 'settings'
     }
   ]
 }));
@@ -167,9 +152,8 @@ describe('Navigation', () => {
       writable: true
     });
 
-    mockPathname = '/';
+    mockPathname = '/chat';
     vi.clearAllMocks();
-    mockSignOut.mockClear();
   });
 
   afterEach(() => {
@@ -198,18 +182,17 @@ describe('Navigation', () => {
       expect(brand.closest('div')).toBeInTheDocument();
     });
 
-    it('should render settings icon', () => {
+    it('should render settings icon in dropdown when opened', async () => {
       renderWithTheme(<Navigation />);
 
-      const settingsIcons = screen.getAllByTestId('icon-settings');
-      expect(settingsIcons.length).toBeGreaterThanOrEqual(1);
+      const brand = screen.getByText('Loreon AI');
+      fireEvent.click(brand);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('icon-settings')).toBeInTheDocument();
+      });
     });
 
-    it('should render user avatar when authenticated', () => {
-      renderWithTheme(<Navigation />);
-
-      expect(screen.getByText('T')).toBeInTheDocument(); // First letter of "Test User"
-    });
 
     it('should render chevron icon for dropdown', () => {
       renderWithTheme(<Navigation />);
@@ -235,9 +218,9 @@ describe('Navigation', () => {
       fireEvent.click(brand);
 
       await waitFor(() => {
-        expect(screen.getByText('Inicio')).toBeVisible();
+        expect(screen.getByText('Chat')).toBeVisible();
         expect(screen.getByText('Visualizador')).toBeVisible();
-        expect(screen.getByText('Tester')).toBeVisible();
+        expect(screen.getByText('Configuración')).toBeVisible();
       });
     });
 
@@ -260,13 +243,13 @@ describe('Navigation', () => {
       // Open dropdown
       fireEvent.click(brand);
       await waitFor(() => {
-        expect(screen.getByText('Inicio')).toBeVisible();
+        expect(screen.getByText('Chat')).toBeVisible();
       });
 
       // Close dropdown
       fireEvent.click(brand);
       await waitFor(() => {
-        expect(screen.queryByText('Inicio')).not.toBeVisible();
+        expect(screen.queryByText('Chat')).not.toBeVisible();
       });
     });
 
@@ -277,14 +260,14 @@ describe('Navigation', () => {
       fireEvent.click(brand);
 
       await waitFor(() => {
-        expect(screen.getByText('Inicio')).toBeVisible();
+        expect(screen.getByText('Chat')).toBeVisible();
       });
 
       // Click outside
       fireEvent.mouseDown(document.body);
 
       await waitFor(() => {
-        expect(screen.queryByText('Inicio')).not.toBeVisible();
+        expect(screen.queryByText('Chat')).not.toBeVisible();
       });
     });
   });
@@ -297,17 +280,17 @@ describe('Navigation', () => {
       fireEvent.click(brand);
 
       await waitFor(() => {
-        expect(screen.getByText('Inicio')).toBeVisible();
-        expect(screen.getByText('Página principal')).toBeVisible();
+        expect(screen.getByText('Chat')).toBeVisible();
+        expect(screen.getByText('Conversa con Loreon AI')).toBeVisible();
         expect(screen.getByTestId('icon-bot')).toBeInTheDocument();
 
         expect(screen.getByText('Visualizador')).toBeVisible();
         expect(screen.getByText('Ver archivos markdown')).toBeVisible();
         expect(screen.getByTestId('icon-square-library')).toBeInTheDocument();
 
-        expect(screen.getByText('Tester')).toBeVisible();
-        expect(screen.getByText('Probar repositorio')).toBeVisible();
-        expect(screen.getByTestId('icon-test-tubes')).toBeInTheDocument();
+        expect(screen.getByText('Configuración')).toBeVisible();
+        expect(screen.getByText('Ajustes de la aplicación')).toBeVisible();
+        expect(screen.getByTestId('icon-settings')).toBeInTheDocument();
       });
     });
 
@@ -318,13 +301,13 @@ describe('Navigation', () => {
       fireEvent.click(brand);
 
       await waitFor(() => {
-        const inicioButton = screen.getByText('Inicio').closest('button');
-        expect(inicioButton).toBeInTheDocument();
+        const chatButton = screen.getByText('Chat').closest('button');
+        expect(chatButton).toBeInTheDocument();
 
-        fireEvent.click(inicioButton!);
+        fireEvent.click(chatButton!);
       });
 
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockPush).toHaveBeenCalledWith('/chat');
     });
 
     it('should close dropdown after navigation', async () => {
@@ -341,23 +324,22 @@ describe('Navigation', () => {
       expect(mockPush).toHaveBeenCalledWith('/visualizer');
 
       await waitFor(() => {
-        expect(screen.queryByText('Inicio')).not.toBeVisible();
+        expect(screen.queryByText('Chat')).not.toBeVisible();
       });
     });
   });
 
   describe('Active State', () => {
     it('should mark current path as active in dropdown', async () => {
-      mockPathname = '/';
+      mockPathname = '/chat';
       renderWithTheme(<Navigation />);
 
       const brand = screen.getByText('Loreon AI');
       fireEvent.click(brand);
 
       await waitFor(() => {
-        const activeButton = screen.getByText('Inicio').closest('button');
+        const activeButton = screen.getByText('Chat').closest('button');
         expect(activeButton).toBeInTheDocument();
-        // Check if the button has the active state styling
       });
     });
 
@@ -371,7 +353,6 @@ describe('Navigation', () => {
       await waitFor(() => {
         const activeButton = screen.getByText('Visualizador').closest('button');
         expect(activeButton).toBeInTheDocument();
-        // Check if the button has the active state styling
       });
     });
   });
@@ -389,7 +370,7 @@ describe('Navigation', () => {
 
   describe('Integration Tests', () => {
     it('should work with different pathnames', () => {
-      const testPaths = ['/', '/visualizer', '/test', '/settings', '/other'];
+      const testPaths = ['/chat', '/visualizer', '/settings', '/other'];
 
       testPaths.forEach(path => {
         mockPathname = path;
@@ -435,52 +416,4 @@ describe('Navigation', () => {
     });
   });
 
-  describe('User Functionality', () => {
-    it('should render user avatar with correct initial', () => {
-      renderWithTheme(<Navigation />);
-
-      const avatar = screen.getByText('T');
-      expect(avatar).toBeInTheDocument();
-    });
-
-    it('should open user dropdown when avatar is clicked', async () => {
-      renderWithTheme(<Navigation />);
-
-      const avatar = screen.getByText('T');
-      fireEvent.click(avatar);
-
-      await waitFor(() => {
-        expect(screen.getByText('Test User')).toBeVisible();
-        expect(screen.getByText('test@example.com')).toBeVisible();
-      });
-    });
-
-    it('should render user menu items', async () => {
-      renderWithTheme(<Navigation />);
-
-      const avatar = screen.getByText('T');
-      fireEvent.click(avatar);
-
-      await waitFor(() => {
-        expect(screen.getByText('Test User')).toBeVisible();
-        expect(screen.getByText('Configuración')).toBeVisible();
-        expect(screen.getByText('Cerrar Sesión')).toBeVisible();
-      }, { timeout: 3000 });
-    });
-
-    it('should call signOut when logout is clicked', async () => {
-      renderWithTheme(<Navigation />);
-
-      const avatar = screen.getByText('T');
-      fireEvent.click(avatar);
-
-      await waitFor(() => {
-        const logoutButton = screen.getByText('Cerrar Sesión');
-        fireEvent.click(logoutButton);
-      });
-
-      expect(mockSignOut).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/auth/login');
-    });
-  });
 });

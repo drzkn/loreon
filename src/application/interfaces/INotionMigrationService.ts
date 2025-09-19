@@ -1,4 +1,4 @@
-import { MigrationResult } from '@/services/notion/NotionMigrationService';
+import { MigrationResult } from '@/shared/types/MigrationTypes';
 import { NotionBlockRow, NotionPageRow } from '@/adapters/output/infrastructure/supabase/NotionNativeRepository';
 
 export interface INotionMigrationService {

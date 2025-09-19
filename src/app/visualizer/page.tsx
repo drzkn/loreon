@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { TempDebug } from './TempDebug';
 import { Icon } from '@/components';
 import { useSystemDataLoader } from './hooks/useSystemDataLoader';
 import { SearchBar } from './components/SearchBar';
@@ -67,7 +66,6 @@ export default function VisualizerPage() {
   if (error) {
     return (
       <VisualizerContainer>
-        <TempDebug />
         <HeaderSection>
           <Title><Icon name="square-library" size="xl" color="#10b981" /> Visualizador</Title>
         </HeaderSection>
@@ -88,11 +86,11 @@ export default function VisualizerPage() {
 
       <MainContent>
         <SidebarSection hidden={!showSidebar}>
-          <SearchBar 
+          <SearchBar
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}
           />
-          
+
           <PagesList
             pages={filteredPages}
             loading={loading}

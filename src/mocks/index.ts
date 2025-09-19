@@ -1,70 +1,191 @@
-// Exportar todos los mocks de servicios
-export * from './services';
+import { vi } from 'vitest';
 
-// Exportar todos los mocks de Supabase
-export * from './supabase';
+export function createTestSetup() {
+  const originalConsole = {
+    log: console.log,
+    warn: console.warn,
+    error: console.error,
+    info: console.info,
+    debug: console.debug,
+  };
 
-// Exportar todos los datos de prueba
-export * from './data';
+  const setupMocks = () => {
+    console.log = vi.fn();
+    console.warn = vi.fn();
+    console.error = vi.fn();
+    console.info = vi.fn();
+    console.debug = vi.fn();
+  };
 
-// Exportar todas las utilidades de test
-export * from './utils';
+  const teardown = () => {
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+    vi.restoreAllMocks();
 
-// Re-exportaciones convenientes agrupadas
-export {
-  createUserTokenServiceMock,
-  createAuthServiceMock,
-  createNotionMigrationServiceMock,
-  createNotionNativeRepositoryMock,
-  createEmbeddingsServiceMock,
-  createNotionContentExtractorMock,
-  createContainerMock
-} from './services';
+    console.log = originalConsole.log;
+    console.warn = originalConsole.warn;
+    console.error = originalConsole.error;
+    console.info = originalConsole.info;
+    console.debug = originalConsole.debug;
 
-export {
-  createSupabaseChainMock,
-  createSupabaseMock,
-  createMockSupabaseResponse,
-  createMockSupabaseErrorResponse
-} from './supabase';
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  };
 
-export {
-  mockUserId,
-  mockUserId2,
-  createMockUserToken,
-  mockTokens,
-  createMockTokenInput,
-  createMockNotionPage,
-  createMockNotionBlock,
-  mockNotionBlocks,
-  createMockNextRequest,
-  createMockRequestWithAuth,
-  createMockChatMessage,
-  mockChatMessages,
-  createMockEmbedding,
-  mockEmbeddings,
-  mockErrors
-} from './data';
+  setupMocks();
 
-export {
-  setupConsoleMocks,
-  restoreConsoleMocks,
-  createTestSetup,
-  setupWindowMocks,
-  restoreWindowMocks,
-  createAiSdkMocks,
-  waitFor,
-  expectToResolve,
-  expectToReject,
-  resetAllMocks,
-  mockImplementationOnce,
-  withMockedEnv,
-  withMockedModules,
-  expectCalledWith,
-  expectCalledTimes,
-  expectNthCalledWith,
-  expectThrowsError,
-  expectAsyncThrowsError,
-  createMockResponse,
-  createMockErrorResponse
-} from './utils';
+  return {
+    teardown,
+    originalConsole,
+  };
+}
+
+export const createMockEnvironment = (envVars: Record<string, string>) => {
+  Object.entries(envVars).forEach(([key, value]) => {
+    vi.stubEnv(key, value);
+  });
+};
+
+export const createMockFetch = (mockResponse: unknown, options: { ok?: boolean; status?: number } = {}) => {
+  const { ok = true, status = 200 } = options;
+
+  return vi.fn().mockResolvedValue({
+    ok,
+    status,
+    json: vi.fn().mockResolvedValue(mockResponse),
+    text: vi.fn().mockResolvedValue(JSON.stringify(mockResponse)),
+    headers: new Headers(),
+    clone: vi.fn(),
+    body: null,
+    bodyUsed: false,
+    redirected: false,
+    type: 'default' as ResponseType,
+    url: '',
+  });
+};
+
+export const mockSupabaseClient = {
+  auth: {
+    getUser: vi.fn(),
+    signInWithOAuth: vi.fn(),
+    signOut: vi.fn(),
+    onAuthStateChange: vi.fn().mockReturnValue({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    }),
+  },
+  from: vi.fn().mockReturnThis(),
+  select: vi.fn().mockReturnThis(),
+  insert: vi.fn().mockReturnThis(),
+  update: vi.fn().mockReturnThis(),
+  delete: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
+  in: vi.fn().mockReturnThis(),
+  contains: vi.fn().mockReturnThis(),
+  single: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockReturnThis(),
+  textSearch: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockReturnThis(),
+  range: vi.fn().mockReturnThis(),
+};
+
+export const mockNotionClient = {
+  databases: {
+    query: vi.fn(),
+    retrieve: vi.fn(),
+  },
+  pages: {
+    retrieve: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  blocks: {
+    children: {
+      list: vi.fn(),
+      append: vi.fn(),
+    },
+  },
+  users: {
+    retrieve: vi.fn(),
+    list: vi.fn(),
+    me: vi.fn(),
+  },
+};
+
+export const createMockHttpClient = (mockResponse?: unknown) => ({
+  get: vi.fn().mockResolvedValue(mockResponse),
+  post: vi.fn().mockResolvedValue(mockResponse),
+  put: vi.fn().mockResolvedValue(mockResponse),
+  patch: vi.fn().mockResolvedValue(mockResponse),
+  delete: vi.fn().mockResolvedValue(mockResponse),
+});
+
+export const createMockLogger = () => ({
+  log: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+});
+
+export const createMockNextRequest = (
+  bodyOrUrl: unknown = {},
+  method = 'POST',
+  headers: Record<string, string> = { 'Content-Type': 'application/json' },
+  url = 'http://localhost:3000/api/chat'
+) => {
+  const body = typeof bodyOrUrl === 'string' ? undefined : bodyOrUrl;
+  const requestUrl = typeof bodyOrUrl === 'string' ? bodyOrUrl : url;
+
+  const request = {
+    url: requestUrl,
+    method,
+    headers: new Headers(headers),
+    json: vi.fn().mockResolvedValue(body),
+    text: vi.fn().mockResolvedValue(JSON.stringify(body)),
+    formData: vi.fn(),
+    arrayBuffer: vi.fn(),
+    blob: vi.fn(),
+    clone: vi.fn(),
+    body: body ? JSON.stringify(body) : null,
+    bodyUsed: false,
+    cache: 'default' as RequestCache,
+    credentials: 'same-origin' as RequestCredentials,
+    destination: '' as RequestDestination,
+    integrity: '',
+    keepalive: false,
+    mode: 'cors' as RequestMode,
+    redirect: 'follow' as RequestRedirect,
+    referrer: '',
+    referrerPolicy: '' as ReferrerPolicy,
+    signal: new AbortController().signal,
+  };
+
+  return request as unknown as Request;
+};
+
+export const createMockReadableStream = () => {
+  const chunks: unknown[] = [];
+  let isClosed = false;
+
+  const controller = {
+    enqueue: vi.fn((chunk: unknown) => {
+      if (!isClosed) {
+        chunks.push(chunk);
+      }
+    }),
+    close: vi.fn(() => {
+      isClosed = true;
+    }),
+    error: vi.fn(),
+  };
+
+  const stream = new ReadableStream({
+    start(ctrl) {
+      Object.assign(ctrl, controller);
+    },
+  });
+
+  return { stream, controller, chunks, isClosed: () => isClosed };
+};

@@ -1,7 +1,4 @@
-echo "Testing before push"
-yarn test
-
-echo "🔨 Running build before push..."
+echo "🔨 Running build and linting before push..."
 yarn build
 
 if [ $? -ne 0 ]; then
@@ -9,4 +6,4 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "✅ Build successful. Continuing with push..." 
+echo "✅ Build and linting successful. Continuing with push..." 

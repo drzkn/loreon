@@ -47,9 +47,6 @@ export class NotionTestPageRepository {
     }
   };
 
-  async testGetUser() {
-    this.execute('getUser', () => container.getUserUseCase.execute());
-  };
 
   async testGetDatabase() {
     if (!this.testIds.databaseId) {

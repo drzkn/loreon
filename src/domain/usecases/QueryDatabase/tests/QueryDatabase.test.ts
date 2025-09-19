@@ -9,7 +9,6 @@ describe('QueryDatabaseUseCase', () => {
 
   beforeEach(() => {
     mockRepository = {
-      getUser: vi.fn(),
       getDatabase: vi.fn(),
       queryDatabase: vi.fn(),
       getPage: vi.fn(),

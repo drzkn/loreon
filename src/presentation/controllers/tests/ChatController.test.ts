@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { ChatController } from '../ChatController';
 import type { ILogger } from '@/application/interfaces/ILogger';
 import type { INotionMigrationService } from '@/application/interfaces/INotionMigrationService';
 import type { ChatRequestDto } from '@/presentation/dto/ChatRequestDto';
-import { createTestSetup } from '@/mocks';
+import { createTestSetup } from '../../../mocks';
 
 // Mock del módulo @ai-sdk/google
 vi.mock('@ai-sdk/google', () => ({
@@ -12,9 +12,7 @@ vi.mock('@ai-sdk/google', () => ({
 
 // Mock del módulo ai
 vi.mock('ai', () => ({
-  streamText: vi.fn().mockReturnValue({
-    toDataStreamResponse: vi.fn().mockReturnValue(new Response('mocked response'))
-  })
+  streamText: vi.fn()
 }));
 
 import { streamText } from 'ai';
@@ -27,6 +25,11 @@ describe('ChatController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Configurar el mock de streamText correctamente
+    (streamText as Mock).mockResolvedValue({
+      toDataStreamResponse: vi.fn().mockReturnValue(new Response('mocked response'))
+    });
 
     mockNotionMigrationService = {
       searchContent: vi.fn()
@@ -204,9 +207,8 @@ describe('ChatController', () => {
 
     it('debería manejar errores en el procesamiento', async () => {
       const error = new Error('Processing error');
-      mockNotionMigrationService.searchContent = vi.fn().mockRejectedValue(error);
 
-      // Mock streamText para que también falle
+      // Hacer que streamText falle para simular un error que sí se propague
       (streamText as Mock).mockRejectedValue(error);
 
       await expect(chatController.processChat(validRequest)).rejects.toThrow('Processing error');

@@ -6,33 +6,45 @@ import {
   createTestSetup
 } from '@/mocks';
 
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key';
+import { SupabaseRepository } from '../SupabaseRepository';
 
-const mockRepository = {
-  save: vi.fn(),
-  findByNotionPageId: vi.fn(),
-  findById: vi.fn(),
-  findAll: vi.fn(),
+// Crear el mock del cliente de Supabase directamente
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockSupabaseClient: any = {
+  from: vi.fn(),
+  insert: vi.fn(),
+  select: vi.fn(),
+  single: vi.fn(),
+  eq: vi.fn(),
+  limit: vi.fn(),
+  range: vi.fn(),
+  order: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
   upsert: vi.fn(),
-  search: vi.fn(),
-  searchByVector: vi.fn()
+  or: vi.fn(),
+  rpc: vi.fn()
 };
 
-vi.mock('../SupabaseRepository', () => ({
-  SupabaseRepository: vi.fn().mockImplementation(() => mockRepository)
-}));
-
-import { SupabaseRepository } from '../SupabaseRepository';
+// Configurar el encadenamiento por defecto
+mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.limit.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.range.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.order.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.update.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.upsert.mockReturnValue(mockSupabaseClient);
+mockSupabaseClient.or.mockReturnValue(mockSupabaseClient);
 
 describe('SupabaseRepository', () => {
   let repository: SupabaseRepository;
-  const { teardown } = createTestSetup(); // ✅ Console mocks centralizados
+  const { teardown } = createTestSetup();
 
   afterEach(() => {
-    teardown(); // ✅ Limpieza automática
+    teardown();
   });
 
   const mockMarkdownPage = {
@@ -48,20 +60,34 @@ describe('SupabaseRepository', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repository = new SupabaseRepository();
+
+    // Reconfigurar el encadenamiento después de limpiar los mocks
+    mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.insert.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.eq.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.limit.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.range.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.order.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.update.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.delete.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.upsert.mockReturnValue(mockSupabaseClient);
+    mockSupabaseClient.or.mockReturnValue(mockSupabaseClient);
+
+    repository = new SupabaseRepository(false, mockSupabaseClient);
   });
 
   describe('Instanciación', () => {
-    it('debería crear instancia con cliente normal', () => {
-      const repo = new SupabaseRepository();
+    it('debería crear instancia con cliente mockeado', () => {
+      const repo = new SupabaseRepository(false, mockSupabaseClient);
       expect(repo).toBeDefined();
-      expect(repo).toEqual(mockRepository);
+      expect(repo).toBeInstanceOf(SupabaseRepository);
     });
 
-    it('debería crear instancia con cliente servidor', () => {
-      const serverRepo = new SupabaseRepository(true);
+    it('debería crear instancia con cliente servidor mockeado', () => {
+      const serverRepo = new SupabaseRepository(true, mockSupabaseClient);
       expect(serverRepo).toBeDefined();
-      expect(serverRepo).toEqual(mockRepository);
+      expect(serverRepo).toBeInstanceOf(SupabaseRepository);
     });
 
     it('debería tener todos los métodos disponibles', () => {
@@ -75,6 +101,15 @@ describe('SupabaseRepository', () => {
       expect(typeof repository.search).toBe('function');
       expect(typeof repository.searchByVector).toBe('function');
     });
+
+    it('debería tener el cliente mockeado configurado correctamente', () => {
+      expect(mockSupabaseClient).toBeDefined();
+      expect(mockSupabaseClient.from).toBeDefined();
+      expect(typeof mockSupabaseClient.from).toBe('function');
+
+      const result = mockSupabaseClient.from('test');
+      expect(result).toBe(mockSupabaseClient);
+    });
   });
 
   describe('save()', () => {
@@ -85,11 +120,15 @@ describe('SupabaseRepository', () => {
         content: 'New content'
       };
 
-      mockRepository.save.mockResolvedValue(mockMarkdownPage);
+      // Configurar el mock para que single() retorne el resultado
+      mockSupabaseClient.single.mockResolvedValue({ data: mockMarkdownPage, error: null });
 
       const result = await repository.save(insertData);
 
-      expect(mockRepository.save).toHaveBeenCalledWith(insertData);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.insert).toHaveBeenCalledWith(insertData);
+      expect(mockSupabaseClient.select).toHaveBeenCalled();
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(mockMarkdownPage);
     });
 
@@ -100,13 +139,14 @@ describe('SupabaseRepository', () => {
         content: 'New content'
       };
 
-      mockRepository.save.mockRejectedValue(new Error('Insert failed'));
+      const error = { message: 'Insert failed' };
+      mockSupabaseClient.single.mockResolvedValue({ data: null, error });
 
       await expect(repository.save(insertData))
-        .rejects.toThrow('Insert failed');
+        .rejects.toThrow('Error al guardar página de markdown: Insert failed');
     });
 
-    it('debería validar tipos de entrada', () => {
+    it('debería validar tipos de entrada', async () => {
       const validData: MarkdownPageInsert = {
         notion_page_id: 'test',
         title: 'Test',
@@ -116,22 +156,28 @@ describe('SupabaseRepository', () => {
         metadata: {}
       };
 
-      expect(() => repository.save(validData)).not.toThrow();
+      mockSupabaseClient.single.mockResolvedValue({ data: mockMarkdownPage, error: null });
+
+      await expect(repository.save(validData)).resolves.toEqual(mockMarkdownPage);
     });
   });
 
   describe('findByNotionPageId()', () => {
     it('debería encontrar página por Notion ID', async () => {
-      mockRepository.findByNotionPageId.mockResolvedValue(mockMarkdownPage);
+      mockSupabaseClient.single.mockResolvedValue({ data: mockMarkdownPage, error: null });
 
       const result = await repository.findByNotionPageId('notion-123');
 
-      expect(mockRepository.findByNotionPageId).toHaveBeenCalledWith('notion-123');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('*');
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('notion_page_id', 'notion-123');
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(mockMarkdownPage);
     });
 
     it('debería retornar null cuando no encuentra página', async () => {
-      mockRepository.findByNotionPageId.mockResolvedValue(null);
+      const error = { code: 'PGRST116', message: 'No rows found' };
+      mockSupabaseClient.single.mockResolvedValue({ data: null, error });
 
       const result = await repository.findByNotionPageId('non-existent');
 
@@ -139,25 +185,30 @@ describe('SupabaseRepository', () => {
     });
 
     it('debería propagar errores', async () => {
-      mockRepository.findByNotionPageId.mockRejectedValue(new Error('Query error'));
+      const error = { message: 'Query error' };
+      mockSupabaseClient.single.mockResolvedValue({ data: null, error });
 
       await expect(repository.findByNotionPageId('notion-123'))
-        .rejects.toThrow('Query error');
+        .rejects.toThrow('Error al buscar página por Notion ID: Query error');
     });
   });
 
   describe('findById()', () => {
     it('debería encontrar página por ID', async () => {
-      mockRepository.findById.mockResolvedValue(mockMarkdownPage);
+      mockSupabaseClient.single.mockResolvedValue({ data: mockMarkdownPage, error: null });
 
       const result = await repository.findById('test-id');
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('test-id');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('*');
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'test-id');
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(mockMarkdownPage);
     });
 
     it('debería retornar null cuando no encuentra página', async () => {
-      mockRepository.findById.mockResolvedValue(null);
+      const error = { code: 'PGRST116', message: 'No rows found' };
+      mockSupabaseClient.single.mockResolvedValue({ data: null, error });
 
       const result = await repository.findById('non-existent');
 
@@ -165,26 +216,34 @@ describe('SupabaseRepository', () => {
     });
 
     it('debería propagar errores', async () => {
-      mockRepository.findById.mockRejectedValue(new Error('Database error'));
+      const error = { message: 'Database error' };
+      mockSupabaseClient.single.mockResolvedValue({ data: null, error });
 
       await expect(repository.findById('test-id'))
-        .rejects.toThrow('Database error');
+        .rejects.toThrow('Error al buscar página por ID: Database error');
     });
   });
 
   describe('findAll()', () => {
-    it('debería obtener todas las páginas', async () => {
-      const mockPages = [mockMarkdownPage];
-      mockRepository.findAll.mockResolvedValue(mockPages);
+    beforeEach(() => {
+      // Reset the mock chain for findAll tests
+      mockSupabaseClient.from.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnThis(),
+          range: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [mockMarkdownPage], error: null })
+        })
+      });
+    });
 
+    it('debería obtener todas las páginas', async () => {
       const result = await repository.findAll();
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith();
-      expect(result).toEqual(mockPages);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(result).toEqual([mockMarkdownPage]);
     });
 
     it('debería aceptar opciones de consulta', async () => {
-      const mockPages = [mockMarkdownPage];
       const options = {
         limit: 10,
         offset: 5,
@@ -192,16 +251,20 @@ describe('SupabaseRepository', () => {
         orderDirection: 'asc' as const
       };
 
-      mockRepository.findAll.mockResolvedValue(mockPages);
-
       const result = await repository.findAll(options);
 
-      expect(mockRepository.findAll).toHaveBeenCalledWith(options);
-      expect(result).toEqual(mockPages);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(result).toEqual([mockMarkdownPage]);
     });
 
     it('debería retornar array vacío por defecto', async () => {
-      mockRepository.findAll.mockResolvedValue([]);
+      mockSupabaseClient.from.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnThis(),
+          range: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [], error: null })
+        })
+      });
 
       const result = await repository.findAll();
 
@@ -209,10 +272,17 @@ describe('SupabaseRepository', () => {
     });
 
     it('debería propagar errores', async () => {
-      mockRepository.findAll.mockRejectedValue(new Error('Query failed'));
+      const error = { message: 'Query failed' };
+      mockSupabaseClient.from.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnThis(),
+          range: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: null, error })
+        })
+      });
 
       await expect(repository.findAll())
-        .rejects.toThrow('Query failed');
+        .rejects.toThrow('Error al obtener páginas: Query failed');
     });
   });
 
@@ -221,66 +291,93 @@ describe('SupabaseRepository', () => {
       const updateData: MarkdownPageUpdate = { title: 'Updated Title' };
       const updatedPage = { ...mockMarkdownPage, title: 'Updated Title' };
 
-      mockRepository.update.mockResolvedValue(updatedPage);
+      mockSupabaseClient.single.mockResolvedValue({ data: updatedPage, error: null });
 
       const result = await repository.update('test-id', updateData);
 
-      expect(mockRepository.update).toHaveBeenCalledWith('test-id', updateData);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.update).toHaveBeenCalledWith(updateData);
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'test-id');
+      expect(mockSupabaseClient.select).toHaveBeenCalled();
+      expect(mockSupabaseClient.single).toHaveBeenCalled();
       expect(result).toEqual(updatedPage);
     });
 
     it('debería propagar errores', async () => {
       const updateData: MarkdownPageUpdate = { title: 'Updated Title' };
+      const error = { message: 'Update failed' };
 
-      mockRepository.update.mockRejectedValue(new Error('Update failed'));
+      mockSupabaseClient.single.mockResolvedValue({ data: null, error });
 
       await expect(repository.update('test-id', updateData))
-        .rejects.toThrow('Update failed');
-    });
-
-    it('debería validar tipos de datos de actualización', () => {
-      const validUpdateData: MarkdownPageUpdate = {
-        title: 'New title',
-        content: 'New content',
-        tags: ['tag1', 'tag2'],
-        metadata: { updated: true }
-      };
-
-      expect(() => repository.update('id', validUpdateData)).not.toThrow();
+        .rejects.toThrow('Error al actualizar página: Update failed');
     });
   });
 
   describe('delete()', () => {
     it('debería eliminar página exitosamente', async () => {
-      mockRepository.delete.mockResolvedValue(undefined);
+      // Configurar el mock para retornar el resultado correcto al final de la cadena
+      mockSupabaseClient.eq.mockResolvedValue({ error: null });
 
       await repository.delete('test-id');
 
-      expect(mockRepository.delete).toHaveBeenCalledWith('test-id');
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(mockSupabaseClient.delete).toHaveBeenCalled();
+      expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', 'test-id');
     });
 
     it('debería propagar errores', async () => {
-      mockRepository.delete.mockRejectedValue(new Error('Delete failed'));
+      const error = { message: 'Delete failed' };
+      mockSupabaseClient.eq.mockResolvedValue({ error });
 
       await expect(repository.delete('test-id'))
-        .rejects.toThrow('Delete failed');
+        .rejects.toThrow('Error al eliminar página: Delete failed');
     });
   });
 
   describe('upsert()', () => {
-    it('debería hacer upsert exitosamente', async () => {
+    it('debería hacer upsert exitosamente cuando la página no existe', async () => {
       const insertData: MarkdownPageInsert = {
         notion_page_id: 'notion-123',
         title: 'Upsert Page',
         content: 'Upsert content'
       };
 
-      mockRepository.upsert.mockResolvedValue(mockMarkdownPage);
+      // Mock para findByNotionPageId (no existe) y luego para upsert
+      mockSupabaseClient.single
+        .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
+        .mockResolvedValueOnce({ data: mockMarkdownPage, error: null });
+
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
 
       const result = await repository.upsert(insertData);
 
-      expect(mockRepository.upsert).toHaveBeenCalledWith(insertData);
       expect(result).toEqual(mockMarkdownPage);
+      expect(consoleSpy).toHaveBeenCalledWith(`✨ Página creada: ${insertData.title} (${insertData.notion_page_id})`);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('debería hacer upsert exitosamente cuando la página existe', async () => {
+      const insertData: MarkdownPageInsert = {
+        notion_page_id: 'notion-123',
+        title: 'Upsert Page',
+        content: 'Upsert content'
+      };
+
+      // Mock para findByNotionPageId (existe)
+      mockSupabaseClient.single
+        .mockResolvedValueOnce({ data: mockMarkdownPage, error: null })
+        .mockResolvedValueOnce({ data: mockMarkdownPage, error: null });
+
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+
+      const result = await repository.upsert(insertData);
+
+      expect(result).toEqual(mockMarkdownPage);
+      expect(consoleSpy).toHaveBeenCalledWith(`🔄 Página actualizada: ${insertData.title} (${insertData.notion_page_id})`);
+
+      consoleSpy.mockRestore();
     });
 
     it('debería propagar errores', async () => {
@@ -290,59 +387,56 @@ describe('SupabaseRepository', () => {
         content: 'Upsert content'
       };
 
-      mockRepository.upsert.mockRejectedValue(new Error('Upsert failed'));
+      const error = { message: 'Upsert failed' };
+      mockSupabaseClient.single
+        .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
+        .mockResolvedValueOnce({ data: null, error });
 
       await expect(repository.upsert(insertData))
-        .rejects.toThrow('Upsert failed');
-    });
-
-    it('debería validar datos complejos', () => {
-      const complexData: MarkdownPageInsert = {
-        notion_page_id: 'complex-123',
-        title: 'Complex Page',
-        content: 'Complex content with **markdown**',
-        notion_url: 'https://notion.so/test',
-        notion_created_time: '2023-01-01T00:00:00.000Z',
-        notion_last_edited_time: '2023-01-02T00:00:00.000Z',
-        tags: ['tag1', 'tag2', 'important'],
-        metadata: {
-          author: 'Test Author',
-          version: 1,
-          published: true,
-          nested: { deep: { value: 'test' } }
-        },
-        embedding: new Array(1536).fill(0).map(() => Math.random())
-      };
-
-      expect(() => repository.upsert(complexData)).not.toThrow();
+        .rejects.toThrow('Error al hacer upsert de página: Upsert failed');
     });
   });
 
   describe('search()', () => {
-    it('debería buscar páginas por texto', async () => {
-      const mockPages = [mockMarkdownPage];
-      mockRepository.search.mockResolvedValue(mockPages);
+    beforeEach(() => {
+      // Reset the mock chain for search tests
+      mockSupabaseClient.from.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnThis(),
+            range: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValue({ data: [mockMarkdownPage], error: null })
+          })
+        })
+      });
+    });
 
+    it('debería buscar páginas por texto', async () => {
       const result = await repository.search('test query');
 
-      expect(mockRepository.search).toHaveBeenCalledWith('test query');
-      expect(result).toEqual(mockPages);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(result).toEqual([mockMarkdownPage]);
     });
 
     it('debería aceptar opciones de búsqueda', async () => {
-      const mockPages = [mockMarkdownPage];
       const options = { limit: 5, offset: 10 };
-
-      mockRepository.search.mockResolvedValue(mockPages);
 
       const result = await repository.search('query', options);
 
-      expect(mockRepository.search).toHaveBeenCalledWith('query', options);
-      expect(result).toEqual(mockPages);
+      expect(mockSupabaseClient.from).toHaveBeenCalledWith('markdown_pages');
+      expect(result).toEqual([mockMarkdownPage]);
     });
 
     it('debería retornar array vacío por defecto', async () => {
-      mockRepository.search.mockResolvedValue([]);
+      mockSupabaseClient.from.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnThis(),
+            range: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValue({ data: [], error: null })
+          })
+        })
+      });
 
       const result = await repository.search('query');
 
@@ -350,21 +444,34 @@ describe('SupabaseRepository', () => {
     });
 
     it('debería propagar errores', async () => {
-      mockRepository.search.mockRejectedValue(new Error('Search failed'));
+      const error = { message: 'Search failed' };
+      mockSupabaseClient.from.mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnThis(),
+            range: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValue({ data: null, error })
+          })
+        })
+      });
 
       await expect(repository.search('query'))
-        .rejects.toThrow('Search failed');
+        .rejects.toThrow('Error al buscar páginas: Search failed');
     });
   });
 
   describe('searchByVector()', () => {
     it('debería buscar por vector con opciones por defecto', async () => {
       const mockResults = [{ ...mockMarkdownPage, similarity: 0.8 }];
-      mockRepository.searchByVector.mockResolvedValue(mockResults);
+      mockSupabaseClient.rpc.mockResolvedValue({ data: mockResults, error: null });
 
       const result = await repository.searchByVector([0.1, 0.2, 0.3]);
 
-      expect(mockRepository.searchByVector).toHaveBeenCalledWith([0.1, 0.2, 0.3]);
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('match_documents', {
+        query_embedding: [0.1, 0.2, 0.3],
+        match_threshold: 0.6,
+        match_count: 5
+      });
       expect(result).toEqual(mockResults);
     });
 
@@ -372,16 +479,20 @@ describe('SupabaseRepository', () => {
       const mockResults = [{ ...mockMarkdownPage, similarity: 0.9 }];
       const options = { matchThreshold: 0.8, matchCount: 10 };
 
-      mockRepository.searchByVector.mockResolvedValue(mockResults);
+      mockSupabaseClient.rpc.mockResolvedValue({ data: mockResults, error: null });
 
       const result = await repository.searchByVector([0.1, 0.2, 0.3], options);
 
-      expect(mockRepository.searchByVector).toHaveBeenCalledWith([0.1, 0.2, 0.3], options);
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('match_documents', {
+        query_embedding: [0.1, 0.2, 0.3],
+        match_threshold: 0.8,
+        match_count: 10
+      });
       expect(result).toEqual(mockResults);
     });
 
     it('debería retornar array vacío por defecto', async () => {
-      mockRepository.searchByVector.mockResolvedValue([]);
+      mockSupabaseClient.rpc.mockResolvedValue({ data: [], error: null });
 
       const result = await repository.searchByVector([0.1, 0.2, 0.3]);
 
@@ -389,15 +500,16 @@ describe('SupabaseRepository', () => {
     });
 
     it('debería propagar errores', async () => {
-      mockRepository.searchByVector.mockRejectedValue(new Error('Vector search failed'));
+      const error = { message: 'Vector search failed' };
+      mockSupabaseClient.rpc.mockResolvedValue({ data: null, error });
 
       await expect(repository.searchByVector([0.1, 0.2, 0.3]))
-        .rejects.toThrow('Vector search failed');
+        .rejects.toThrow('Error en búsqueda vectorial: Vector search failed');
     });
 
     it('debería manejar vectores de diferentes tamaños', async () => {
       const mockResults = [{ ...mockMarkdownPage, similarity: 0.7 }];
-      mockRepository.searchByVector.mockResolvedValue(mockResults);
+      mockSupabaseClient.rpc.mockResolvedValue({ data: mockResults, error: null });
 
       const smallVector = [0.1, 0.2];
       const largeVector = new Array(1536).fill(0).map(() => Math.random());
@@ -405,7 +517,7 @@ describe('SupabaseRepository', () => {
       await repository.searchByVector(smallVector);
       await repository.searchByVector(largeVector);
 
-      expect(mockRepository.searchByVector).toHaveBeenCalledTimes(2);
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -460,11 +572,41 @@ describe('SupabaseRepository', () => {
 
   describe('Casos edge', () => {
     it('debería manejar datos nulos y undefined apropiadamente', async () => {
-      mockRepository.findById.mockResolvedValue(null);
-      mockRepository.findByNotionPageId.mockResolvedValue(null);
-      mockRepository.findAll.mockResolvedValue([]);
-      mockRepository.search.mockResolvedValue([]);
-      mockRepository.searchByVector.mockResolvedValue([]);
+      // Configurar mocks para cada tipo de consulta
+      vi.clearAllMocks();
+
+      // Mock para findById y findByNotionPageId
+      mockSupabaseClient.single
+        .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } })
+        .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } });
+
+      // Mock para findAll
+      const mockFindAllChain = {
+        select: vi.fn().mockReturnValue({
+          limit: vi.fn().mockReturnThis(),
+          range: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [], error: null })
+        })
+      };
+
+      // Mock para search
+      const mockSearchChain = {
+        select: vi.fn().mockReturnValue({
+          or: vi.fn().mockReturnValue({
+            limit: vi.fn().mockReturnThis(),
+            range: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValue({ data: [], error: null })
+          })
+        })
+      };
+
+      mockSupabaseClient.from
+        .mockReturnValueOnce(mockSupabaseClient) // findById
+        .mockReturnValueOnce(mockSupabaseClient) // findByNotionPageId
+        .mockReturnValueOnce(mockFindAllChain) // findAll
+        .mockReturnValueOnce(mockSearchChain); // search
+
+      mockSupabaseClient.rpc.mockResolvedValue({ data: [], error: null });
 
       const results = await Promise.all([
         repository.findById('non-existent'),
@@ -479,43 +621,6 @@ describe('SupabaseRepository', () => {
       expect(results[2]).toEqual([]);
       expect(results[3]).toEqual([]);
       expect(results[4]).toEqual([]);
-    });
-
-    it('debería manejar parámetros opcionales', async () => {
-      mockRepository.findAll.mockResolvedValue([mockMarkdownPage]);
-      mockRepository.search.mockResolvedValue([mockMarkdownPage]);
-      mockRepository.searchByVector.mockResolvedValue([mockMarkdownPage]);
-
-      await repository.findAll();
-      await repository.search('query');
-      await repository.searchByVector([0.1, 0.2]);
-
-      expect(mockRepository.findAll).toHaveBeenCalledWith();
-      expect(mockRepository.search).toHaveBeenCalledWith('query');
-      expect(mockRepository.searchByVector).toHaveBeenCalledWith([0.1, 0.2]);
-    });
-
-    it('debería propagar errores de forma consistente', async () => {
-      const error = new Error('Consistent error handling');
-
-      mockRepository.save.mockRejectedValue(error);
-      mockRepository.findById.mockRejectedValue(error);
-      mockRepository.update.mockRejectedValue(error);
-      mockRepository.delete.mockRejectedValue(error);
-      mockRepository.search.mockRejectedValue(error);
-
-      const insertData: MarkdownPageInsert = {
-        notion_page_id: 'test',
-        title: 'Test',
-        content: 'Test'
-      };
-      const updateData: MarkdownPageUpdate = { title: 'Updated' };
-
-      await expect(repository.save(insertData)).rejects.toThrow(error);
-      await expect(repository.findById('id')).rejects.toThrow(error);
-      await expect(repository.update('id', updateData)).rejects.toThrow(error);
-      await expect(repository.delete('id')).rejects.toThrow(error);
-      await expect(repository.search('query')).rejects.toThrow(error);
     });
   });
 });

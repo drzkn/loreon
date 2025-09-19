@@ -21,12 +21,10 @@ import {
   WelcomeSubtitle
 } from './page.styles';
 import { Icon } from '@/components';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const { userProfile } = useAuth();
 
   // Usar el hook useChat para conectar con nuestra API RAG
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
@@ -58,8 +56,7 @@ export default function ChatPage() {
   };
 
   const getUserInitial = () => {
-    if (!userProfile?.name) return userProfile?.email?.[0]?.toUpperCase() || 'U';
-    return userProfile.name[0].toUpperCase();
+    return 'U';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
