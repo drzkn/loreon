@@ -6,6 +6,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/e2e/**',
+      '**/tests/e2e/**'
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -19,6 +24,7 @@ export default defineConfig({
         'node_modules/',
         '.next/',
         'coverage/',
+        'playwright-report/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/stories/**',
@@ -53,6 +59,9 @@ export default defineConfig({
         'src/app/settings/hooks/useSyncToSupabase.ts',
         'middleware.ts',
         'src/utils/renderLogger/renderLogger.ts',
+        /** Tests e2e - excluidos completamente */
+        '**/e2e/**',
+        '**/tests/e2e/**',
         /** Paginas y posiblemente, serán eliminadas de aqui */
         'src/app/test/page.tsx',
         'src/app/settings/connect/page.tsx',
