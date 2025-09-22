@@ -16,6 +16,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // Forzar headless en CI
+    headless: process.env.CI ? true : undefined,
     // Slow motion para ver las acciones (en milisegundos)
     // Descomenta la línea siguiente para activar globalmente
     // launchOptions: { slowMo: 1000 },
@@ -41,7 +43,8 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
-    {
+    // Proyecto demo solo para desarrollo local (no en CI)
+    ...(!process.env.CI ? [{
       name: 'demo',
       use: {
         ...devices['Desktop Chrome'],
@@ -50,7 +53,7 @@ export default defineConfig({
           slowMo: 2000 // 2 segundos entre acciones
         }
       },
-    },
+    }] : []),
   ],
   webServer: {
     command: 'yarn dev',
