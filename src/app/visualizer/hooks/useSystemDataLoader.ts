@@ -4,6 +4,7 @@ import { SupabaseMarkdownRepository } from '../../../adapters/output/infrastruct
 import { supabase } from '../../../adapters/output/infrastructure/supabase/SupabaseClient';
 import { renderMarkdown } from '../page.constants';
 import type { UnifiedPageData, SystemStatus } from '../components/PagesList';
+import type { NotionPage } from '../../../adapters/output/infrastructure/supabase/types';
 
 export function useSystemDataLoader() {
   const [pages, setPages] = useState<UnifiedPageData[]>([]);
@@ -62,14 +63,15 @@ export function useSystemDataLoader() {
 
         for (const page of loadedPages.slice(0, 20)) {
           try {
-            const blocks = await nativeRepository!.getPageBlocks(page.id);
+            const blocks = await nativeRepository!.getPageBlocks((page as NotionPage).id);
 
             let htmlContent;
 
             if (blocks.length > 0) {
               htmlContent = blocks.map(block => block.html_content).join('\n');
             } else {
-              const originalContent = page.raw_data?.original_content || '';
+              const rawData = (page as NotionPage).raw_data;
+              const originalContent = typeof rawData?.original_content === 'string' ? rawData.original_content : '';
               if (originalContent) {
                 htmlContent = renderMarkdown(originalContent);
               } else {
@@ -78,20 +80,21 @@ export function useSystemDataLoader() {
             }
 
             transformedPages.push({
-              id: page.id,
-              title: page.title,
+              id: (page as NotionPage).id,
+              title: (page as NotionPage).title,
               content: htmlContent,
               source: 'native',
-              notion_id: page.notion_id,
-              url: page.url,
-              created_at: page.created_at,
-              updated_at: page.updated_at
+              notion_id: (page as NotionPage).notion_id,
+              url: (page as NotionPage).url,
+              created_at: (page as NotionPage).created_at,
+              updated_at: (page as NotionPage).updated_at
             });
 
           } catch (blockError) {
-            console.warn(`⚠️ Error obteniendo bloques para página ${page.title}:`, blockError);
+            console.warn(`⚠️ Error obteniendo bloques para página ${(page as NotionPage).title}:`, blockError);
 
-            const originalContent = page.raw_data?.original_content || '';
+            const rawData = (page as NotionPage).raw_data;
+            const originalContent = typeof rawData?.original_content === 'string' ? rawData.original_content : '';
             let htmlContent;
 
             if (originalContent) {
@@ -101,14 +104,14 @@ export function useSystemDataLoader() {
             }
 
             transformedPages.push({
-              id: page.id,
-              title: page.title,
+              id: (page as NotionPage).id,
+              title: (page as NotionPage).title,
               content: htmlContent,
               source: 'native',
-              notion_id: page.notion_id,
-              url: page.url,
-              created_at: page.created_at,
-              updated_at: page.updated_at
+              notion_id: (page as NotionPage).notion_id,
+              url: (page as NotionPage).url,
+              created_at: (page as NotionPage).created_at,
+              updated_at: (page as NotionPage).updated_at
             });
           }
         }

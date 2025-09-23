@@ -62,8 +62,8 @@ export default defineConfig({
     timeout: 120 * 1000,
   },
   outputDir: 'test-results/',
-  timeout: 30 * 1000,
+  timeout: process.env.CI ? 60 * 1000 : 30 * 1000, // Más tiempo en CI
   expect: {
-    timeout: 5 * 1000,
+    timeout: process.env.CI ? 10 * 1000 : 5 * 1000, // Más tiempo en CI
   },
 });
