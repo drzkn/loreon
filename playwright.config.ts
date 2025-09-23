@@ -43,6 +43,19 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
+    // Proyecto específico para tests de producción
+    {
+      name: 'production-health',
+      testMatch: '**/production/**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Configuraciones específicas para tests de producción
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
+        trace: 'retain-on-failure',
+      },
+      timeout: 120 * 1000, // 2 minutos para tests de producción
+    },
     // Proyecto demo solo para desarrollo local (no en CI)
     ...(!process.env.CI ? [{
       name: 'demo',

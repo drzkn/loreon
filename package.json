@@ -30,6 +30,10 @@
     "test:e2e:debug": "playwright test --debug",
     "test:ci:full": "bash scripts/test-ci-local.sh",
     "test:e2e:report": "playwright show-report",
+    "test:production": "bash scripts/run-production-tests.sh",
+    "test:production:health": "bash scripts/run-production-tests.sh health-only",
+    "test:production:performance": "bash scripts/run-production-tests.sh performance-only",
+    "test:e2e:production": "playwright test --project=production-health",
     "example:supabase": "npx tsx src/examples/supabaseExample.ts",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "clean:cache": "rm -rf .next/cache",
@@ -79,6 +83,7 @@
     "postcss-cli": "^11.0.1",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.11",
+    "tsx": "^4.20.5",
     "typescript": "^5",
     "vitest": "^3.2.4"
   }
