@@ -1,6 +1,6 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-
 export interface ISupabaseClient {
-  from(table: string): ReturnType<SupabaseClient['from']>;
-  auth: SupabaseClient['auth'];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from(table: string): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  auth: any;
 }

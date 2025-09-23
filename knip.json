@@ -1,0 +1,58 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/index.ts",
+    "src/app/**/*.{ts,tsx}",
+    "src/examples/**/*.ts",
+    "tests/**/*.{ts,tsx}",
+    ".storybook/**/*.{js,ts}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "tests/**/*.{ts,tsx}",
+    ".storybook/**/*.{js,ts}"
+  ],
+  "ignore": [
+    "coverage/**",
+    "node_modules/**",
+    ".next/**",
+    "dist/**",
+    "playwright-report/**",
+    "test-results/**",
+    "storybook-static/**",
+    "**/*.css",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.svg",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.gif",
+    ".storybook/preview.ts"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "postcss-cli",
+    "tailwindcss",
+    "postcss",
+    "eslint-config-next"
+  ],
+  "ignoreBinaries": ["tsx"],
+  "next": {
+    "entry": ["src/app/**/*.{ts,tsx}"],
+    "ignore": ["**/*.css", "**/*.scss", "**/*.sass"]
+  },
+  "storybook": {
+    "config": [".storybook/main.ts"],
+    "entry": ["src/**/*.stories.{js,ts,jsx,tsx}"],
+    "ignore": [".storybook/preview.ts"]
+  },
+  "vitest": {
+    "config": ["vitest.config.ts"],
+    "entry": ["src/**/*.{test,spec}.{js,ts,jsx,tsx}", "vitest.setup.ts"]
+  },
+  "playwright": {
+    "config": ["playwright.config.ts"],
+    "entry": ["tests/**/*.{test,spec}.{js,ts}"]
+  }
+}
