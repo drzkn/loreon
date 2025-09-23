@@ -28,6 +28,7 @@
     "test:e2e:slow": "playwright test --headed --slowMo=1000",
     "test:e2e:demo": "playwright test --project=demo",
     "test:e2e:debug": "playwright test --debug",
+    "test:ci:full": "bash scripts/test-ci-local.sh",
     "test:e2e:report": "playwright show-report",
     "example:supabase": "npx tsx src/examples/supabaseExample.ts",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",

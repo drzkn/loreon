@@ -99,7 +99,7 @@ export default function ChatPage() {
             </WelcomeMessage>
           ) : (
             messages.map((message) => (
-              <Message key={message.id} $isUser={message.role === 'user'}>
+              <Message key={message.id} $isUser={message.role === 'user'} data-testid="message-container">
                 <MessageAuthor $isUser={message.role === 'user'}>
                   {message.role === 'user' ? (
                     getUserInitial()
@@ -107,7 +107,7 @@ export default function ChatPage() {
                     <Icon name="bot" size="sm" />
                   )}
                 </MessageAuthor>
-                <MessageBubble $isUser={message.role === 'user'}>
+                <MessageBubble $isUser={message.role === 'user'} className="message-bubble">
                   <MessageContent $isUser={message.role === 'user'}>
                     {message.content}
                   </MessageContent>
@@ -120,18 +120,21 @@ export default function ChatPage() {
           )}
 
           {isSubmitting && (
-            <Message $isUser={false}>
+            <Message $isUser={false} data-testid="thinking-message">
               <MessageAuthor $isUser={false}>
                 <Icon name="bot" size="sm" />
               </MessageAuthor>
               <MessageBubble $isUser={false}>
                 <MessageContent $isUser={false}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    opacity: 0.7
-                  }}>
+                  <div
+                    data-testid="thinking-indicator"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      opacity: 0.7
+                    }}
+                  >
                     <Icon name="brain" size="sm" />
                     Pensando...
                   </div>
