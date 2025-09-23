@@ -39,7 +39,11 @@ export async function GET(): Promise<NextResponse<SystemHealthCheck>> {
     };
 
     // Verificar servicios
-    const services = {
+    const services: {
+      database: { status: string; responseTime?: number };
+      notion: { status: string; responseTime?: number };
+      embeddings: { status: string; responseTime?: number };
+    } = {
       database: { status: 'unknown' },
       notion: { status: 'unknown' },
       embeddings: { status: 'unknown' }
@@ -61,7 +65,7 @@ export async function GET(): Promise<NextResponse<SystemHealthCheck>> {
         status: error ? 'unhealthy' : 'healthy',
         responseTime: dbResponseTime
       };
-    } catch (err) {
+    } catch {
       services.database.status = 'unhealthy';
     }
 
@@ -71,14 +75,14 @@ export async function GET(): Promise<NextResponse<SystemHealthCheck>> {
       const { container } = await import('@/infrastructure/di/container');
 
       // Solo verificar que el servicio se puede instanciar
-      const queryDatabaseUseCase = container.queryDatabaseUseCase;
+      void container.queryDatabaseUseCase; // Verificar que existe
       const notionResponseTime = Date.now() - notionStartTime;
 
       services.notion = {
         status: 'healthy',
         responseTime: notionResponseTime
       };
-    } catch (err) {
+    } catch {
       services.notion.status = 'unhealthy';
     }
 
@@ -88,14 +92,14 @@ export async function GET(): Promise<NextResponse<SystemHealthCheck>> {
       const { container } = await import('@/infrastructure/di/container');
 
       // Solo verificar que el servicio se puede instanciar
-      const embeddingsService = container.embeddingsService;
+      void container.embeddingsService; // Verificar que existe
       const embResponseTime = Date.now() - embStartTime;
 
       services.embeddings = {
         status: 'healthy',
         responseTime: embResponseTime
       };
-    } catch (err) {
+    } catch {
       services.embeddings.status = 'unhealthy';
     }
 
@@ -127,7 +131,7 @@ export async function GET(): Promise<NextResponse<SystemHealthCheck>> {
     const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503;
     return NextResponse.json(healthCheck, { status: statusCode });
 
-  } catch (error) {
+  } catch {
     const errorHealthCheck: SystemHealthCheck = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

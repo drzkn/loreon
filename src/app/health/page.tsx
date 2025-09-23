@@ -129,7 +129,7 @@ const HealthDashboard: React.FC = () => {
 
       <Grid>
         {/* Estado General */}
-        <Card>
+        <Card title="📊 Estado General">
           <CardHeader>
             <h3>📊 Estado General</h3>
           </CardHeader>
@@ -152,7 +152,7 @@ const HealthDashboard: React.FC = () => {
         </Card>
 
         {/* Servicios */}
-        <Card>
+        <Card title="🔧 Servicios">
           <CardHeader>
             <h3>🔧 Servicios</h3>
           </CardHeader>
@@ -172,7 +172,7 @@ const HealthDashboard: React.FC = () => {
         </Card>
 
         {/* Configuración */}
-        <Card>
+        <Card title="⚙️ Configuración">
           <CardHeader>
             <h3>⚙️ Configuración</h3>
           </CardHeader>
@@ -199,7 +199,7 @@ const HealthDashboard: React.FC = () => {
         </Card>
 
         {/* Rendimiento */}
-        <Card>
+        <Card title="⚡ Rendimiento">
           <CardHeader>
             <h3>⚡ Rendimiento</h3>
           </CardHeader>
