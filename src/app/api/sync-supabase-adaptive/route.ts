@@ -42,6 +42,13 @@ export async function POST() {
           const notionMigrationService = container.notionMigrationService;
 
           const startTime = Date.now();
+          const globalErrors: Array<{
+            pageId: string;
+            pageTitle: string;
+            databaseId: string;
+            error: string;
+            timestamp: string;
+          }> = [];
 
           const getOptimalStrategy = (pageCount: number) => {
             if (pageCount <= 10) {
@@ -90,19 +97,41 @@ export async function POST() {
 
                 const pagePromises = pages.map(async (page, pageIndex) => {
                   const pageProgress = `${dbProgress}[${pageIndex + 1}/${pages.length}]`;
+                  const pageTitle = page.properties?.title || page.properties?.Name || page.id;
+                  const displayTitle = typeof pageTitle === 'string' ? pageTitle.substring(0, 20) : 'Sin título';
+
                   try {
                     const migrationResult = await notionMigrationService.migratePage(page.id);
                     if (migrationResult.success) {
-                      const pageTitle = page.properties?.title || page.properties?.Name || page.id;
-                      const displayTitle = typeof pageTitle === 'string' ? pageTitle.substring(0, 20) : 'Page';
                       sendLog(`✅ ${pageProgress} "${displayTitle}": ${migrationResult.blocksProcessed || 0}b, ${migrationResult.embeddingsGenerated || 0}e`);
-                      return { success: true };
+                      return { success: true, pageId: page.id, pageTitle: displayTitle };
                     } else {
-                      sendLog(`❌ ${pageProgress} Error en migración`);
-                      return { success: false };
+                      const errorDetails = migrationResult.errors?.join('; ') || 'Error en migración sin detalles';
+                      sendLog(`❌ ${pageProgress} "${displayTitle}": ${errorDetails}`);
+
+                      globalErrors.push({
+                        pageId: page.id,
+                        pageTitle: displayTitle,
+                        databaseId: databaseId,
+                        error: errorDetails,
+                        timestamp: new Date().toISOString()
+                      });
+
+                      return { success: false, pageId: page.id, pageTitle: displayTitle, error: errorDetails };
                     }
-                  } catch {
-                    return { success: false };
+                  } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+                    sendLog(`💥 ${pageProgress} "${displayTitle}": Excepción - ${errorMessage}`);
+
+                    globalErrors.push({
+                      pageId: page.id,
+                      pageTitle: displayTitle,
+                      databaseId: databaseId,
+                      error: `Excepción: ${errorMessage}`,
+                      timestamp: new Date().toISOString()
+                    });
+
+                    return { success: false, pageId: page.id, pageTitle: displayTitle, error: errorMessage };
                   }
                 });
 
@@ -134,16 +163,38 @@ export async function POST() {
                 sendLog(`🚀 ${dbProgress} ${batchProgress}: ${batch.length} páginas en paralelo...`);
 
                 const batchPromises = batch.map(async (page) => {
+                  const pageTitle = page.properties?.title || page.properties?.Name || page.id;
+                  const displayTitle = typeof pageTitle === 'string' ? pageTitle.substring(0, 20) : 'Sin título';
 
                   try {
                     const migrationResult = await notionMigrationService.migratePage(page.id);
                     if (migrationResult.success) {
-                      return { success: true };
-                    }
+                      return { success: true, pageId: page.id, pageTitle: displayTitle };
+                    } else {
+                      const errorDetails = migrationResult.errors?.join('; ') || 'Error en migración sin detalles';
 
-                    return { success: false };
-                  } catch {
-                    return { success: false };
+                      globalErrors.push({
+                        pageId: page.id,
+                        pageTitle: displayTitle,
+                        databaseId: databaseId,
+                        error: errorDetails,
+                        timestamp: new Date().toISOString()
+                      });
+
+                      return { success: false, pageId: page.id, pageTitle: displayTitle, error: errorDetails };
+                    }
+                  } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+
+                    globalErrors.push({
+                      pageId: page.id,
+                      pageTitle: displayTitle,
+                      databaseId: databaseId,
+                      error: `Excepción: ${errorMessage}`,
+                      timestamp: new Date().toISOString()
+                    });
+
+                    return { success: false, pageId: page.id, pageTitle: displayTitle, error: errorMessage };
                   }
                 });
 
@@ -206,6 +257,83 @@ export async function POST() {
             const dbId = databaseIds[index].substring(0, 8);
             sendLog(`• DB ${index + 1} (${dbId}...): ${result?.strategy} - ${result?.pagesProcessed} páginas`);
           });
+
+          // Informe detallado de errores
+          if (globalErrors.length > 0) {
+            sendLog(`🚨 INFORME DETALLADO DE ERRORES:`);
+            sendLog(`📊 Total de páginas con errores: ${globalErrors.length}`);
+            sendLog(`💡 Análisis de errores por tipo:`);
+
+            // Agrupar errores por tipo
+            const errorsByType = globalErrors.reduce((acc, error) => {
+              const errorType = error.error.includes('Excepción:') ? 'Excepciones' :
+                error.error.includes('timeout') || error.error.includes('ECONNRESET') ? 'Timeouts/Conexión' :
+                  error.error.includes('rate limit') || error.error.includes('Rate limit') ? 'Rate Limiting' :
+                    error.error.includes('permission') || error.error.includes('Permission') ? 'Permisos' :
+                      error.error.includes('not found') || error.error.includes('Not found') ? 'Contenido no encontrado' :
+                        'Otros errores';
+
+              if (!acc[errorType]) {
+                acc[errorType] = [];
+              }
+              acc[errorType].push(error);
+              return acc;
+            }, {} as Record<string, typeof globalErrors>);
+
+            // Mostrar resumen por tipo
+            Object.entries(errorsByType).forEach(([type, errors]) => {
+              sendLog(`  🔸 ${type}: ${errors.length} páginas`);
+            });
+
+            sendLog(``);
+            sendLog(`📝 DETALLES DE ERRORES POR PÁGINA:`);
+
+            // Mostrar máximo 10 errores detallados para no saturar el log
+            const maxErrorsToShow = 10;
+            const errorsToShow = globalErrors.slice(0, maxErrorsToShow);
+
+            errorsToShow.forEach((error, index) => {
+              const dbShort = error.databaseId.substring(0, 8);
+              const pageShort = error.pageId.substring(0, 8);
+              sendLog(`  ${index + 1}. "${error.pageTitle}" (${pageShort}... en DB ${dbShort}...)`);
+              sendLog(`     💥 Error: ${error.error}`);
+              sendLog(`     🕐 Hora: ${new Date(error.timestamp).toLocaleTimeString()}`);
+            });
+
+            if (globalErrors.length > maxErrorsToShow) {
+              sendLog(`  ... y ${globalErrors.length - maxErrorsToShow} errores más (ver logs anteriores para detalles)`);
+            }
+
+            sendLog(``);
+            sendLog(`🎯 RECOMENDACIONES:`);
+
+            // Generar recomendaciones basadas en los tipos de errores
+            if (errorsByType['Timeouts/Conexión']) {
+              sendLog(`  • Reducir tamaño de lotes (actualmente procesando en paralelo)`);
+              sendLog(`  • Verificar estabilidad de conexión a internet`);
+            }
+            if (errorsByType['Rate Limiting']) {
+              sendLog(`  • Aumentar delays entre requests`);
+              sendLog(`  • Reducir paralelización para respetar límites de Notion API`);
+            }
+            if (errorsByType['Permisos']) {
+              sendLog(`  • Verificar permisos de la integración de Notion`);
+              sendLog(`  • Comprobar configuración de NOTION_API_KEY`);
+            }
+            if (errorsByType['Contenido no encontrado']) {
+              sendLog(`  • Algunas páginas pueden haber sido eliminadas en Notion`);
+              sendLog(`  • Verificar que las páginas existan y sean accesibles`);
+            }
+            if (errorsByType['Otros errores'] || errorsByType['Excepciones']) {
+              sendLog(`  • Revisar configuración de variables de entorno`);
+              sendLog(`  • Verificar conectividad con Supabase`);
+              sendLog(`  • Considerar ejecutar diagnóstico de producción`);
+            }
+
+            sendLog(``);
+          } else {
+            sendLog(`✨ ¡Excelente! No se detectaron errores en el proceso de sincronización`);
+          }
 
           sendLog(`🏆 Paso 4/4: ¡Sincronización IA completada con máxima eficiencia!`);
 
